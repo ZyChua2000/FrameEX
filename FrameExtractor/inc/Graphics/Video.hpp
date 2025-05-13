@@ -36,6 +36,7 @@ namespace FrameExtractor
 		inline uint32_t GetMaxFrames() const { return mMaxFrames; }
 		inline uint32_t GetWidth() const { return mWidth; }
 		inline uint32_t GetHeight() const { return mHeight; }
+		inline std::filesystem::path GetPath() const { return mPath; }
 	private:
 		std::filesystem::path mPath;
 		uint8_t mFPS;

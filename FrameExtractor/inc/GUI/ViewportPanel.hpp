@@ -57,7 +57,7 @@ namespace FrameExtractor
 		Video* mVideo = nullptr;
 		std::map<Icons, Ref<Texture>> mIcons;
 
-		std::map<std::filesystem::path, std::map<int32_t, BoundingBox>> mBBCache;
+		std::map<std::filesystem::path, std::map<int32_t, std::vector<BoundingBox>>> mBBCache;
 	};
 
 }

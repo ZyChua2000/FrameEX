@@ -21,6 +21,9 @@ namespace FrameExtractor
     {
         mVideo = new Video("sampleVideo.mp4");
         mVideo->Decode();
+        mBBCache[mVideo->GetPath()][3].push_back({ 200,300, 400, 500 });
+        mBBCache[mVideo->GetPath()][3].push_back({ 100,200, 1000, 700 });
+
         mIcons[Icons::PLAY_ICON] = MakeRef<Texture>("resources/icons/Play.png");
         mIcons[Icons::STOP_ICON] = MakeRef<Texture>("resources/icons/Stop.png");
         mIcons[Icons::FORWARD_ICON] = MakeRef<Texture>("resources/icons/MoveFrameRight.png");
@@ -55,6 +58,9 @@ namespace FrameExtractor
        
         auto contentRegion = ImGui::GetContentRegionAvail();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (contentRegion.x - contentRegion.x * 0.85f) * 0.5f);
+        auto cursor = ImGui::GetCursorScreenPos();
+        auto regionX = contentRegion.x * 0.85f;
+        auto regionY = contentRegion.y;
         ImGui::Image((ImTextureID)mVideo->GetFrame()->GetTextureID(), ImVec2(contentRegion.x * 0.85f, contentRegion.y));
         if (ImGui::BeginDragDropTarget()) {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_NAME")) {
@@ -66,6 +72,9 @@ namespace FrameExtractor
                 mFrameNumber = 0;
             }
         }
+
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+      
         //DTTrack += dt;
         //mFrameNumber = (int)(DTTrack * mVideo->GetFPS());
 
@@ -91,7 +100,6 @@ namespace FrameExtractor
         ImVec2 textPos = ImVec2(itemPos.x, itemPos.y);
 
         // Draw custom text on top of the widget using ImDrawList
-        ImDrawList* drawList = ImGui::GetWindowDrawList();
         if (ImGui::IsItemHovered())
         {
             // Change text color on hover
@@ -218,6 +226,21 @@ namespace FrameExtractor
             mIsPlaying = false;
             mVideo->Decode(mFrameNumber - 1);
         }
+
+        if (mBBCache.find(mVideo->GetPath()) != mBBCache.end())
+        {
+            if (mBBCache[mVideo->GetPath()].find(mFrameNumber) != mBBCache[mVideo->GetPath()].end())
+            {
+                const std::vector<BoundingBox>& boxes = mBBCache[mVideo->GetPath()][mFrameNumber];
+                for (const auto& AABB : boxes)
+                {
+                    ImVec2 topLeft = { cursor.x + AABB.minX / mVideo->GetWidth() * regionX, cursor.y + AABB.minY / mVideo->GetHeight() * regionY };
+                    ImVec2 bottomRight = { cursor.x + AABB.maxX / mVideo->GetWidth() * regionX, cursor.y + AABB.maxY / mVideo->GetHeight() * regionY };
+                    drawList->AddRect(topLeft, bottomRight, IM_COL32(150, 170, 23, 255), 0.0f, 0, 5.0f); // red border, 2px thick
+                }
+            }
+        }
+
         ImGui::End();        
     }
 
