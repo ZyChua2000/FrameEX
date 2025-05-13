@@ -18,6 +18,7 @@ namespace FrameExtractor
 	class ViewportPanel;
 	class ToolsPanel;
 	class ConsolePanel;
+	class ExplorerPanel;
 	class ImGuiManager
 	{
 	public:
@@ -44,6 +45,7 @@ namespace FrameExtractor
 		ViewportPanel* mViewportPanel;
 		ToolsPanel* mToolsPanel;
 		ConsolePanel* mConsolePanel;
+		ExplorerPanel* mExplorerPanel;
 		static float mFontSize;
 	};
 }

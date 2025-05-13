@@ -19,6 +19,7 @@ namespace FrameExtractor
 {
 	Texture::Texture(std::filesystem::path path)
 	{
+		stbi_set_flip_vertically_on_load(true);
 		auto data = stbi_load(path.string().c_str(), (int*)&mWidth, (int*)&mHeight, (int*) & mChannels, 0);
 		if (mChannels == 0)
 		{

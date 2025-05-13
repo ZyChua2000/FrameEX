@@ -15,17 +15,20 @@
 #include <GUI/IPanel.hpp>
 namespace FrameExtractor
 {
+	class ExplorerPanel;
+
 	class ToolsPanel : public IPanel
 	{
 	public:
-		ToolsPanel(const std::string& name, ImVec2& size, ImVec2& pos);
+		ToolsPanel(ExplorerPanel* ex);
 		~ToolsPanel() override;
 		virtual void OnImGuiRender(float dt) override;
 		virtual const char* GetName() const override;
+		virtual void OnAttach() override;
 	private:
-		std::string mName;
-		ImVec2 mViewportSize = ImVec2(0, 0);
-		ImVec2 mViewportPos = ImVec2(0, 0);
+		std::vector<std::filesystem::path> videosInProject;
+		ExplorerPanel* ExPanel;
+
 	};
 
 }

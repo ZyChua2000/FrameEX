@@ -14,6 +14,7 @@
 #include <imgui.h>
 #include <GUI/IPanel.hpp>
 #include <Graphics/Video.hpp>
+#include <Graphics/BoundingBox.hpp>
 namespace FrameExtractor
 {
 
@@ -55,6 +56,8 @@ namespace FrameExtractor
 		bool mIsPlaying = true;
 		Video* mVideo = nullptr;
 		std::map<Icons, Ref<Texture>> mIcons;
+
+		std::map<std::filesystem::path, std::map<int32_t, BoundingBox>> mBBCache;
 	};
 
 }

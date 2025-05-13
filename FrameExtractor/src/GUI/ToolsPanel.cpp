@@ -10,14 +10,12 @@
 #include "FrameExtractorPCH.hpp"
 #include "GUI/ToolsPanel.hpp"
 #include <Core/LoggerManager.hpp>
+#include <GUI/ExplorerPanel.hpp>
 namespace FrameExtractor
 {
-    ToolsPanel::ToolsPanel(const std::string& name, ImVec2& size, ImVec2& pos) :
-        mName(name),
-        mViewportSize(size),
-        mViewportPos(pos)
+    ToolsPanel::ToolsPanel(ExplorerPanel* ex)
     {
-
+        ExPanel = ex;
     }
 
     ToolsPanel::~ToolsPanel()
@@ -28,13 +26,61 @@ namespace FrameExtractor
     {
         //ImGui::SetNextWindowSize(mViewportSize);
         //ImGui::SetNextWindowPos(mViewportPos);
-        ImGui::Begin(mName.c_str());
+        ImGui::Begin("Tools");
 
+        ImVec2 windowSize = ImGui::GetContentRegionAvail();
+        ImGui::BeginChild("ScrollableRegion", ImVec2(windowSize.x, windowSize.y), true);
+
+  
+
+        for (const auto& entry : videosInProject)
+        {
+            std::string fileName = entry.filename().string();
+            std::string filePath = entry.string();
+            ImGui::Button(fileName.c_str());
+            if (ImGui::BeginDragDropSource())
+            {
+                ImGui::SetDragDropPayload("ITEM_NAME", filePath.c_str(), filePath.size() + 1);
+                ImGui::EndDragDropSource();
+            }
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("IMPORTVIDEO")) {
+                    const char* droppedItem = static_cast<const char*>(payload->Data);
+                    videosInProject.push_back(droppedItem);
+                }
+            }
+        }
+        ImGui::EndChild();
         ImGui::End();
     }
 
     const char* ToolsPanel::GetName() const
     {
-        return mName.c_str();
+        return "Tools";
+    }
+    
+    static void AddDirectoryRecursive(const std::filesystem::directory_entry& currEntry, std::vector<std::filesystem::path>& videosInProject)
+    {
+        if (currEntry.is_directory())
+        {
+            for (auto& entry : std::filesystem::directory_iterator(currEntry))
+            {
+                AddDirectoryRecursive(entry, videosInProject);
+            }
+        }
+        else if (currEntry.path().filename().extension() == ".mp4")
+        {
+            videosInProject.push_back(currEntry.path());
+        }
+        
+    }
+
+    void ToolsPanel::OnAttach()
+    {
+        auto rootPath = ExPanel->GetRootPath();
+        for (auto& entry : std::filesystem::directory_iterator(rootPath))
+        {
+            AddDirectoryRecursive(entry, videosInProject);
+        }
     }
 }

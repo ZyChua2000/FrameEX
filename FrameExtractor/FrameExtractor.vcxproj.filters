@@ -1332,6 +1332,13 @@
     <ClInclude Include="lib\glm\glm\vector_relational.hpp">
       <Filter>lib\glm\glm</Filter>
     </ClInclude>
+    <ClInclude Include="inc\GUI\ConsolePanel.hpp" />
+    <ClInclude Include="inc\GUI\ExplorerPanel.hpp">
+      <Filter>inc\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\BoundingBox.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\ApplicationManager.cpp">
@@ -1367,5 +1374,7 @@
     <ClCompile Include="src\Graphics\Video.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\GUI\ConsolePanel.cpp" />
+    <ClCompile Include="src\GUI\ExplorerPanel.cpp" />
   </ItemGroup>
 </Project>

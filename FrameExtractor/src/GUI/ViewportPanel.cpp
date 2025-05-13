@@ -56,7 +56,16 @@ namespace FrameExtractor
         auto contentRegion = ImGui::GetContentRegionAvail();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (contentRegion.x - contentRegion.x * 0.85f) * 0.5f);
         ImGui::Image((ImTextureID)mVideo->GetFrame()->GetTextureID(), ImVec2(contentRegion.x * 0.85f, contentRegion.y));
-       
+        if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_NAME")) {
+                const char* droppedItem = static_cast<const char*>(payload->Data);
+                delete mVideo;
+                mVideo = new Video(droppedItem);
+                mVideo->Decode();
+                DTTrack = 0.f;
+                mFrameNumber = 0;
+            }
+        }
         //DTTrack += dt;
         //mFrameNumber = (int)(DTTrack * mVideo->GetFPS());
 

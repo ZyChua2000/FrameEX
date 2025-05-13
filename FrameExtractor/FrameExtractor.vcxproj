@@ -145,10 +145,12 @@
     <ClInclude Include="inc\Core\LoggerManager.hpp" />
     <ClInclude Include="inc\Core\WindowManager.hpp" />
     <ClInclude Include="inc\FrameExtractorPCH.hpp" />
+    <ClInclude Include="inc\Graphics\BoundingBox.hpp" />
     <ClInclude Include="inc\GUI\ConsolePanel.hpp">
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="inc\GUI\ExplorerPanel.hpp" />
     <ClInclude Include="inc\GUI\IPanel.hpp" />
     <ClInclude Include="inc\GUI\ImGuiManager.hpp" />
     <ClInclude Include="inc\GUI\ToolsPanel.hpp" />
@@ -582,6 +584,7 @@
     <ClCompile Include="src\FrameExtractorPCH.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\GUI\ExplorerPanel.cpp" />
     <ClCompile Include="src\GUI\ImGuiManager.cpp" />
     <ClCompile Include="src\GUI\ToolsPanel.cpp" />
     <ClCompile Include="src\GUI\ViewportPanel.cpp" />

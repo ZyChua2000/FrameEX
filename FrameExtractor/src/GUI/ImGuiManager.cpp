@@ -25,6 +25,7 @@
 #include <GUI/ViewportPanel.hpp>
 #include <GUI/ToolsPanel.hpp>
 #include <GUI/ConsolePanel.hpp>
+#include <GUI/ExplorerPanel.hpp>
 #include <GLFW/glfw3.h>
 
 
@@ -156,20 +157,19 @@ namespace FrameExtractor
 		}
 
 		{
-			std::string name = "Tools";
-			ImVec2 size = ImVec2{ 1000,800 };
-			ImVec2 pos = ImVec2{ 0,0 };
-			mToolsPanel = new ToolsPanel(name, size, pos);
-			mToolsPanel->OnAttach();
-		}
-
-		{
-			std::string name = "Console";
-			ImVec2 size = ImVec2{ 1000,800 };
-			ImVec2 pos = ImVec2{ 0,0 };
 			mConsolePanel = new ConsolePanel();
 			mConsolePanel->OnAttach();
 			LoggerManager::SetConsole(mConsolePanel);
+		}
+
+		{
+			mExplorerPanel = new ExplorerPanel();
+			mExplorerPanel->OnAttach();
+		}
+
+		{
+			mToolsPanel = new ToolsPanel(mExplorerPanel);
+			mToolsPanel->OnAttach();
 		}
 	}
 
@@ -178,7 +178,9 @@ namespace FrameExtractor
 		mConsolePanel->OnDetach();
 		mToolsPanel->OnDetach();
 		mViewportPanel->OnDetach();
+		mExplorerPanel->OnDetach();
 
+		delete mExplorerPanel;
 		delete mConsolePanel;
 		delete mToolsPanel;
 		delete mViewportPanel;
@@ -272,8 +274,9 @@ namespace FrameExtractor
 		}
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f * styleMultiplier, 10.0f * styleMultiplier));
 
-		mViewportPanel->OnImGuiRender(dt);
+		mExplorerPanel->OnImGuiRender(dt);
 		mToolsPanel->OnImGuiRender(dt);
+		mViewportPanel->OnImGuiRender(dt);
 		mConsolePanel->OnImGuiRender(dt);
 
 		ImGui::PopStyleVar();
