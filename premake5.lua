@@ -1,0 +1,142 @@
+
+workspace "FrameEX"
+	architecture "x64"
+
+	startproject "FrameExtractor"
+
+	configurations
+	{
+		"Debug",
+		"Release",
+		"Distribution"
+	}
+
+	outputdir = "%{cfg.buildcfg}-%{cfg.architecture}"
+
+	IncludeDir = {}
+	IncludeDir["GLFW"] = "FrameExtractor/lib/GLFW/include"
+	IncludeDir["GLAD"] = "FrameExtractor/lib/GLAD/include"
+	IncludeDir["ImGui"] = "FrameExtractor/lib/imgui"
+	IncludeDir["GLM"] = "FrameExtractor/lib/glm"
+	IncludeDir["FFMPEG"] = "FrameExtractor/lib/ffmpeg/include"
+	IncludeDir["STBI"] = "FrameExtractor/lib/stb_image"
+
+
+	LibraryDir = {}
+	LibraryDir["GLAD_Debug"] = "lib/GLAD/lib/Deb"
+	LibraryDir["GLAD_Release"] = "lib/GLAD/lib/Rel"
+	LibraryDir["GLFW_Debug"] = "lib/GLFW/lib/Deb"
+	LibraryDir["GLFW_Release"] = "lib/GLFW/lib/Rel"
+	LibraryDir["IMGUI_Debug"] = "lib/IMGUI/lib/Deb"
+	LibraryDir["IMGUI_Release"] = "lib/IMGUI/lib/Rel"
+	LibraryDir["FFMPEG"] = "lib/ffmpeg/lib"
+
+	Library = {}
+	Library["GLAD_Debug"] = "%{LibraryDir.GLAD_Debug}/GLAD.lib"
+	Library["GLAD_Release"] = "%{LibraryDir.GLAD_Release}/GLAD.lib"
+	Library["GLFW_Debug"] = "%{LibraryDir.GLFW_Debug}/GLFW.lib"
+	Library["GLFW_Release"] = "%{LibraryDir.GLFW_Release}/GLFW.lib"
+	Library["IMGUI_Debug"] = "%{LibraryDir.IMGUI_Debug}/IMGUI.lib"
+	Library["IMGUI_Release"] = "%{LibraryDir.IMGUI_Release}/IMGUI.lib"
+	Library["AVUtil"] = "%{LibraryDir.FFMPEG}/avutil.lib"
+	Library["AVCodec"] = "%{LibraryDir.FFMPEG}/avcodec.lib"
+	Library["AVFormat"] = "%{LibraryDir.FFMPEG}/avformat.lib"
+	Library["SWScale"] = "%{LibraryDir.FFMPEG}/swscale.lib"
+
+	project "FrameExtractor"
+		location "FrameExtractor"
+		kind "ConsoleApp"
+		language "C++"
+		cppdialect "C++20"
+		staticruntime "on"
+		systemversion "latest"
+
+		targetdir ("build/" .. outputdir .. "/%{prj.name}")
+		objdir ("build-int/" .. outputdir .. "/%{prj.name}")
+
+		files
+		{
+			"%{prj.name}/**.hpp",
+			"%{prj.name}/src/**.cpp",
+			"%{prj.name}/lib/glm/glm/**.hpp",
+			"%{prj.name}/lib/glm/glm/**.inl",
+		}
+
+		defines
+		{
+			"_CRT_SECURE_NO_WARNINGS"
+		}
+
+		includedirs
+		{
+			"%{prj.name}/inc",
+			"%{prj.name}/lib/spdlog/include",
+			"%{IncludeDir.GLFW}",
+			"%{IncludeDir.GLAD}",
+			"%{IncludeDir.ImGui}",
+			"%{IncludeDir.GLM}",
+			"%{IncludeDir.FFMPEG}",
+			"%{IncludeDir.STBI}"
+		}
+
+
+		links
+		{
+			"opengl32.lib",
+		}
+
+
+		defines
+		{
+			"_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS",
+			"GLFW_INCLUDE_NONE",
+		}
+		
+		pchheader "FrameExtractorPCH.hpp"
+		pchsource "FrameExtractor/src/FrameExtractorPCH.cpp"
+
+		filter "configurations:Debug"
+			defines "_DEB"
+			symbols "On"
+			runtime "Debug"
+			links
+			{
+				"%{Library.GLAD_Debug}",
+				"%{Library.GLFW_Debug}",
+				"%{Library.IMGUI_Debug}",
+				"%{Library.AVCodec}",
+				"%{Library.AVUtil}",
+				"%{Library.SWScale}",
+				"%{Library.AVFormat}"
+			}
+
+
+		filter "configurations:Release"
+			defines "_REL"
+			optimize "On"
+			runtime "Release"
+			links
+			{
+				"%{Library.GLAD_Release}",
+				"%{Library.GLFW_Release}",
+				"%{Library.IMGUI_Release}",
+				"%{Library.AVCodec}",
+				"%{Library.AVUtil}",
+				"%{Library.SWScale}",
+				"%{Library.AVFormat}"
+			}
+
+		filter "configurations:Distribution"
+			defines "_DIST"
+			optimize "On"
+			runtime "Release"
+			links
+			{
+				"%{Library.GLAD_Release}",
+				"%{Library.GLFW_Release}",
+				"%{Library.IMGUI_Release}",
+				"%{Library.AVCodec}",
+				"%{Library.AVUtil}",
+				"%{Library.SWScale}",
+				"%{Library.AVFormat}"
+			}
