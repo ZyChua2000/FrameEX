@@ -16,6 +16,30 @@
     <Filter Include="lib">
       <UniqueIdentifier>{3C8C880B-A895-887C-3111-9F7C9D19947C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\OpenXLSX">
+      <UniqueIdentifier>{6C33952A-5896-24CF-011C-5D85ED5DF051}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\OpenXLSX\inc">
+      <UniqueIdentifier>{759CB40F-6195-D361-8AC7-B8E6761FB36D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\OpenXLSX\inc\external">
+      <UniqueIdentifier>{671E9107-D3E0-C491-1C91-531E88929D6F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\OpenXLSX\inc\external\nowide">
+      <UniqueIdentifier>{1C4E84AA-089F-6FEC-3103-5EAE1DB30256}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\OpenXLSX\inc\external\nowide\nowide">
+      <UniqueIdentifier>{3120B83E-9DAF-7929-A6AB-5A4112BAB435}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\OpenXLSX\inc\external\pugixml">
+      <UniqueIdentifier>{5C4DE0A1-C8BB-3521-11A5-F0207D522BBD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\OpenXLSX\inc\external\zippy">
+      <UniqueIdentifier>{D2B19B72-3E95-AAB2-4798-D8EEB3FA7003}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\OpenXLSX\inc\headers">
+      <UniqueIdentifier>{40E8DB2D-2C0D-2BAE-5558-103E41DC29CC}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib\glm">
       <UniqueIdentifier>{8BD44779-F7B3-C614-00CC-51EB6C2A2D76}</UniqueIdentifier>
     </Filter>
@@ -51,7 +75,13 @@
     <ClInclude Include="inc\Core\ApplicationManager.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Core\Command.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Core\Core.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Core\ExcelSerialiser.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
     <ClInclude Include="inc\Core\LoggerManager.hpp">
@@ -63,10 +93,19 @@
     <ClInclude Include="inc\FrameExtractorPCH.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\GUI\ConsolePanel.hpp">
+      <Filter>inc\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\GUI\ExplorerPanel.hpp">
+      <Filter>inc\GUI</Filter>
+    </ClInclude>
     <ClInclude Include="inc\GUI\IPanel.hpp">
       <Filter>inc\GUI</Filter>
     </ClInclude>
     <ClInclude Include="inc\GUI\ImGuiManager.hpp">
+      <Filter>inc\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\GUI\ProjectPanel.hpp">
       <Filter>inc\GUI</Filter>
     </ClInclude>
     <ClInclude Include="inc\GUI\ToolsPanel.hpp">
@@ -74,6 +113,9 @@
     </ClInclude>
     <ClInclude Include="inc\GUI\ViewportPanel.hpp">
       <Filter>inc\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\BoundingBox.hpp">
+      <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\GraphicsContext.hpp">
       <Filter>inc\Graphics</Filter>
@@ -83,6 +125,168 @@
     </ClInclude>
     <ClInclude Include="inc\Graphics\Video.hpp">
       <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\OpenXLSX.hpp">
+      <Filter>lib\OpenXLSX\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\args.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\cenv.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\config.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\convert.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\cstdio.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\cstdlib.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\encoding_errors.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\encoding_utf.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\filebuf.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\fstream.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\iostream.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\scoped_ptr.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\stackstring.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\system.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\utf.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\utf8_codecvt.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\windows.hpp">
+      <Filter>lib\OpenXLSX\inc\external\nowide\nowide</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\pugixml\pugiconfig.hpp">
+      <Filter>lib\OpenXLSX\inc\external\pugixml</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\pugixml\pugixml.hpp">
+      <Filter>lib\OpenXLSX\inc\external\pugixml</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\external\zippy\zippy.hpp">
+      <Filter>lib\OpenXLSX\inc\external\zippy</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\IZipArchive.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\OpenXLSX-Exports.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCell.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCellIterator.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCellRange.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCellReference.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCellValue.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLColor.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLColumn.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCommandQuery.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLComments.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLConstants.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLContentTypes.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLDateTime.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLDocument.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLDrawing.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLException.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLFormula.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLIterator.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLMergeCells.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLProperties.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLRelationships.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLRow.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLRowData.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLSharedStrings.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLSheet.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLStyles.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLTables.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLWorkbook.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLXmlData.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLXmlFile.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLXmlParser.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLZipArchive.hpp">
+      <Filter>lib\OpenXLSX\inc\headers</Filter>
     </ClInclude>
     <ClInclude Include="lib\glm\glm\common.hpp">
       <Filter>lib\glm\glm</Filter>
@@ -1332,16 +1536,15 @@
     <ClInclude Include="lib\glm\glm\vector_relational.hpp">
       <Filter>lib\glm\glm</Filter>
     </ClInclude>
-    <ClInclude Include="inc\GUI\ConsolePanel.hpp" />
-    <ClInclude Include="inc\GUI\ExplorerPanel.hpp">
-      <Filter>inc\GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Graphics\BoundingBox.hpp">
-      <Filter>inc\Graphics</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\ApplicationManager.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Command.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\ExcelSerialiser.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\LoggerManager.cpp">
@@ -1356,7 +1559,16 @@
     <ClCompile Include="src\FrameExtractorPCH.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\GUI\ConsolePanel.cpp">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI\ExplorerPanel.cpp">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
     <ClCompile Include="src\GUI\ImGuiManager.cpp">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI\ProjectPanel.cpp">
       <Filter>src\GUI</Filter>
     </ClCompile>
     <ClCompile Include="src\GUI\ToolsPanel.cpp">
@@ -1374,7 +1586,5 @@
     <ClCompile Include="src\Graphics\Video.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\GUI\ConsolePanel.cpp" />
-    <ClCompile Include="src\GUI\ExplorerPanel.cpp" />
   </ItemGroup>
 </Project>

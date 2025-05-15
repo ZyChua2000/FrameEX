@@ -20,10 +20,12 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
 #include <Core/ApplicationManager.hpp>
+#include <Core/Command.hpp>
 #include <Core/LoggerManager.hpp>
 #include <GUI/ImGuiManager.hpp>
 #include <GUI/ViewportPanel.hpp>
 #include <GUI/ToolsPanel.hpp>
+#include <GUI/ProjectPanel.hpp>
 #include <GUI/ConsolePanel.hpp>
 #include <GUI/ExplorerPanel.hpp>
 #include <GLFW/glfw3.h>
@@ -32,6 +34,17 @@
 namespace FrameExtractor
 {
 
+	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+	{
+		ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+		if (key == GLFW_KEY_Z && action == GLFW_PRESS)
+			if (ImGui::IsKeyDown(ImGuiKey_RightCtrl) || ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+				CommandHistory::undo();
+
+		if (key == GLFW_KEY_Y && action == GLFW_PRESS)
+			if (ImGui::IsKeyDown(ImGuiKey_RightCtrl) || ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+				CommandHistory::redo();
+	}
 	class EditorColorScheme
 	{
 		// 0xRRGGBBAA
@@ -147,7 +160,7 @@ namespace FrameExtractor
 	ImGuiManager::ImGuiManager()
 	{
 		Init();
-
+		glfwSetKeyCallback((GLFWwindow*)ApplicationManager::GetInstance()->GetWindowManager()->GetNativeWindow(), key_callback);
 		{
 			std::string name = "Viewport";
 			ImVec2 size = ImVec2{ 1000,800 };
@@ -168,21 +181,28 @@ namespace FrameExtractor
 		}
 
 		{
-			mToolsPanel = new ToolsPanel(mExplorerPanel);
+			mToolsPanel = new ToolsPanel();
 			mToolsPanel->OnAttach();
+		}
+
+		{
+			mProjectPanel = new ProjectPanel(mExplorerPanel);
+			mProjectPanel->OnAttach();
 		}
 	}
 
 	ImGuiManager::~ImGuiManager()
 	{
-		mConsolePanel->OnDetach();
 		mToolsPanel->OnDetach();
-		mViewportPanel->OnDetach();
+		mProjectPanel->OnDetach();
 		mExplorerPanel->OnDetach();
+		mConsolePanel->OnDetach();
+		mViewportPanel->OnDetach();
 
+		delete mToolsPanel;
+		delete mProjectPanel;
 		delete mExplorerPanel;
 		delete mConsolePanel;
-		delete mToolsPanel;
 		delete mViewportPanel;
 		Shutdown();
 	}
@@ -193,7 +213,6 @@ namespace FrameExtractor
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); // Use if you want to access ImGui's IO
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
 		io.ConfigViewportsNoTaskBarIcon = true;
@@ -273,14 +292,17 @@ namespace FrameExtractor
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 		}
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f * styleMultiplier, 10.0f * styleMultiplier));
-
-		mExplorerPanel->OnImGuiRender(dt);
 		mToolsPanel->OnImGuiRender(dt);
+		mExplorerPanel->OnImGuiRender(dt);
+		mProjectPanel->OnImGuiRender(dt);
 		mViewportPanel->OnImGuiRender(dt);
 		mConsolePanel->OnImGuiRender(dt);
 
 		ImGui::PopStyleVar();
 		ImGui::End();
+
+
+		
 	}
 
 	void ImGuiManager::Render()

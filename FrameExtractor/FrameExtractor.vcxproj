@@ -80,7 +80,7 @@
       <PrecompiledHeaderFile>FrameExtractorPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_DEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -90,7 +90,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;lib\GLAD\lib\Deb\GLAD.lib;lib\GLFW\lib\Deb\GLFW.lib;lib\IMGUI\lib\Deb\IMGUI.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Deb\GLAD.lib;lib\GLFW\lib\Deb\GLFW.lib;lib\IMGUI\lib\Deb\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSXd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -99,7 +99,7 @@
       <PrecompiledHeaderFile>FrameExtractorPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -113,7 +113,7 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSX.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Distribution|x64'">
@@ -122,7 +122,7 @@
       <PrecompiledHeaderFile>FrameExtractorPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -136,28 +136,82 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSX.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="inc\Core\ApplicationManager.hpp" />
+    <ClInclude Include="inc\Core\Command.hpp" />
     <ClInclude Include="inc\Core\Core.hpp" />
+    <ClInclude Include="inc\Core\ExcelSerialiser.hpp" />
     <ClInclude Include="inc\Core\LoggerManager.hpp" />
     <ClInclude Include="inc\Core\WindowManager.hpp" />
     <ClInclude Include="inc\FrameExtractorPCH.hpp" />
-    <ClInclude Include="inc\Graphics\BoundingBox.hpp" />
-    <ClInclude Include="inc\GUI\ConsolePanel.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
+    <ClInclude Include="inc\GUI\ConsolePanel.hpp" />
     <ClInclude Include="inc\GUI\ExplorerPanel.hpp" />
     <ClInclude Include="inc\GUI\IPanel.hpp" />
     <ClInclude Include="inc\GUI\ImGuiManager.hpp" />
+    <ClInclude Include="inc\GUI\ProjectPanel.hpp" />
     <ClInclude Include="inc\GUI\ToolsPanel.hpp" />
     <ClInclude Include="inc\GUI\ViewportPanel.hpp" />
+    <ClInclude Include="inc\Graphics\BoundingBox.hpp" />
     <ClInclude Include="inc\Graphics\GraphicsContext.hpp" />
     <ClInclude Include="inc\Graphics\Texture.hpp" />
     <ClInclude Include="inc\Graphics\Video.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\OpenXLSX.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\args.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\cenv.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\config.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\convert.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\cstdio.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\cstdlib.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\encoding_errors.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\encoding_utf.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\filebuf.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\fstream.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\iostream.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\scoped_ptr.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\stackstring.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\system.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\utf.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\utf8_codecvt.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\nowide\nowide\windows.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\pugixml\pugiconfig.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\pugixml\pugixml.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\external\zippy\zippy.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\IZipArchive.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\OpenXLSX-Exports.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCell.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCellIterator.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCellRange.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCellReference.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCellValue.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLColor.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLColumn.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLCommandQuery.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLComments.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLConstants.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLContentTypes.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLDateTime.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLDocument.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLDrawing.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLException.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLFormula.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLIterator.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLMergeCells.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLProperties.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLRelationships.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLRow.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLRowData.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLSharedStrings.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLSheet.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLStyles.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLTables.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLWorkbook.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLXmlData.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLXmlFile.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLXmlParser.hpp" />
+    <ClInclude Include="lib\OpenXLSX\inc\headers\XLZipArchive.hpp" />
     <ClInclude Include="lib\glm\glm\common.hpp" />
     <ClInclude Include="lib\glm\glm\detail\_features.hpp" />
     <ClInclude Include="lib\glm\glm\detail\_fixes.hpp" />
@@ -576,16 +630,19 @@
     <ClInclude Include="lib\glm\glm\vector_relational.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\GUI\ConsolePanel.cpp" />
     <ClCompile Include="src\Core\ApplicationManager.cpp" />
+    <ClCompile Include="src\Core\Command.cpp" />
+    <ClCompile Include="src\Core\ExcelSerialiser.cpp" />
     <ClCompile Include="src\Core\LoggerManager.cpp" />
     <ClCompile Include="src\Core\WindowManager.cpp" />
     <ClCompile Include="src\EntryPoint.cpp" />
     <ClCompile Include="src\FrameExtractorPCH.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\GUI\ConsolePanel.cpp" />
     <ClCompile Include="src\GUI\ExplorerPanel.cpp" />
     <ClCompile Include="src\GUI\ImGuiManager.cpp" />
+    <ClCompile Include="src\GUI\ProjectPanel.cpp" />
     <ClCompile Include="src\GUI\ToolsPanel.cpp" />
     <ClCompile Include="src\GUI\ViewportPanel.cpp" />
     <ClCompile Include="src\Graphics\GraphicsContext.cpp" />

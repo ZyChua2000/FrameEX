@@ -20,7 +20,7 @@ workspace "FrameEX"
 	IncludeDir["GLM"] = "FrameExtractor/lib/glm"
 	IncludeDir["FFMPEG"] = "FrameExtractor/lib/ffmpeg/include"
 	IncludeDir["STBI"] = "FrameExtractor/lib/stb_image"
-
+	IncludeDir["OpenXLSX"] = "FrameExtractor/lib/OpenXLSX/inc"
 
 	LibraryDir = {}
 	LibraryDir["GLAD_Debug"] = "lib/GLAD/lib/Deb"
@@ -30,6 +30,7 @@ workspace "FrameEX"
 	LibraryDir["IMGUI_Debug"] = "lib/IMGUI/lib/Deb"
 	LibraryDir["IMGUI_Release"] = "lib/IMGUI/lib/Rel"
 	LibraryDir["FFMPEG"] = "lib/ffmpeg/lib"
+	LibraryDir["OpenXLSX"] = "lib/OpenXLSX/lib"
 
 	Library = {}
 	Library["GLAD_Debug"] = "%{LibraryDir.GLAD_Debug}/GLAD.lib"
@@ -42,6 +43,8 @@ workspace "FrameEX"
 	Library["AVCodec"] = "%{LibraryDir.FFMPEG}/avcodec.lib"
 	Library["AVFormat"] = "%{LibraryDir.FFMPEG}/avformat.lib"
 	Library["SWScale"] = "%{LibraryDir.FFMPEG}/swscale.lib"
+	Library["OpenXLSX_Release"] = "%{LibraryDir.OpenXLSX}/OpenXLSX.lib"
+	Library["OpenXLSX_Debug"] = "%{LibraryDir.OpenXLSX}/OpenXLSXd.lib"
 
 	project "FrameExtractor"
 		location "FrameExtractor"
@@ -76,7 +79,8 @@ workspace "FrameEX"
 			"%{IncludeDir.ImGui}",
 			"%{IncludeDir.GLM}",
 			"%{IncludeDir.FFMPEG}",
-			"%{IncludeDir.STBI}"
+			"%{IncludeDir.STBI}",
+			"%{IncludeDir.OpenXLSX}"
 		}
 
 
@@ -94,6 +98,14 @@ workspace "FrameEX"
 		
 		pchheader "FrameExtractorPCH.hpp"
 		pchsource "FrameExtractor/src/FrameExtractorPCH.cpp"
+		
+		links
+		{
+				"%{Library.AVCodec}",
+				"%{Library.AVUtil}",
+				"%{Library.SWScale}",
+				"%{Library.AVFormat}"
+		}
 
 		filter "configurations:Debug"
 			defines "_DEB"
@@ -104,10 +116,7 @@ workspace "FrameEX"
 				"%{Library.GLAD_Debug}",
 				"%{Library.GLFW_Debug}",
 				"%{Library.IMGUI_Debug}",
-				"%{Library.AVCodec}",
-				"%{Library.AVUtil}",
-				"%{Library.SWScale}",
-				"%{Library.AVFormat}"
+				"%{Library.OpenXLSX_Debug}"
 			}
 
 
@@ -120,10 +129,7 @@ workspace "FrameEX"
 				"%{Library.GLAD_Release}",
 				"%{Library.GLFW_Release}",
 				"%{Library.IMGUI_Release}",
-				"%{Library.AVCodec}",
-				"%{Library.AVUtil}",
-				"%{Library.SWScale}",
-				"%{Library.AVFormat}"
+				"%{Library.OpenXLSX_Release}"
 			}
 
 		filter "configurations:Distribution"
@@ -135,8 +141,5 @@ workspace "FrameEX"
 				"%{Library.GLAD_Release}",
 				"%{Library.GLFW_Release}",
 				"%{Library.IMGUI_Release}",
-				"%{Library.AVCodec}",
-				"%{Library.AVUtil}",
-				"%{Library.SWScale}",
-				"%{Library.AVFormat}"
+				"%{Library.OpenXLSX_Release}"
 			}

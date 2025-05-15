@@ -9,6 +9,7 @@
  /******************************************************************************/
 #include "FrameExtractorPCH.hpp"
 #include <Core/LoggerManager.hpp>
+#include <Core/Command.hpp>
 #include "GUI/ViewportPanel.hpp"
 #include <GUI/ImGuiManager.hpp>
 #include <Graphics/Video.hpp>
@@ -21,9 +22,6 @@ namespace FrameExtractor
     {
         mVideo = new Video("sampleVideo.mp4");
         mVideo->Decode();
-        mBBCache[mVideo->GetPath()][3].push_back({ 200,300, 400, 500 });
-        mBBCache[mVideo->GetPath()][3].push_back({ 100,200, 1000, 700 });
-
         mIcons[Icons::PLAY_ICON] = MakeRef<Texture>("resources/icons/Play.png");
         mIcons[Icons::STOP_ICON] = MakeRef<Texture>("resources/icons/Stop.png");
         mIcons[Icons::FORWARD_ICON] = MakeRef<Texture>("resources/icons/MoveFrameRight.png");
@@ -116,14 +114,63 @@ namespace FrameExtractor
         ImGui::SetNextItemWidth(ImGui::CalcTextSize(std::to_string(mVideo->GetMaxFrames()).c_str()).x);
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(std::to_string(mVideo->GetMaxFrames()).c_str()).x));
         ImGui::Text("%d", mVideo->GetMaxFrames());
+
+        {
+            int totalSeconds = mFrameNumber / mVideo->GetFPS();
+            int frames = mFrameNumber % mVideo->GetFPS();
+            int seconds = totalSeconds % 60;
+            int minutes = (totalSeconds / 60) % 60;
+            int hours = totalSeconds / 3600;
+
+            std::ostringstream oss;
+            oss << std::setfill('0')
+                << std::setw(2) << hours << ":"
+                << std::setw(2) << minutes << ":"
+                << std::setw(2) << seconds << ":"
+                << std::setw(2) << frames;
+
+            ImGui::Text(oss.str().c_str());
+        }
+        ImGui::SameLine();
+
+        {
+            int totalSeconds = mVideo->GetMaxFrames() / mVideo->GetFPS();
+            int frames = mVideo->GetMaxFrames() % mVideo->GetFPS();
+            int seconds = totalSeconds % 60;
+            int minutes = (totalSeconds / 60) % 60;
+            int hours = totalSeconds / 3600;
+
+            std::ostringstream oss;
+            oss << std::setfill('0')
+                << std::setw(2) << hours << ":"
+                << std::setw(2) << minutes << ":"
+                << std::setw(2) << seconds << ":"
+                << std::setw(2) << frames;
+
+            ImGui::SetNextItemWidth(ImGui::CalcTextSize(oss.str().c_str()).x);
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(oss.str().c_str()).x));
+
+            ImGui::Text(oss.str().c_str());
+
+        }
+
+
         ImGui::PopFont();
         ImGui::Spacing();
 
+
         contentRegion = ImGui::GetContentRegionAvail();
 
+        static bool initialIn = false;
+        static int wasPlaying = false;
         ImGui::SetNextItemWidth(contentRegion.x);
         if (ImGui::SliderInt("##FrameNumber", &mFrameNumber, 0, mVideo->GetMaxFrames(), ""))
         {
+            if (!initialIn)
+            {
+                wasPlaying = mIsPlaying;
+            }
+            initialIn = true;
             mVideo->Decode(mFrameNumber);
             mIsPlaying = false;
         }
@@ -140,8 +187,27 @@ namespace FrameExtractor
             }
         }
 
+        // Get ImGui's draw list for custom rendering
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        ImVec2 slider_pos = ImGui::GetItemRectMin();
+        ImVec2 slider_size = ImGui::GetItemRectSize();
+        float slider_width = slider_size.x;
+
+        // Draw ticks
+        for (int i = 0; i <= 60; ++i)
+        {
+            float t = (float)i /60;
+            float x = slider_pos.x + t * slider_width;
+            float y1 = slider_pos.y + slider_size.y;
+            float y2 = y1 - 14.0f;  // Tick length
+
+            draw_list->AddLine(ImVec2(x, y1), ImVec2(x, y2), IM_COL32(200, 200, 200, 255));
+        }
+
+
         if (ImGui::IsItemDeactivatedAfterEdit()) {
-            mIsPlaying = true;
+            initialIn = false;
+            mIsPlaying = wasPlaying;
             DTTrack = (float)mFrameNumber / mVideo->GetFPS();
         }
 
@@ -155,28 +221,27 @@ namespace FrameExtractor
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + startX);
         if (ImGui::ImageButton((ImTextureID)mIcons[SKIP_TO_START_ICON]->GetTextureID(), { buttonSize, buttonSize }))
         {
-            mFrameNumber = 0;
+            CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, 0, mVideo));
             mIsPlaying = false;
-            mVideo->Decode(mFrameNumber);
         }
 
         ImGui::SameLine();
 
         if (ImGui::ImageButton((ImTextureID)mIcons[SLOW_DOWN_ICON]->GetTextureID(), { buttonSize,buttonSize }))
         {
-            SlowDown();
+            CommandHistory::execute(std::make_unique<CallFunctionCommand>(std::bind(&ViewportPanel::SlowDown, this), std::bind(&ViewportPanel::SpeedUp, this)));
         }
 
         ImGui::SameLine();
 
         if (ImGui::ImageButton((ImTextureID)mIcons[BACKWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }))
         {
-            mFrameNumber -= 1;
-            if (mFrameNumber < 0)
+            int buffer = mFrameNumber - 1;
+            if (buffer > mVideo->GetMaxFrames())
             {
-                mFrameNumber = 0;
+                buffer = mVideo->GetMaxFrames();
             }
-            mVideo->Decode(mFrameNumber);
+            CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, buffer, mVideo));
             mIsPlaying = false;
         }
 
@@ -186,7 +251,7 @@ namespace FrameExtractor
         {
             if (ImGui::ImageButton((ImTextureID)mIcons[PLAY_ICON]->GetTextureID(), { buttonSize,buttonSize }))
             {
-                mIsPlaying = true;
+                CommandHistory::execute(std::make_unique<PlayCommand>(&mIsPlaying, &mFrameNumber, mFrameNumber, mVideo));
                 DTTrack = (float)mFrameNumber / mVideo->GetFPS();
             }
         }
@@ -194,7 +259,7 @@ namespace FrameExtractor
         {
             if (ImGui::ImageButton((ImTextureID)mIcons[STOP_ICON]->GetTextureID(), { buttonSize,buttonSize }))
             {
-                mIsPlaying = false;
+                CommandHistory::execute(std::make_unique<ModifyPropertyCommand<bool>>(&mIsPlaying, true, false));
             }
         }
 
@@ -202,12 +267,12 @@ namespace FrameExtractor
 
         if (ImGui::ImageButton((ImTextureID)mIcons[FORWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }))
         {
-            mFrameNumber += 1;
-            if (mFrameNumber > mVideo->GetMaxFrames())
+            int buffer = mFrameNumber + 1;
+            if (buffer > mVideo->GetMaxFrames())
             {
-                mFrameNumber = mVideo->GetMaxFrames();
+                buffer = mVideo->GetMaxFrames();
             }
-            mVideo->Decode(mFrameNumber);
+            CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, buffer, mVideo));
             mIsPlaying = false;
         }
 
@@ -215,16 +280,15 @@ namespace FrameExtractor
 
         if (ImGui::ImageButton((ImTextureID)mIcons[SPEED_UP_ICON]->GetTextureID(), { buttonSize,buttonSize }))
         {
-            SpeedUp();
+            CommandHistory::execute(std::make_unique<CallFunctionCommand>(std::bind(&ViewportPanel::SpeedUp, this), std::bind(&ViewportPanel::SlowDown, this)));
         }
 
         ImGui::SameLine();
 
         if (ImGui::ImageButton((ImTextureID)mIcons[SKIP_TO_END_ICON]->GetTextureID(), { buttonSize,buttonSize }))
         {
-            mFrameNumber = mVideo->GetMaxFrames();
             mIsPlaying = false;
-            mVideo->Decode(mFrameNumber - 1);
+            CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, mVideo->GetMaxFrames()-1, mVideo));
         }
 
         if (mBBCache.find(mVideo->GetPath()) != mBBCache.end())

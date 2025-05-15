@@ -17,18 +17,63 @@ namespace FrameExtractor
 {
 	class ExplorerPanel;
 
+	enum EntryType
+	{
+		Customer,
+		ReCustomer,
+		SuspectedStaff,
+		ReSuspectedStaff,
+		Children,
+		ReChildren,
+		Others,
+		ReOthers
+	};
+
+	std::string EntryTypeToString(EntryType type);
+
+	struct StoreProp
+	{
+		std::string StoreCode = "";
+		int32_t numEntrance = 1;
+	};
+
+	struct PersonDesc
+	{
+		bool IsMale = true;
+		std::string timeStamp = "00:00:00";
+		std::string Description = "";
+	};
+
+
+	struct CountData // Represents 1 hour
+	{
+		int32_t mCustomer = 0;
+		int32_t mReCustomer = 0;
+		int32_t mSuspectedStaff = 0;
+		int32_t mReSuspectedStaff = 0;
+		int32_t mChildren = 0;
+		int32_t mReChildren = 0;
+		int32_t mOthers = 0;
+		int32_t mReOthers = 0;
+
+		std::vector<std::array<std::vector<PersonDesc>, EntryType::ReOthers + 1>> Entrance;
+	};
+
 	class ToolsPanel : public IPanel
 	{
 	public:
-		ToolsPanel(ExplorerPanel* ex);
+		ToolsPanel();
 		~ToolsPanel() override;
 		virtual void OnImGuiRender(float dt) override;
 		virtual const char* GetName() const override;
 		virtual void OnAttach() override;
 	private:
 		std::vector<std::filesystem::path> videosInProject;
-		ExplorerPanel* ExPanel;
+		std::map<std::string, std::map<int32_t,CountData>> mData;
 
+		char mStoreCodeBuffer[16] = {};
+		int32_t mTimeBuffer = 0;
+		int32_t mEntranceBuffer = 1;
 	};
 
 }

@@ -12,7 +12,6 @@
 #include <FrameExtractorPCH.hpp>
 #include <Core/LoggerManager.hpp>
 #include <Core/ApplicationManager.hpp>
-
 namespace FrameExtractor
 {
 	ApplicationManager* ApplicationManager::sInstance = nullptr;
