@@ -48,16 +48,20 @@ namespace FrameExtractor
 		
 	private:
 		std::string mName;
+		std::map<Icons, Ref<Texture>> mIcons;
+		std::map<std::filesystem::path, std::map<int32_t, std::vector<BoundingBox>>> mBBCache;
+		Video* mVideo = nullptr;
 		ImVec2 mViewportSize = ImVec2(0, 0);
 		ImVec2 mViewportPos = ImVec2(0, 0);
-		int32_t mFrameNumber = 0;
+		float DTTrack = 0.f;
 		float mSpeedMultiplier = 1;
+		int32_t wasPlaying = false;
+		int32_t mFrameNumber = 0;
 		int8_t mSpeedMultiplierIndex = 1;
+		bool initialIn = false;
 		bool mIsPlaying = true;
-		Video* mVideo = nullptr;
-		std::map<Icons, Ref<Texture>> mIcons;
 
-		std::map<std::filesystem::path, std::map<int32_t, std::vector<BoundingBox>>> mBBCache;
+
 	};
 
 }

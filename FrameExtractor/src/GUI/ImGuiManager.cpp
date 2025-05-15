@@ -275,31 +275,51 @@ namespace FrameExtractor
 
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin("DockSpace", &p_open, window_flags);
-		ImGui::PopStyleVar();
-
-		auto windowSize = ImGui::GetWindowSize();
-		styleMultiplier = windowSize.x / 1920;
-		ImGui::GetIO().FontGlobalScale = styleMultiplier * mFontSize;
-
-		if (opt_fullscreen)
-			ImGui::PopStyleVar(2);	
-
-		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		if(ImGui::Begin("DockSpace", &p_open, window_flags))
 		{
-			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-		}
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f * styleMultiplier, 10.0f * styleMultiplier));
-		mToolsPanel->OnImGuiRender(dt);
-		mExplorerPanel->OnImGuiRender(dt);
-		mProjectPanel->OnImGuiRender(dt);
-		mViewportPanel->OnImGuiRender(dt);
-		mConsolePanel->OnImGuiRender(dt);
+			if (ImGui::BeginMenuBar())
+			{
+				if (ImGui::BeginMenu("File"))
+				{
+					if (ImGui::MenuItem("Open")) { /* do something */ }
+					if (ImGui::MenuItem("Save")) { /* do something */ }
+					ImGui::EndMenu();
+				}
 
-		ImGui::PopStyleVar();
-		ImGui::End();
+				if (ImGui::BeginMenu("Edit"))
+				{
+					if (ImGui::MenuItem("Undo")) { /* do something */ }
+					ImGui::EndMenu();
+				}
+
+				ImGui::EndMenuBar();
+			}
+
+			ImGui::PopStyleVar();
+
+			auto windowSize = ImGui::GetWindowSize();
+			styleMultiplier = windowSize.x / 1920;
+			ImGui::GetIO().FontGlobalScale = styleMultiplier * mFontSize;
+
+			if (opt_fullscreen)
+				ImGui::PopStyleVar(2);
+
+			ImGuiIO& io = ImGui::GetIO();
+			if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+			{
+				ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+			}
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f * styleMultiplier, 10.0f * styleMultiplier));
+			mToolsPanel->OnImGuiRender(dt);
+			mExplorerPanel->OnImGuiRender(dt);
+			mProjectPanel->OnImGuiRender(dt);
+			mViewportPanel->OnImGuiRender(dt);
+			mConsolePanel->OnImGuiRender(dt);
+
+			ImGui::PopStyleVar();
+			ImGui::End();
+		}
 
 
 		

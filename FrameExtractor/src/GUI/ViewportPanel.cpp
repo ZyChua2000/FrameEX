@@ -42,7 +42,6 @@ namespace FrameExtractor
 
     void ViewportPanel::OnImGuiRender(float dt)
     {
-        static float DTTrack = 0.0f;
 		//ImGui::SetNextWindowSize(mViewportSize);
 		//ImGui::SetNextWindowPos(mViewportPos);
 
@@ -160,9 +159,6 @@ namespace FrameExtractor
 
 
         contentRegion = ImGui::GetContentRegionAvail();
-
-        static bool initialIn = false;
-        static int wasPlaying = false;
         ImGui::SetNextItemWidth(contentRegion.x);
         if (ImGui::SliderInt("##FrameNumber", &mFrameNumber, 0, mVideo->GetMaxFrames(), ""))
         {
@@ -183,6 +179,14 @@ namespace FrameExtractor
                     mVideo->Decode(mFrameNumber);
                     DTTrack += dt * mSpeedMultiplier;
                     mFrameNumber = (int)(DTTrack * mVideo->GetFPS());
+                    if (mFrameNumber >= mVideo->GetMaxFrames())
+                    {
+						mFrameNumber = mVideo->GetMaxFrames() - 1;
+					}
+                    else if (mFrameNumber < 0)
+                    {
+                        mFrameNumber = 0;
+                    }
                 }
             }
         }
@@ -237,9 +241,9 @@ namespace FrameExtractor
         if (ImGui::ImageButton((ImTextureID)mIcons[BACKWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }))
         {
             int buffer = mFrameNumber - 1;
-            if (buffer > mVideo->GetMaxFrames())
+            if (buffer < 0)
             {
-                buffer = mVideo->GetMaxFrames();
+                buffer = 0;
             }
             CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, buffer, mVideo));
             mIsPlaying = false;
@@ -290,6 +294,40 @@ namespace FrameExtractor
             mIsPlaying = false;
             CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, mVideo->GetMaxFrames()-1, mVideo));
         }
+
+        std::string statusText;
+        if (mIsPlaying == false && initialIn == false)
+        {
+			statusText = "Paused";
+		}
+        else
+        {
+            if (mSpeedMultiplier > 0)
+            {
+                std::ostringstream oss;
+                oss << std::fixed << std::setprecision(2) << mSpeedMultiplier;
+				statusText = "  " + oss.str() + " x >>";
+			}
+            else if (mSpeedMultiplier < 0)
+            {
+                std::ostringstream oss;
+                oss << std::fixed << std::setprecision(2) << -mSpeedMultiplier;
+                statusText = "<<" + oss.str() + " x   ";
+            }
+        }
+
+        // Move text to middle
+        {
+            ImGui::PushFont(ImGuiManager::BoldFont);
+            ImVec2 textSize = ImGui::CalcTextSize(statusText.c_str());
+            ImVec2 textPos2 = ImGui::GetCursorScreenPos();
+            textPos2.x += (contentRegion.x - textSize.x) * 0.5f;
+            // y is next line
+            textPos2.y += ImGui::GetTextLineHeightWithSpacing() * 0.5f;
+            drawList->AddText(textPos2, IM_COL32(255, 255, 255, 255), statusText.c_str());
+            ImGui::PopFont();
+        }
+
 
         if (mBBCache.find(mVideo->GetPath()) != mBBCache.end())
         {
