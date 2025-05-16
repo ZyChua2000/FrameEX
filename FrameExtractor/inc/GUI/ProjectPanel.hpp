@@ -27,6 +27,7 @@ namespace FrameExtractor
 		virtual void OnImGuiRender(float dt) override;
 		virtual const char* GetName() const override;
 		virtual void OnAttach() override;
+		void SetProjectPath(std::filesystem::path path);
 	private:
 		std::vector<std::filesystem::path> videosInProject;
 		ExplorerPanel* ExPanel;

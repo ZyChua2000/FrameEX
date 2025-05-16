@@ -35,6 +35,23 @@ namespace FrameExtractor
         ImVec2 windowSize = ImGui::GetContentRegionAvail();
         ImGui::BeginChild("ScrollableRegion", ImVec2(windowSize.x, windowSize.y), true);
 
+
+        if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))  // 1 for right-click
+        {
+            // Open the popup when right-clicked on this button
+            ImGui::OpenPopup("RightClickMenu##ProjectPanel");
+        }
+        if (ImGui::BeginPopup("RightClickMenu##ProjectPanel"))
+        {
+            // Menu items for the right-click menu
+            if (ImGui::MenuItem("Clear Project Files##ProjectPanel"))
+            {
+                videosInProject.clear();
+            }
+            // Close the popup
+            ImGui::EndPopup();
+        }
+
         
         auto regionAvail = ImGui::GetContentRegionAvail();
         float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
@@ -122,6 +139,16 @@ namespace FrameExtractor
 
     void ProjectPanel::OnAttach()
     {
+        auto rootPath = ExPanel->GetRootPath();
+        for (auto& entry : std::filesystem::directory_iterator(rootPath))
+        {
+            AddDirectoryRecursive(entry, videosInProject);
+        }
+    }
+    void ProjectPanel::SetProjectPath(std::filesystem::path path)
+    {
+        ExPanel->SetProjectPath(path);
+        videosInProject.clear();
         auto rootPath = ExPanel->GetRootPath();
         for (auto& entry : std::filesystem::directory_iterator(rootPath))
         {

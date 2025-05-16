@@ -25,6 +25,7 @@ namespace FrameExtractor
 		virtual void OnImGuiRender(float dt) override;
 		virtual const char* GetName() const override { return "File Explorer"; }
 		std::filesystem::path GetRootPath () { return mRootPath; }
+		void SetProjectPath(std::filesystem::path path);
 		Ref<Texture> GetExplorerFileIcon(std::filesystem::path);
 	private:
 		std::filesystem::path mCurrentPath;

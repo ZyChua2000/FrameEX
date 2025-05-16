@@ -41,8 +41,28 @@ namespace FrameExtractor
 		columnCount = columnCount < 1 ? 1 : columnCount;
 		float printedThumbnailSize = (float)128 * ImGuiManager::styleMultiplier;
 
+
+		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))  // 1 for right-click
+		{
+			// Open the popup when right-clicked on this button
+			ImGui::OpenPopup("RightClickMenu##ExplorerPanel");
+		}
+		if (ImGui::BeginPopup("RightClickMenu##ExplorerPanel"))
+		{
+			// Menu items for the right-click menu
+			if (ImGui::MenuItem("Return to Root Folder##ExplorerPanel"))
+			{
+				mCurrentPath = mRootPath;
+			}
+			// Close the popup
+			ImGui::EndPopup();
+		}
+
+
+
 		ImGui::Columns(columnCount);
 		ImGui::PushStyleColor(ImGuiCol_Button, { 0,0,0,0 });
+
 
 		if (mCurrentPath != mCurrentPath.root_directory())
 		{
@@ -129,6 +149,10 @@ namespace FrameExtractor
 
 		ImGui::EndChild();
 		ImGui::End();
+	}
+	void ExplorerPanel::SetProjectPath(std::filesystem::path path)
+	{
+		!std::filesystem::is_directory(path) ? mRootPath = path.parent_path() : mRootPath = path;
 	}
 	Ref<Texture> ExplorerPanel::GetExplorerFileIcon(std::filesystem::path path)
 	{

@@ -301,6 +301,7 @@ namespace FrameExtractor
 						{
 							YAMLSerialiser serialiser(projectFile);
 							serialiser.ImportProject(mToolsPanel->GetData());
+							mProjectPanel->SetProjectPath(projectFile);
 						}
 						else
 						{
@@ -310,28 +311,14 @@ namespace FrameExtractor
 
 					if (ImGui::MenuItem("Save Project"))
 					{
-						auto spikeDipFile = SaveFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
-						spikeDipFile.replace_extension(".FrEX");
-						if (!spikeDipFile.empty())
+						auto projectFile = SaveFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
+						projectFile.replace_extension(".FrEX");
+						if (!projectFile.empty())
 						{
-							YAMLSerialiser serialiser(spikeDipFile);
+							YAMLSerialiser serialiser(projectFile);
 							serialiser.ExportProject(mToolsPanel->GetData());
 						}
 
-					}
-
-					if (ImGui::MenuItem("Import Spike Dip"))
-					{
-						auto spikeDipFile = OpenFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
-						if (std::filesystem::exists(spikeDipFile))
-						{
-							ExcelSerialiser serialiser(spikeDipFile);
-							mToolsPanel->SetData(serialiser.ImportSpikeDipReport());
-						}
-						else
-						{
-							APP_CORE_ERROR("Spike Dip file does not exist!");
-						}
 					}
 
 					if (ImGui::MenuItem("Preferences...##MainMenuPreference"))

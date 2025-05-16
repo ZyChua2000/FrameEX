@@ -27,16 +27,28 @@ namespace FrameExtractor
 	void ApplicationManager::Run()
 	{
 		ULONGLONG prevTickCount = GetTickCount64();
-
+		float deltaTime = 0.f;
 		while (mIsRunning)
 		{
 			ULONGLONG currentTickCount = GetTickCount64();
-			float deltaTime = (float)(currentTickCount - prevTickCount)/1000.0f;
-			prevTickCount = currentTickCount;
+		
 
 			mImGuiManager->Update(deltaTime);
 			mImGuiManager->Render();
 			mWindowManager->Update();
+			const float targetFrameTimeMs = 1000.0f / 60.0f;
+
+			ULONGLONG frameEndTickCount = GetTickCount64();
+			float frameDurationMs = (float)(frameEndTickCount - currentTickCount);
+
+			if (frameDurationMs < targetFrameTimeMs)
+			{
+				DWORD sleepTime = (DWORD)(targetFrameTimeMs - frameDurationMs);
+				Sleep(sleepTime); // Sleep to cap the frame rate
+			}
+			prevTickCount = GetTickCount64();
+			deltaTime = (float)(prevTickCount - currentTickCount) / 1000.0f;
+			prevTickCount = currentTickCount;
 		}
 	}
 	void ApplicationManager::Quit()
