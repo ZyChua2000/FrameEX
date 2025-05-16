@@ -67,6 +67,9 @@ namespace FrameExtractor
 		virtual void OnImGuiRender(float dt) override;
 		virtual const char* GetName() const override;
 		virtual void OnAttach() override;
+
+		void SetData(std::map<std::string, std::map<int32_t, CountData>> inData) { mData = inData; }
+		std::map<std::string, std::map<int32_t, CountData>>& GetData() { return mData; }
 	private:
 		std::vector<std::filesystem::path> videosInProject;
 		std::map<std::string, std::map<int32_t,CountData>> mData;

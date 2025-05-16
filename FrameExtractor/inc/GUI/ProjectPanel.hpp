@@ -18,11 +18,11 @@
 namespace FrameExtractor
 {
 	class ExplorerPanel;
-
+	class ViewportPanel;
 	class ProjectPanel : public IPanel
 	{
 	public:
-		ProjectPanel(ExplorerPanel* ex);
+		ProjectPanel(ExplorerPanel* ex, ViewportPanel* vp);
 		~ProjectPanel() override;
 		virtual void OnImGuiRender(float dt) override;
 		virtual const char* GetName() const override;
@@ -30,6 +30,7 @@ namespace FrameExtractor
 	private:
 		std::vector<std::filesystem::path> videosInProject;
 		ExplorerPanel* ExPanel;
+		ViewportPanel* VpPanel;
 
 	};
 

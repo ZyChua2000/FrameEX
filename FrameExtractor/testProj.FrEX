@@ -1,0 +1,68 @@
+test:
+  1:
+    Customer: 0
+    ReCustomer: 0
+    SuspectedStaff: 0
+    ReSuspectedStaff: 0
+    Children: 0
+    ReChildren: 0
+    Others: 0
+    ReOthers: 0
+    EntranceData:
+      0:
+        0:
+          []
+        1:
+          - Description: test7
+            IsMale: true
+            Timestamp: 00:00:00
+        2:
+          - Description: ewae12
+            IsMale: true
+            Timestamp: 00:00:00
+        3:
+          - Description: sad1
+            IsMale: true
+            Timestamp: 00:00:00
+          - Description: fefe2'
+            IsMale: true
+            Timestamp: 07:32:11
+        4:
+          []
+        5:
+          - Description: dsad3
+            IsMale: true
+            Timestamp: 00:42:13
+        6:
+          []
+        7:
+          []
+  3:
+    Customer: 2
+    ReCustomer: 1
+    SuspectedStaff: 1
+    ReSuspectedStaff: 1
+    Children: 1
+    ReChildren: 0
+    Others: 1
+    ReOthers: 1
+    EntranceData:
+      0:
+        0:
+          []
+        1:
+          []
+        2:
+          - Description: test
+            IsMale: true
+            Timestamp: 00:32:13
+        3:
+          []
+        4:
+          []
+        5:
+          []
+        6:
+          []
+        7:
+          []

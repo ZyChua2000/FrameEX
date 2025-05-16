@@ -14,6 +14,7 @@
 #include <GUI/ImGuiManager.hpp>
 #include <Core/LoggerManager.hpp>
 #include <imgui.h>
+#include <Graphics/Video.hpp>
 namespace FrameExtractor
 {
 	ExplorerPanel::ExplorerPanel()
@@ -46,7 +47,7 @@ namespace FrameExtractor
 		if (mCurrentPath != mCurrentPath.root_directory())
 		{
 			
-			if (ImGui::ImageButton((ImTextureID)mFolderIcon->GetTextureID(), {printedThumbnailSize, printedThumbnailSize}, {0,1}, {1,0}, -1, {0,0,0,0}, {1,1,1,1}))
+			if (ImGui::ImageButton((ImTextureID)mFolderIcon->GetTextureID(), {printedThumbnailSize, printedThumbnailSize}, {0,0}, {1,1}, -1, {0,0,0,0}, {1,1,1,1}))
 			{
 				mSelectedPath = mCurrentPath.parent_path();
 			}
@@ -79,14 +80,20 @@ namespace FrameExtractor
 			}
 			else if (extension == ".mp4")
 			{
-
+				if (!mExplorerFileIcons.contains(entry))
+				{
+					Video video(entry);
+					video.Decode(0);
+					mExplorerFileIcons[entry] = video.GetFrame();
+				}
+				screenID = static_cast<uint64_t>(mExplorerFileIcons[entry]->GetTextureID());
 			}
 			else
 			{
 				screenID = static_cast<uint64_t>(mFileIcon->GetTextureID());
 			}
 
-			if (ImGui::ImageButton((ImTextureID)screenID, { printedThumbnailSize, printedThumbnailSize }, { 0,1 }, { 1,0 }, -1, { 0,0,0,0 }, { 1,1,1,1 }))
+			if (ImGui::ImageButton((ImTextureID)screenID, { printedThumbnailSize, printedThumbnailSize }, { 0,0 }, { 1,1 }, -1, { 0,0,0,0 }, { 1,1,1,1 }))
 			{
 				mSelectedPath = entry;
 			}
@@ -122,5 +129,15 @@ namespace FrameExtractor
 
 		ImGui::EndChild();
 		ImGui::End();
+	}
+	Ref<Texture> ExplorerPanel::GetExplorerFileIcon(std::filesystem::path path)
+	{
+		if (!mExplorerFileIcons.contains(path))
+		{
+			Video video(path);
+			video.Decode(0);
+			mExplorerFileIcons[path] = video.GetFrame();
+		}
+		return mExplorerFileIcons[path];
 	}
 }

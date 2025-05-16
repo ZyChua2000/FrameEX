@@ -12,11 +12,14 @@
 #include "GUI/ProjectPanel.hpp"
 #include <Core/LoggerManager.hpp>
 #include <GUI/ExplorerPanel.hpp>
+#include <GUI/ViewportPanel.hpp>
+#include <GUI/ImGuiManager.hpp>
 namespace FrameExtractor
 {
-    ProjectPanel::ProjectPanel(ExplorerPanel* ex)
+    ProjectPanel::ProjectPanel(ExplorerPanel* ex, ViewportPanel* vp)
     {
         ExPanel = ex;
+        VpPanel = vp;
     }
 
     ProjectPanel::~ProjectPanel()
@@ -32,13 +35,24 @@ namespace FrameExtractor
         ImVec2 windowSize = ImGui::GetContentRegionAvail();
         ImGui::BeginChild("ScrollableRegion", ImVec2(windowSize.x, windowSize.y), true);
 
-  
-
+        
+        auto regionAvail = ImGui::GetContentRegionAvail();
+        float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+        int deletionTrack = 0;
+        int deletionMark = -1;
         for (const auto& entry : videosInProject)
         {
             std::string fileName = entry.filename().string();
             std::string filePath = entry.string();
-            ImGui::Button(fileName.c_str());
+
+            if (ImGui::Button(("-##ProjectList" + filePath).c_str(), {lineHeight, lineHeight}))
+            {
+                deletionMark = deletionTrack;
+            }
+
+            ImGui::SameLine();
+
+            ImGui::Button(fileName.c_str(), {regionAvail.x - lineHeight - ImGui::GetStyle().FramePadding.y * 2.0f, lineHeight});
             if (ImGui::BeginDragDropSource())
             {
                 ImGui::SetDragDropPayload("ITEM_NAME", filePath.c_str(), filePath.size() + 1);
@@ -50,6 +64,36 @@ namespace FrameExtractor
                     videosInProject.push_back(droppedItem);
                 }
             }
+            if (ImGui::IsItemHovered() )  // 0 = left mouse button
+            {
+                if (ImGui::IsMouseDoubleClicked(0))
+                // Double-click logic
+                    VpPanel->SetVideo(entry);
+
+                float printedThumbnailSize = (float)128 * ImGuiManager::styleMultiplier;
+
+                ImGui::BeginTooltip();
+                ImGui::Image((ImTextureID)ExPanel->GetExplorerFileIcon(entry)->GetTextureID(), { printedThumbnailSize ,printedThumbnailSize });
+                ImGui::EndTooltip();
+            }
+            deletionTrack++;
+        }
+        if (deletionMark != -1)
+        {
+            if (std::filesystem::absolute(VpPanel->GetVideoPath()) == std::filesystem::absolute(videosInProject[deletionMark]))
+            {
+                if (deletionMark == 0)
+                {
+                    if (videosInProject.size() > 1)
+                        VpPanel->SetVideo(videosInProject[1]);
+
+                }
+                else
+                {
+                    VpPanel->SetVideo(videosInProject[deletionMark - 1]);
+                }
+            }
+            videosInProject.erase(videosInProject.begin() + deletionMark);
         }
         ImGui::EndChild();
         ImGui::End();

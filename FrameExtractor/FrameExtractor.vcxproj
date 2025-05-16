@@ -80,7 +80,7 @@
       <PrecompiledHeaderFile>FrameExtractorPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_DEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;lib\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -90,7 +90,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Deb\GLAD.lib;lib\GLFW\lib\Deb\GLFW.lib;lib\IMGUI\lib\Deb\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSXd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Deb\GLAD.lib;lib\GLFW\lib\Deb\GLFW.lib;lib\IMGUI\lib\Deb\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSXd.lib;lib\yaml-cpp\lib\Deb\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -99,7 +99,7 @@
       <PrecompiledHeaderFile>FrameExtractorPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;lib\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -113,7 +113,7 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSX.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSX.lib;lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Distribution|x64'">
@@ -122,7 +122,7 @@
       <PrecompiledHeaderFile>FrameExtractorPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;lib\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -136,7 +136,7 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSX.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSX.lib;lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -145,7 +145,9 @@
     <ClInclude Include="inc\Core\Core.hpp" />
     <ClInclude Include="inc\Core\ExcelSerialiser.hpp" />
     <ClInclude Include="inc\Core\LoggerManager.hpp" />
+    <ClInclude Include="inc\Core\PlatformUtils.hpp" />
     <ClInclude Include="inc\Core\WindowManager.hpp" />
+    <ClInclude Include="inc\Core\YAMLSerialiser.hpp" />
     <ClInclude Include="inc\FrameExtractorPCH.hpp" />
     <ClInclude Include="inc\GUI\ConsolePanel.hpp" />
     <ClInclude Include="inc\GUI\ExplorerPanel.hpp" />
@@ -634,7 +636,9 @@
     <ClCompile Include="src\Core\Command.cpp" />
     <ClCompile Include="src\Core\ExcelSerialiser.cpp" />
     <ClCompile Include="src\Core\LoggerManager.cpp" />
+    <ClCompile Include="src\Core\PlatformUtils.cpp" />
     <ClCompile Include="src\Core\WindowManager.cpp" />
+    <ClCompile Include="src\Core\YAMLSerialiser.cpp" />
     <ClCompile Include="src\EntryPoint.cpp" />
     <ClCompile Include="src\FrameExtractorPCH.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

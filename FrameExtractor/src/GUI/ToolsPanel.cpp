@@ -264,6 +264,12 @@ namespace FrameExtractor
                         mData[store].erase(time);
                         break;
                     }
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("Remove this timing");
+                        ImGui::EndTooltip();
+                    }
                     ImGui::SameLine();
 
                     if (ImGui::CollapsingHeader((fmtTime(time) + "##" + store).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
@@ -377,6 +383,12 @@ namespace FrameExtractor
                                     counter.Entrance.erase(counter.Entrance.begin() + entrance);
                                 }
                                 break;
+                            }
+                            if (ImGui::IsItemHovered())
+                            {
+                                ImGui::BeginTooltip();
+                                ImGui::Text("Remove this entrance");
+                                ImGui::EndTooltip();
                             }
                             ImGui::SameLine();
 

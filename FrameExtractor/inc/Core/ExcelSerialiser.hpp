@@ -21,6 +21,7 @@ namespace FrameExtractor
 		~ExcelSerialiser();
 
 		void ExportSpikeDipReport(std::map<std::string, std::map<int32_t, CountData>>& countedData);
+		std::map<std::string, std::map<int32_t, CountData>> ImportSpikeDipReport();
 	private:
 		std::filesystem::path mPath;
 	};

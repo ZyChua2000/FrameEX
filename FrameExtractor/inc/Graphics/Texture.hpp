@@ -17,7 +17,6 @@ namespace FrameExtractor
 	{
 	public:
 		Texture(std::filesystem::path path);
-
 		Texture(uint32_t width, uint32_t height);
 		~Texture();
 		inline uint32_t GetTextureID() const { return mRendererID; }

@@ -22,6 +22,9 @@
 #include <Core/ApplicationManager.hpp>
 #include <Core/Command.hpp>
 #include <Core/LoggerManager.hpp>
+#include <Core/PlatformUtils.hpp>
+#include <Core/ExcelSerialiser.hpp>
+#include <Core/YAMLSerialiser.hpp>
 #include <GUI/ImGuiManager.hpp>
 #include <GUI/ViewportPanel.hpp>
 #include <GUI/ToolsPanel.hpp>
@@ -48,6 +51,7 @@ namespace FrameExtractor
 	class EditorColorScheme
 	{
 		// 0xRRGGBBAA
+	public:
 		inline static int BackGroundColor = 0x25213100;
 		inline static int TextColor = 0xF4F1DE00;
 		inline static int MainColor = 0xDA115E00;
@@ -55,7 +59,16 @@ namespace FrameExtractor
 		inline static int HighlightColor = 0xC7EF0000;
 		inline static int Black = 0x00000000;
 		inline static int White = 0xFFFFFF00;
+		static ImVec4 GetColor(int c, int a = Alpha80) { return ImVec4(GetR(c), GetG(c), GetB(c), GetA(a)); }
+		static int GetColor(const ImVec4& color) {
+			int r = static_cast<int>(color.x * 255.0f) & 0xFF;
+			int g = static_cast<int>(color.y * 255.0f) & 0xFF;
+			int b = static_cast<int>(color.z * 255.0f) & 0xFF;
+			int a = static_cast<int>(color.w * 255.0f) & 0xFF;
 
+			return (r << 24) | (g << 16) | (b << 8) | a;
+		}
+	private:
 		inline static int AlphaTransparent = 0x00;
 		inline static int Alpha20 = 0x33;
 		inline static int Alpha40 = 0x66;
@@ -70,7 +83,6 @@ namespace FrameExtractor
 		static float GetB(int colorCode) { return (float)((colorCode & 0x0000FF00) >> 8) / (float)(0xFF); }
 		static float GetA(int alphaCode) { return ((float)alphaCode / (float)0xFF); }
 
-		static ImVec4 GetColor(int c, int a = Alpha80) { return ImVec4(GetR(c), GetG(c), GetB(c), GetA(a)); }
 		static ImVec4 Darken(ImVec4 c, float p) { return ImVec4(fmax(0.f, c.x - 1.0f * p), fmax(0.f, c.y - 1.0f * p), fmax(0.f, c.z - 1.0f * p), c.w); }
 		static ImVec4 Lighten(ImVec4 c, float p) { return ImVec4(fmax(0.f, c.x + 1.0f * p), fmax(0.f, c.y + 1.0f * p), fmax(0.f, c.z + 1.0f * p), c.w); }
 
@@ -98,7 +110,7 @@ namespace FrameExtractor
 			colors[ImGuiCol_TextDisabled] = Disabled(colors[ImGuiCol_Text]);
 			colors[ImGuiCol_WindowBg] = GetColor(BackGroundColor);
 			colors[ImGuiCol_ChildBg] = GetColor(Black, Alpha20);
-			colors[ImGuiCol_PopupBg] = GetColor(BackGroundColor, Alpha90);
+			colors[ImGuiCol_PopupBg] = GetColor(BackGroundColor, AlphaFull);
 			colors[ImGuiCol_Border] = Lighten(GetColor(BackGroundColor), 0.4f);
 			colors[ImGuiCol_BorderShadow] = GetColor(Black);
 			colors[ImGuiCol_FrameBg] = GetColor(MainAccentColor, Alpha40);
@@ -143,7 +155,7 @@ namespace FrameExtractor
 			colors[ImGuiCol_NavHighlight] = GetColor(White);
 			colors[ImGuiCol_NavWindowingHighlight] = GetColor(White, Alpha80);
 			colors[ImGuiCol_NavWindowingDimBg] = GetColor(White, Alpha20);
-			colors[ImGuiCol_ModalWindowDimBg] = GetColor(Black, Alpha60);
+			colors[ImGuiCol_ModalWindowDimBg] = GetColor(Black, Alpha20);
 
 			ImGui::GetStyle().WindowMenuButtonPosition = ImGuiDir_Right;
 
@@ -186,7 +198,7 @@ namespace FrameExtractor
 		}
 
 		{
-			mProjectPanel = new ProjectPanel(mExplorerPanel);
+			mProjectPanel = new ProjectPanel(mExplorerPanel, mViewportPanel);
 			mProjectPanel->OnAttach();
 		}
 	}
@@ -244,45 +256,89 @@ namespace FrameExtractor
 
 	void ImGuiManager::Update(float dt)
 	{
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		static bool opt_fullscreen = true;
-		static bool opt_padding = false;
-		bool p_open = true;
-		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-		if (opt_fullscreen)
-		{
-			const ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(viewport->WorkPos);
-			ImGui::SetNextWindowSize(viewport->WorkSize);
-			ImGui::SetNextWindowViewport(viewport->ID);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-		}
-		else
-		{
-			dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-		}
+		try {
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+			static bool opt_fullscreen = true;
+			static bool opt_padding = false;
+			bool p_open = true;
+			static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-			window_flags |= ImGuiWindowFlags_NoBackground;
+			ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+			if (opt_fullscreen)
+			{
+				const ImGuiViewport* viewport = ImGui::GetMainViewport();
+				ImGui::SetNextWindowPos(viewport->WorkPos);
+				ImGui::SetNextWindowSize(viewport->WorkSize);
+				ImGui::SetNextWindowViewport(viewport->ID);
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+				window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+				window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+			}
+			else
+			{
+				dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+			}
 
+			if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+				window_flags |= ImGuiWindowFlags_NoBackground;
 
+			static bool open_preferences_popup = false;
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		if(ImGui::Begin("DockSpace", &p_open, window_flags))
-		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+			ImGui::Begin("DockSpace", &p_open, window_flags);
+
 			if (ImGui::BeginMenuBar())
 			{
 				if (ImGui::BeginMenu("File"))
 				{
-					if (ImGui::MenuItem("Open")) { /* do something */ }
-					if (ImGui::MenuItem("Save")) { /* do something */ }
+					if (ImGui::MenuItem("Open Project")) {
+						auto projectFile = OpenFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
+						if (std::filesystem::exists(projectFile))
+						{
+							YAMLSerialiser serialiser(projectFile);
+							serialiser.ImportProject(mToolsPanel->GetData());
+						}
+						else
+						{
+							APP_CORE_ERROR("Spike Dip file does not exist!");
+						}
+					}
+
+					if (ImGui::MenuItem("Save Project"))
+					{
+						auto spikeDipFile = SaveFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
+						spikeDipFile.replace_extension(".FrEX");
+						if (!spikeDipFile.empty())
+						{
+							YAMLSerialiser serialiser(spikeDipFile);
+							serialiser.ExportProject(mToolsPanel->GetData());
+						}
+
+					}
+
+					if (ImGui::MenuItem("Import Spike Dip"))
+					{
+						auto spikeDipFile = OpenFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
+						if (std::filesystem::exists(spikeDipFile))
+						{
+							ExcelSerialiser serialiser(spikeDipFile);
+							mToolsPanel->SetData(serialiser.ImportSpikeDipReport());
+						}
+						else
+						{
+							APP_CORE_ERROR("Spike Dip file does not exist!");
+						}
+					}
+
+					if (ImGui::MenuItem("Preferences...##MainMenuPreference"))
+					{
+						open_preferences_popup = true;
+					}
+
 					ImGui::EndMenu();
 				}
 
@@ -292,10 +348,140 @@ namespace FrameExtractor
 					ImGui::EndMenu();
 				}
 
+
 				ImGui::EndMenuBar();
 			}
 
 			ImGui::PopStyleVar();
+
+			if (open_preferences_popup)
+			{
+				ImGui::OpenPopup("Preferences##Menu");
+				open_preferences_popup = false;
+			}ImGuiIO& io = ImGui::GetIO();
+			ImVec2 center = { io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f };
+			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+			ImGui::SetNextWindowSize({ 900 * styleMultiplier , 600 * styleMultiplier }, ImGuiCond_Appearing);
+			if (ImGui::BeginPopupModal("Preferences##Menu", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+			{
+				dt = 0;
+				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+
+				if (ImGui::Button("X##PreferencesClosing", { lineHeight, lineHeight }))
+				{
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::Separator();
+				if (ImGui::BeginTabBar("PreferencesTabs"))
+				{
+					if (ImGui::BeginTabItem("General"))
+					{
+						bool dark_mode = false;
+						ImGui::Checkbox("Enable Dark Mode", &dark_mode);
+						ImGui::EndTabItem();
+					}
+					if (ImGui::BeginTabItem("Apperances"))
+					{
+						auto vec4BGColor = EditorColorScheme::GetColor(EditorColorScheme::BackGroundColor);
+						auto vec4MainColor = EditorColorScheme::GetColor(EditorColorScheme::MainColor);
+						auto vec4AccentColor = EditorColorScheme::GetColor(EditorColorScheme::MainAccentColor);
+						auto vec4TextColor = EditorColorScheme::GetColor(EditorColorScheme::TextColor);
+						auto vec4HighlightColor = EditorColorScheme::GetColor(EditorColorScheme::HighlightColor);
+						if (ImGui::Button("Reset to Default## Appearances"))
+						{
+							EditorColorScheme::SetColors(0x25213100, 0xF4F1DE00, 0xDA115E00, 0x79235900, 0xC7EF0000);
+							EditorColorScheme::ApplyTheme();
+							mFontSize = 1;
+						}
+						auto contentRegionAvail = ImGui::GetContentRegionAvail();
+						ImGui::BeginChild("AppearancesChild", contentRegionAvail, true);
+						ImGui::Columns(2);
+						ImGui::SetColumnWidth(0, ImGui::GetFontSize() * 8);
+						ImGui::Text("Background Colour: ");
+						ImGui::NextColumn();
+						ImGui::SetNextItemWidth(contentRegionAvail.x - ImGui::GetFontSize() * 8 - ImGui::GetStyle().FramePadding.x * 4.f);
+						if (ImGui::ColorEdit4("##Background Colour", &vec4BGColor.x, ImGuiColorEditFlags_NoAlpha))
+						{
+							EditorColorScheme::BackGroundColor = EditorColorScheme::GetColor(vec4BGColor);
+							EditorColorScheme::ApplyTheme();
+						}
+						ImGui::NextColumn();
+						ImGui::Text("Text Colour: ");
+						ImGui::NextColumn();
+						ImGui::SetNextItemWidth(contentRegionAvail.x - ImGui::GetFontSize() * 8 - ImGui::GetStyle().FramePadding.x * 4.f);
+						if (ImGui::ColorEdit4("##Text Colour", &vec4TextColor.x, ImGuiColorEditFlags_NoAlpha))
+						{
+							EditorColorScheme::TextColor = EditorColorScheme::GetColor(vec4TextColor);
+							EditorColorScheme::ApplyTheme();
+						}
+						ImGui::NextColumn();
+						ImGui::Text("Main Colour: ");
+						ImGui::NextColumn();
+						ImGui::SetNextItemWidth(contentRegionAvail.x - ImGui::GetFontSize() * 8 - ImGui::GetStyle().FramePadding.x * 4.f);
+						if (ImGui::ColorEdit4("##Main Colour", &vec4MainColor.x, ImGuiColorEditFlags_NoAlpha))
+						{
+							EditorColorScheme::MainColor = EditorColorScheme::GetColor(vec4MainColor);
+							EditorColorScheme::ApplyTheme();
+						}
+						ImGui::NextColumn();
+						ImGui::Text("Highlight Colour: ");
+						ImGui::NextColumn();
+						ImGui::SetNextItemWidth(contentRegionAvail.x - ImGui::GetFontSize() * 8 - ImGui::GetStyle().FramePadding.x * 4.f);
+						if (ImGui::ColorEdit4("##Highlight Colour", &vec4HighlightColor.x, ImGuiColorEditFlags_NoAlpha))
+						{
+							EditorColorScheme::HighlightColor = EditorColorScheme::GetColor(vec4HighlightColor);
+							EditorColorScheme::ApplyTheme();
+						}
+						ImGui::NextColumn();
+						ImGui::Text("Main Accent Colour: ");
+						ImGui::NextColumn();
+						ImGui::SetNextItemWidth(contentRegionAvail.x - ImGui::GetFontSize() * 8 - ImGui::GetStyle().FramePadding.x * 4.f);
+						if (ImGui::ColorEdit4("##Main Accent Colour", &vec4AccentColor.x, ImGuiColorEditFlags_NoAlpha))
+						{
+							EditorColorScheme::MainAccentColor = EditorColorScheme::GetColor(vec4AccentColor);
+							EditorColorScheme::ApplyTheme();
+						}
+						ImGui::NextColumn();
+						ImGui::Text("Font Size: ");
+						ImGui::NextColumn();
+						float displayFontSize = 32 * mFontSize;
+						ImGui::SetNextItemWidth(contentRegionAvail.x - ImGui::GetFontSize() * 8 - ImGui::GetStyle().FramePadding.x * 4.f);
+						if (ImGui::DragFloat("##FontSize", &displayFontSize, 0.3f, 20, 64, "%.1f"))
+						{
+							if (displayFontSize < 20) displayFontSize = 20;
+							if (displayFontSize > 64) displayFontSize = 64;
+							mFontSize = displayFontSize / 32;
+						}
+						ImGui::Columns(1);
+
+						auto remainingSize = ImGui::GetContentRegionAvail();
+						ImGui::BeginChild("AppearancesChildExample", remainingSize, true);
+
+						ImGui::PushFont(BoldFont);
+						ImGui::Text("Example Window Background");
+						ImGui::PopFont();
+						// Text
+						ImGui::Text("This is a text sample");
+
+						// Main Button
+						ImGui::Button("Main Color Button");
+
+						// Accent Color (e.g. Frame)
+						static float slider_value = 0.5f;
+						ImGui::SliderFloat("Accent Slider", &slider_value, 0.0f, 1.0f);
+
+						// Highlight (e.g. checkmark, selection)
+						static bool check = true;
+						ImGui::Checkbox("Highlight Check", &check);
+
+						ImGui::EndChild();
+						ImGui::EndChild();
+						ImGui::EndTabItem();
+					}
+					ImGui::EndTabBar();
+				}
+				ImGui::EndPopup();
+			}
 
 			auto windowSize = ImGui::GetWindowSize();
 			styleMultiplier = windowSize.x / 1920;
@@ -304,7 +490,6 @@ namespace FrameExtractor
 			if (opt_fullscreen)
 				ImGui::PopStyleVar(2);
 
-			ImGuiIO& io = ImGui::GetIO();
 			if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 			{
 				ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
@@ -319,9 +504,14 @@ namespace FrameExtractor
 
 			ImGui::PopStyleVar();
 			ImGui::End();
+
 		}
-
-
+		catch (...)
+		{
+			YAMLSerialiser serialiser("Autosave.FrEX");
+			serialiser.ExportProject(mToolsPanel->GetData());
+			throw ("Exception!");
+		}
 		
 	}
 

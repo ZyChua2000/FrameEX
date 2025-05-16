@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
 /*!
 \file       ViewportPanel.cpp
 \author     Chua Zheng Yang
@@ -30,6 +30,15 @@ namespace FrameExtractor
         mIcons[Icons::SLOW_DOWN_ICON] = MakeRef<Texture>("resources/icons/FastBackward.png");
         mIcons[Icons::SKIP_TO_END_ICON] = MakeRef<Texture>("resources/icons/CutToEnd.png");
         mIcons[Icons::SKIP_TO_START_ICON] = MakeRef<Texture>("resources/icons/CutToFront.png");
+        mKeyIcons[KeyIcons::CTRL_ICON] = MakeRef<Texture>("resources/icons/Ctrl.png");
+        mKeyIcons[KeyIcons::SHIFT_ICON] = MakeRef<Texture>("resources/icons/Shift.png");
+        mKeyIcons[KeyIcons::LEFTARROW_ICON] = MakeRef<Texture>("resources/icons/leftArrow.png");
+        mKeyIcons[KeyIcons::RIGHTARROW_ICON] = MakeRef<Texture>("resources/icons/rightArrow.png");
+        mKeyIcons[KeyIcons::UPARROW_ICON] = MakeRef<Texture>("resources/icons/upArrow.png");
+        mKeyIcons[KeyIcons::DOWNARROW_ICON] = MakeRef<Texture>("resources/icons/downArrow.png");
+        mKeyIcons[KeyIcons::SPACE_ICON] = MakeRef<Texture>("resources/icons/Space.png");
+        mKeyIcons[KeyIcons::PLUS_LOGO] = MakeRef<Texture>("resources/icons/PlusLogo.png");
+
 
 
     }
@@ -62,11 +71,7 @@ namespace FrameExtractor
         if (ImGui::BeginDragDropTarget()) {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_NAME")) {
                 const char* droppedItem = static_cast<const char*>(payload->Data);
-                delete mVideo;
-                mVideo = new Video(droppedItem);
-                mVideo->Decode();
-                DTTrack = 0.f;
-                mFrameNumber = 0;
+                SetVideo({ droppedItem });
             }
         }
 
@@ -216,29 +221,57 @@ namespace FrameExtractor
         }
 
         ImGui::Spacing();
-
+        float lineHeight = (ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f) * 1.5f;
         const int buttonCount = 7;
         const float buttonSize = 36.f * ImGuiManager::styleMultiplier;  // Width and height of each button
         const float spacing = ImGui::GetStyle().ItemSpacing.x;
         float totalWidth = buttonCount * buttonSize + (buttonCount - 1) * spacing;
         float startX = (ImGui::GetContentRegionAvail().x - totalWidth) * 0.5f;
+        ImGuiIO& io = ImGui::GetIO();
+        auto ctrlHeld = io.KeysDown[ImGuiKey_RightCtrl] || io.KeysDown[ImGuiKey_LeftCtrl];
+        auto shiftHeld = io.KeysDown[ImGuiKey_RightShift] || io.KeysDown[ImGuiKey_LeftShift];
+        bool isWindowFocused = ImGui::IsWindowFocused();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + startX);
-        if (ImGui::ImageButton((ImTextureID)mIcons[SKIP_TO_START_ICON]->GetTextureID(), { buttonSize, buttonSize }))
+        if (ImGui::ImageButton((ImTextureID)mIcons[SKIP_TO_START_ICON]->GetTextureID(), { buttonSize, buttonSize }) ||
+            (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
             CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, 0, mVideo));
             mIsPlaying = false;
         }
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::SHIFT_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::PLUS_LOGO]->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::LEFTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::EndTooltip();
+
+        }
 
         ImGui::SameLine();
-
-        if (ImGui::ImageButton((ImTextureID)mIcons[SLOW_DOWN_ICON]->GetTextureID(), { buttonSize,buttonSize }))
+      
+        if (ImGui::ImageButton((ImTextureID)mIcons[SLOW_DOWN_ICON]->GetTextureID(), { buttonSize,buttonSize }) || 
+            (isWindowFocused && ctrlHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
             CommandHistory::execute(std::make_unique<CallFunctionCommand>(std::bind(&ViewportPanel::SlowDown, this), std::bind(&ViewportPanel::SpeedUp, this)));
+        }
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::CTRL_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::PLUS_LOGO]->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::LEFTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::EndTooltip();
         }
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton((ImTextureID)mIcons[BACKWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }))
+        if (ImGui::ImageButton((ImTextureID)mIcons[BACKWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+            (isWindowFocused && !ctrlHeld && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
             int buffer = mFrameNumber - 1;
             if (buffer < 0)
@@ -248,12 +281,19 @@ namespace FrameExtractor
             CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, buffer, mVideo));
             mIsPlaying = false;
         }
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::LEFTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::EndTooltip();
+        }
 
         ImGui::SameLine();
 
         if (!mIsPlaying)
         {
-            if (ImGui::ImageButton((ImTextureID)mIcons[PLAY_ICON]->GetTextureID(), { buttonSize,buttonSize }))
+            if (ImGui::ImageButton((ImTextureID)mIcons[PLAY_ICON]->GetTextureID(), { buttonSize,buttonSize }) 
+                || (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_Space)))
             {
                 CommandHistory::execute(std::make_unique<PlayCommand>(&mIsPlaying, &mFrameNumber, mFrameNumber, mVideo));
                 DTTrack = (float)mFrameNumber / mVideo->GetFPS();
@@ -261,15 +301,23 @@ namespace FrameExtractor
         }
         else
         {
-            if (ImGui::ImageButton((ImTextureID)mIcons[STOP_ICON]->GetTextureID(), { buttonSize,buttonSize }))
+            if (ImGui::ImageButton((ImTextureID)mIcons[STOP_ICON]->GetTextureID(), { buttonSize,buttonSize })
+                || (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_Space)))
             {
                 CommandHistory::execute(std::make_unique<ModifyPropertyCommand<bool>>(&mIsPlaying, true, false));
             }
         }
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::SPACE_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::EndTooltip();
+        }
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton((ImTextureID)mIcons[FORWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }))
+        if (ImGui::ImageButton((ImTextureID)mIcons[FORWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+            (isWindowFocused && !ctrlHeld && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
         {
             int buffer = mFrameNumber + 1;
             if (buffer > mVideo->GetMaxFrames())
@@ -279,20 +327,49 @@ namespace FrameExtractor
             CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, buffer, mVideo));
             mIsPlaying = false;
         }
-
-        ImGui::SameLine();
-
-        if (ImGui::ImageButton((ImTextureID)mIcons[SPEED_UP_ICON]->GetTextureID(), { buttonSize,buttonSize }))
+        if (ImGui::IsItemHovered())
         {
-            CommandHistory::execute(std::make_unique<CallFunctionCommand>(std::bind(&ViewportPanel::SpeedUp, this), std::bind(&ViewportPanel::SlowDown, this)));
+            ImGui::BeginTooltip();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::RIGHTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::EndTooltip();
         }
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton((ImTextureID)mIcons[SKIP_TO_END_ICON]->GetTextureID(), { buttonSize,buttonSize }))
+        if (ImGui::ImageButton((ImTextureID)mIcons[SPEED_UP_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+            (isWindowFocused && ctrlHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
+        {
+            CommandHistory::execute(std::make_unique<CallFunctionCommand>(std::bind(&ViewportPanel::SpeedUp, this), std::bind(&ViewportPanel::SlowDown, this)));
+        }
+
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::CTRL_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::PLUS_LOGO]->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::RIGHTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::EndTooltip();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::ImageButton((ImTextureID)mIcons[SKIP_TO_END_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+            (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
         {
             mIsPlaying = false;
             CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, mVideo->GetMaxFrames()-1, mVideo));
+        }
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::SHIFT_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::PLUS_LOGO]->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::RIGHTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::EndTooltip();
         }
 
         std::string statusText;
@@ -466,5 +543,14 @@ namespace FrameExtractor
         default:
             return;
         }
+    }
+    void ViewportPanel::SetVideo(std::filesystem::path path)
+    {
+        if (mVideo)
+            delete mVideo;
+        mVideo = new Video(path);
+        mVideo->Decode();
+        DTTrack = 0.f;
+        mFrameNumber = 0;
     }
 }

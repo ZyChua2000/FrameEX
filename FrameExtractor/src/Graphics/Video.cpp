@@ -93,6 +93,7 @@ namespace FrameExtractor
 		double max_frames = duration_seconds * mFPS;
 		mMaxFrames = (uint32_t)max_frames;
 		mTexture = MakeRef<Texture>(mWidth, mHeight);
+		mPath = path;
 
 	}
 	Video::~Video()

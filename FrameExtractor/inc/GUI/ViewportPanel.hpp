@@ -17,7 +17,17 @@
 #include <Graphics/BoundingBox.hpp>
 namespace FrameExtractor
 {
-
+	enum KeyIcons
+	{
+		CTRL_ICON,
+		SHIFT_ICON,
+		RIGHTARROW_ICON,
+		DOWNARROW_ICON,
+		LEFTARROW_ICON,
+		UPARROW_ICON,
+		SPACE_ICON,
+		PLUS_LOGO
+	};
 	enum Icons
 	{
 		PLAY_ICON,
@@ -45,10 +55,12 @@ namespace FrameExtractor
 		inline void Pause() { mIsPlaying = false; }
 		inline int32_t GetFrameNumber() const { return mFrameNumber; }
 		inline float GetSpeedMultiplier() const { return mSpeedMultiplier; }
-		
+		void SetVideo(std::filesystem::path path);
+		std::filesystem::path GetVideoPath() { return mVideo->GetPath(); }
 	private:
 		std::string mName;
 		std::map<Icons, Ref<Texture>> mIcons;
+		std::map<KeyIcons, Ref<Texture>> mKeyIcons;
 		std::map<std::filesystem::path, std::map<int32_t, std::vector<BoundingBox>>> mBBCache;
 		Video* mVideo = nullptr;
 		ImVec2 mViewportSize = ImVec2(0, 0);

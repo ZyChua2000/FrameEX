@@ -21,6 +21,7 @@ workspace "FrameEX"
 	IncludeDir["FFMPEG"] = "FrameExtractor/lib/ffmpeg/include"
 	IncludeDir["STBI"] = "FrameExtractor/lib/stb_image"
 	IncludeDir["OpenXLSX"] = "FrameExtractor/lib/OpenXLSX/inc"
+	IncludeDir["YAML"] = "FrameExtractor/lib/yaml-cpp/include"
 
 	LibraryDir = {}
 	LibraryDir["GLAD_Debug"] = "lib/GLAD/lib/Deb"
@@ -31,6 +32,8 @@ workspace "FrameEX"
 	LibraryDir["IMGUI_Release"] = "lib/IMGUI/lib/Rel"
 	LibraryDir["FFMPEG"] = "lib/ffmpeg/lib"
 	LibraryDir["OpenXLSX"] = "lib/OpenXLSX/lib"
+	LibraryDir["YAML_Debug"] = "lib/yaml-cpp/lib/Deb"
+	LibraryDir["YAML_Release"] = "lib/yaml-cpp/lib/Rel"
 
 	Library = {}
 	Library["GLAD_Debug"] = "%{LibraryDir.GLAD_Debug}/GLAD.lib"
@@ -45,6 +48,8 @@ workspace "FrameEX"
 	Library["SWScale"] = "%{LibraryDir.FFMPEG}/swscale.lib"
 	Library["OpenXLSX_Release"] = "%{LibraryDir.OpenXLSX}/OpenXLSX.lib"
 	Library["OpenXLSX_Debug"] = "%{LibraryDir.OpenXLSX}/OpenXLSXd.lib"
+	Library["YAML_Debug"] = "%{LibraryDir.YAML_Debug}/yaml-cpp.lib"
+	Library["YAML_Release"] = "%{LibraryDir.YAML_Release}/yaml-cpp.lib"
 
 	project "FrameExtractor"
 		location "FrameExtractor"
@@ -80,7 +85,8 @@ workspace "FrameEX"
 			"%{IncludeDir.GLM}",
 			"%{IncludeDir.FFMPEG}",
 			"%{IncludeDir.STBI}",
-			"%{IncludeDir.OpenXLSX}"
+			"%{IncludeDir.OpenXLSX}",
+			"%{IncludeDir.YAML}"
 		}
 
 
@@ -116,7 +122,8 @@ workspace "FrameEX"
 				"%{Library.GLAD_Debug}",
 				"%{Library.GLFW_Debug}",
 				"%{Library.IMGUI_Debug}",
-				"%{Library.OpenXLSX_Debug}"
+				"%{Library.OpenXLSX_Debug}",
+				"%{Library.YAML_Debug}"
 			}
 
 
@@ -129,7 +136,8 @@ workspace "FrameEX"
 				"%{Library.GLAD_Release}",
 				"%{Library.GLFW_Release}",
 				"%{Library.IMGUI_Release}",
-				"%{Library.OpenXLSX_Release}"
+				"%{Library.OpenXLSX_Release}",
+				"%{Library.YAML_Release}"
 			}
 
 		filter "configurations:Distribution"
@@ -141,5 +149,6 @@ workspace "FrameEX"
 				"%{Library.GLAD_Release}",
 				"%{Library.GLFW_Release}",
 				"%{Library.IMGUI_Release}",
-				"%{Library.OpenXLSX_Release}"
+				"%{Library.OpenXLSX_Release}",
+				"%{Library.YAML_Release}"
 			}

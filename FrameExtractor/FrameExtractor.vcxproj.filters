@@ -87,7 +87,13 @@
     <ClInclude Include="inc\Core\LoggerManager.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Core\PlatformUtils.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Core\WindowManager.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Core\YAMLSerialiser.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
     <ClInclude Include="inc\FrameExtractorPCH.hpp">
@@ -1550,7 +1556,13 @@
     <ClCompile Include="src\Core\LoggerManager.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Core\PlatformUtils.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\Core\WindowManager.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\YAMLSerialiser.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\EntryPoint.cpp">
