@@ -318,12 +318,7 @@ namespace FrameExtractor
 						}
 						else
 						{
-							auto projectFile = SaveFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
-							projectFile.replace_extension(".FrEX");
-							if (!projectFile.empty())
-							{
-								mProject.SaveProject();
-							}
+							mProject.SaveProject();
 						}
 					}
 

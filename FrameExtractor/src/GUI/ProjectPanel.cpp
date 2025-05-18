@@ -28,7 +28,6 @@ namespace FrameExtractor
         //ImGui::SetNextWindowSize(mViewportSize);
         //ImGui::SetNextWindowPos(mViewportPos);
         auto& videosInProject = mProject->mVideosInProject;
-        ImGui::SetNextWindowSizeConstraints(ImVec2(100, 100), ImVec2(1000, 1000));
         ImGui::Begin("Project");
 
         ImVec2 windowSize = ImGui::GetContentRegionAvail();
@@ -41,7 +40,7 @@ namespace FrameExtractor
             if (contentTestSize.x > 0 && contentTestSize.y > 0)
             {
                 float scrollMaxY = ImGui::GetScrollMaxY();       // Maximum scroll position
-                ImGui::InvisibleButton("DropTarget", { contentTestSize.x, contentTestSize.y + scrollMaxY });
+                ImGui::Image((ImTextureID)Texture::GetInvisibleTexture()->GetTextureID(), {contentTestSize.x, contentTestSize.y + scrollMaxY});
                 ImGui::SetItemAllowOverlap();
             }
         }

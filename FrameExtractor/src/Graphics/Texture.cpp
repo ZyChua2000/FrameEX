@@ -17,6 +17,24 @@
 #include <stb_image.h>
 namespace FrameExtractor
 {
+
+	Texture::Texture()
+	{
+	}
+
+	Texture::Texture(int internalformat, uint32_t width, uint32_t height, int format, int type, const void* data)
+	{
+		glGenTextures(1, &mRendererID);
+		glBindTexture(GL_TEXTURE_2D, mRendererID);
+		glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, data);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	}
+
 	Texture::Texture(std::filesystem::path path)
 	{
 		auto data = stbi_load(path.string().c_str(), (int*)&mWidth, (int*)&mHeight, (int*) & mChannels, 0);
@@ -67,6 +85,16 @@ namespace FrameExtractor
 	{
 		glBindTexture(GL_TEXTURE_2D, mRendererID);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, mWidth, mHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+	}
+
+
+	Ref<Texture> Texture::GetInvisibleTexture()
+	{
+		static unsigned char data[4]{ 0,0,0,0 };
+		static Ref<Texture> sInvisibleTexture = MakeRef<Texture>(GL_RGBA, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+		return sInvisibleTexture;
+
 	}
 }
 

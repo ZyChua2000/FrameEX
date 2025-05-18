@@ -19,7 +19,6 @@ namespace FrameExtractor
 {
 	ExplorerPanel::ExplorerPanel(Project* project) : mProject(project)
 	{
-		mCurrentPath = std::filesystem::current_path();
 		mFolderIcon = MakeRef<Texture>("resources/icons/folder.png");
 		mFileIcon = MakeRef<Texture>("resources/icons/document.png");
 
@@ -85,6 +84,7 @@ namespace FrameExtractor
 			
 		}
 
+		if(std::filesystem::exists(mCurrentPath))
 		for (auto& entry : std::filesystem::directory_iterator(mCurrentPath))
 		{
 			const std::filesystem::path& path = entry.path();
