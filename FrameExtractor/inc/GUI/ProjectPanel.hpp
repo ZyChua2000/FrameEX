@@ -15,6 +15,7 @@
 #include <vector>
 #include <filesystem>
 #include <GUI/IPanel.hpp>
+#include <Core/Project.hpp>
 namespace FrameExtractor
 {
 	class ExplorerPanel;
@@ -22,16 +23,16 @@ namespace FrameExtractor
 	class ProjectPanel : public IPanel
 	{
 	public:
-		ProjectPanel(ExplorerPanel* ex, ViewportPanel* vp);
+		ProjectPanel(ExplorerPanel* ex, ViewportPanel* vp, Project* project);
 		~ProjectPanel() override;
 		virtual void OnImGuiRender(float dt) override;
 		virtual const char* GetName() const override;
 		virtual void OnAttach() override;
-		void SetProjectPath(std::filesystem::path path);
+		void OnLoad();
 	private:
-		std::vector<std::filesystem::path> videosInProject;
 		ExplorerPanel* ExPanel;
 		ViewportPanel* VpPanel;
+		Project* mProject;
 
 	};
 

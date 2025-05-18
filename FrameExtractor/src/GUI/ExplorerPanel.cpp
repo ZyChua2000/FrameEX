@@ -17,10 +17,9 @@
 #include <Graphics/Video.hpp>
 namespace FrameExtractor
 {
-	ExplorerPanel::ExplorerPanel()
+	ExplorerPanel::ExplorerPanel(Project* project) : mProject(project)
 	{
 		mCurrentPath = std::filesystem::current_path();
-		mRootPath = std::filesystem::current_path();
 		mFolderIcon = MakeRef<Texture>("resources/icons/folder.png");
 		mFileIcon = MakeRef<Texture>("resources/icons/document.png");
 
@@ -36,7 +35,7 @@ namespace FrameExtractor
 		ImGui::BeginChild("ScrollableRegion", ImVec2(windowSize.x, scrollableHeight), true);
 	
 		float panelWidth = ImGui::GetContentRegionAvail().x;
-		int cellSize = 128 * ImGuiManager::styleMultiplier + 10 * ImGuiManager::styleMultiplier;
+		float cellSize = 128 * ImGuiManager::styleMultiplier + 10 * ImGuiManager::styleMultiplier;
 		int columnCount = (int)(panelWidth / cellSize);
 		columnCount = columnCount < 1 ? 1 : columnCount;
 		float printedThumbnailSize = (float)128 * ImGuiManager::styleMultiplier;
@@ -52,7 +51,7 @@ namespace FrameExtractor
 			// Menu items for the right-click menu
 			if (ImGui::MenuItem("Return to Root Folder##ExplorerPanel"))
 			{
-				mCurrentPath = mRootPath;
+				mCurrentPath = mProject->GetAssetsDir();
 			}
 			// Close the popup
 			ImGui::EndPopup();
@@ -64,7 +63,7 @@ namespace FrameExtractor
 		ImGui::PushStyleColor(ImGuiCol_Button, { 0,0,0,0 });
 
 
-		if (mCurrentPath != mCurrentPath.root_directory())
+		if (mCurrentPath != mProject->GetAssetsDir())
 		{
 			
 			if (ImGui::ImageButton((ImTextureID)mFolderIcon->GetTextureID(), {printedThumbnailSize, printedThumbnailSize}, {0,0}, {1,1}, -1, {0,0,0,0}, {1,1,1,1}))
@@ -150,10 +149,7 @@ namespace FrameExtractor
 		ImGui::EndChild();
 		ImGui::End();
 	}
-	void ExplorerPanel::SetProjectPath(std::filesystem::path path)
-	{
-		!std::filesystem::is_directory(path) ? mRootPath = path.parent_path() : mRootPath = path;
-	}
+
 	Ref<Texture> ExplorerPanel::GetExplorerFileIcon(std::filesystem::path path)
 	{
 		if (!mExplorerFileIcons.contains(path))

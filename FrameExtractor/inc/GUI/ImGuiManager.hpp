@@ -11,7 +11,9 @@
 
 #ifndef ImGuiManager_HPP
 #define ImGuiManager_HPP
-class ImFont;
+
+#include <Core/Project.hpp>
+struct ImFont;
 
 namespace FrameExtractor
 {
@@ -48,6 +50,8 @@ namespace FrameExtractor
 		ConsolePanel* mConsolePanel;
 		ExplorerPanel* mExplorerPanel;
 		ToolsPanel* mToolsPanel;
+
+		Project mProject;
 
 		static float mFontSize;
 	};

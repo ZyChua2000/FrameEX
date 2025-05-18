@@ -24,7 +24,6 @@
 #include <Core/LoggerManager.hpp>
 #include <Core/PlatformUtils.hpp>
 #include <Core/ExcelSerialiser.hpp>
-#include <Core/YAMLSerialiser.hpp>
 #include <GUI/ImGuiManager.hpp>
 #include <GUI/ViewportPanel.hpp>
 #include <GUI/ToolsPanel.hpp>
@@ -188,17 +187,17 @@ namespace FrameExtractor
 		}
 
 		{
-			mExplorerPanel = new ExplorerPanel();
+			mExplorerPanel = new ExplorerPanel(&mProject);
 			mExplorerPanel->OnAttach();
 		}
 
 		{
-			mToolsPanel = new ToolsPanel();
+			mToolsPanel = new ToolsPanel(&mProject);
 			mToolsPanel->OnAttach();
 		}
 
 		{
-			mProjectPanel = new ProjectPanel(mExplorerPanel, mViewportPanel);
+			mProjectPanel = new ProjectPanel(mExplorerPanel, mViewportPanel, &mProject);
 			mProjectPanel->OnAttach();
 		}
 	}
@@ -287,21 +286,23 @@ namespace FrameExtractor
 				window_flags |= ImGuiWindowFlags_NoBackground;
 
 			static bool open_preferences_popup = false;
+			static bool open_error_popup = false;
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 			ImGui::Begin("DockSpace", &p_open, window_flags);
+			float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 
 			if (ImGui::BeginMenuBar())
 			{
 				if (ImGui::BeginMenu("File"))
 				{
-					if (ImGui::MenuItem("Open Project")) {
+					if (ImGui::MenuItem("Open Project...")) {
 						auto projectFile = OpenFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
 						if (std::filesystem::exists(projectFile))
 						{
-							YAMLSerialiser serialiser(projectFile);
-							serialiser.ImportProject(mToolsPanel->GetData());
-							mProjectPanel->SetProjectPath(projectFile);
+							mProject.LoadProject(projectFile);
+							mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
+							mProjectPanel->OnLoad();
 						}
 						else
 						{
@@ -309,16 +310,28 @@ namespace FrameExtractor
 						}
 					}
 
-					if (ImGui::MenuItem("Save Project"))
+					if (ImGui::MenuItem("Save Project..."))
 					{
-						auto projectFile = SaveFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
-						projectFile.replace_extension(".FrEX");
-						if (!projectFile.empty())
+						if (!mProject.IsProjectLoaded())
 						{
-							YAMLSerialiser serialiser(projectFile);
-							serialiser.ExportProject(mToolsPanel->GetData());
+							open_error_popup = true;
 						}
+						else
+						{
+							auto projectFile = SaveFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
+							projectFile.replace_extension(".FrEX");
+							if (!projectFile.empty())
+							{
+								mProject.SaveProject();
+							}
+						}
+					}
 
+					if (ImGui::MenuItem("New Project..."))
+					{
+						auto projectFile = SaveFileDialog("Project Name");
+						mProject.CreateProject(projectFile.filename().string(), projectFile.parent_path());
+						mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
 					}
 
 					if (ImGui::MenuItem("Preferences...##MainMenuPreference"))
@@ -341,18 +354,38 @@ namespace FrameExtractor
 
 			ImGui::PopStyleVar();
 
+			
+			if (open_error_popup)
+			{
+				ImGui::OpenPopup("NoProjectLoadedModal");
+				open_error_popup = false;
+			}
+			ImGuiIO& io = ImGui::GetIO();
+			ImVec2 center = { io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f };
+
+			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+			ImGui::SetNextWindowSize({ 900 * styleMultiplier , 600 * styleMultiplier }, ImGuiCond_Appearing);
+			if (ImGui::BeginPopupModal("NoProjectLoadedModal", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+			{
+				ImGui::Text("No Project Loaded!\nPlease load a project to save.");
+				if (ImGui::Button("X##NoProjectLoadedModal", { lineHeight, lineHeight }))
+				{
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
+			}
+
 			if (open_preferences_popup)
 			{
 				ImGui::OpenPopup("Preferences##Menu");
 				open_preferences_popup = false;
-			}ImGuiIO& io = ImGui::GetIO();
-			ImVec2 center = { io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f };
+			}
+			
 			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 			ImGui::SetNextWindowSize({ 900 * styleMultiplier , 600 * styleMultiplier }, ImGuiCond_Appearing);
 			if (ImGui::BeginPopupModal("Preferences##Menu", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 			{
 				dt = 0;
-				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 
 				if (ImGui::Button("X##PreferencesClosing", { lineHeight, lineHeight }))
 				{
@@ -495,8 +528,6 @@ namespace FrameExtractor
 		}
 		catch (...)
 		{
-			YAMLSerialiser serialiser("Autosave.FrEX");
-			serialiser.ExportProject(mToolsPanel->GetData());
 			throw ("Exception!");
 		}
 		

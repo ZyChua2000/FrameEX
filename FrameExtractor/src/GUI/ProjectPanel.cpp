@@ -16,11 +16,8 @@
 #include <GUI/ImGuiManager.hpp>
 namespace FrameExtractor
 {
-    ProjectPanel::ProjectPanel(ExplorerPanel* ex, ViewportPanel* vp)
-    {
-        ExPanel = ex;
-        VpPanel = vp;
-    }
+    ProjectPanel::ProjectPanel(ExplorerPanel* ex, ViewportPanel* vp, Project* project) : ExPanel(ex), VpPanel(vp), mProject(project)
+    {}
 
     ProjectPanel::~ProjectPanel()
     {
@@ -30,10 +27,35 @@ namespace FrameExtractor
     {
         //ImGui::SetNextWindowSize(mViewportSize);
         //ImGui::SetNextWindowPos(mViewportPos);
+        auto& videosInProject = mProject->mVideosInProject;
+        ImGui::SetNextWindowSizeConstraints(ImVec2(100, 100), ImVec2(1000, 1000));
         ImGui::Begin("Project");
 
         ImVec2 windowSize = ImGui::GetContentRegionAvail();
-        ImGui::BeginChild("ScrollableRegion", ImVec2(windowSize.x, windowSize.y), true);
+        ImGui::BeginChild("ScrollableRegion", {}, ImGuiChildFlags_Border);
+
+        ImVec2 buttonPos = ImGui::GetCursorScreenPos();
+        // Create an invisible button that covers the entire child window area
+        {
+            auto contentTestSize = ImGui::GetContentRegionAvail();
+            if (contentTestSize.x > 0 && contentTestSize.y > 0)
+            {
+                float scrollMaxY = ImGui::GetScrollMaxY();       // Maximum scroll position
+                ImGui::InvisibleButton("DropTarget", { contentTestSize.x, contentTestSize.y + scrollMaxY });
+                ImGui::SetItemAllowOverlap();
+            }
+        }
+        
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            // Accept the dragged payload
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("IMPORTVIDEO")) {
+                const char* droppedItem = static_cast<const char*>(payload->Data);
+                videosInProject.push_back(droppedItem);
+            }
+            ImGui::EndDragDropTarget();
+        }
 
 
         if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))  // 1 for right-click
@@ -52,7 +74,7 @@ namespace FrameExtractor
             ImGui::EndPopup();
         }
 
-        
+        ImGui::SetCursorScreenPos(ImVec2(buttonPos.x, buttonPos.y));
         auto regionAvail = ImGui::GetContentRegionAvail();
         float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
         int deletionTrack = 0;
@@ -75,12 +97,7 @@ namespace FrameExtractor
                 ImGui::SetDragDropPayload("ITEM_NAME", filePath.c_str(), filePath.size() + 1);
                 ImGui::EndDragDropSource();
             }
-            if (ImGui::BeginDragDropTarget()) {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("IMPORTVIDEO")) {
-                    const char* droppedItem = static_cast<const char*>(payload->Data);
-                    videosInProject.push_back(droppedItem);
-                }
-            }
+
             if (ImGui::IsItemHovered() )  // 0 = left mouse button
             {
                 if (ImGui::IsMouseDoubleClicked(0))
@@ -139,20 +156,20 @@ namespace FrameExtractor
 
     void ProjectPanel::OnAttach()
     {
-        auto rootPath = ExPanel->GetRootPath();
-        for (auto& entry : std::filesystem::directory_iterator(rootPath))
+        if (!mProject->IsProjectLoaded())
         {
-            AddDirectoryRecursive(entry, videosInProject);
+			return;
+		}
+        for (auto& entry : std::filesystem::directory_iterator(mProject->GetAssetsDir()))
+        {
+            AddDirectoryRecursive(entry, mProject->mVideosInProject);
         }
     }
-    void ProjectPanel::SetProjectPath(std::filesystem::path path)
+    void ProjectPanel::OnLoad()
     {
-        ExPanel->SetProjectPath(path);
-        videosInProject.clear();
-        auto rootPath = ExPanel->GetRootPath();
-        for (auto& entry : std::filesystem::directory_iterator(rootPath))
+        for (auto& entry : std::filesystem::directory_iterator(mProject->GetAssetsDir()))
         {
-            AddDirectoryRecursive(entry, videosInProject);
+            AddDirectoryRecursive(entry, mProject->mVideosInProject);
         }
     }
 }

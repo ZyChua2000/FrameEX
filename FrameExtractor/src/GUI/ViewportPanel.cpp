@@ -20,8 +20,6 @@ namespace FrameExtractor
 		mViewportSize(size),
 		mViewportPos(pos)
     {
-        mVideo = new Video("sampleVideo.mp4");
-        mVideo->Decode();
         mIcons[Icons::PLAY_ICON] = MakeRef<Texture>("resources/icons/Play.png");
         mIcons[Icons::STOP_ICON] = MakeRef<Texture>("resources/icons/Stop.png");
         mIcons[Icons::FORWARD_ICON] = MakeRef<Texture>("resources/icons/MoveFrameRight.png");
@@ -67,11 +65,25 @@ namespace FrameExtractor
         auto cursor = ImGui::GetCursorScreenPos();
         auto regionX = contentRegion.x * 0.85f;
         auto regionY = contentRegion.y;
-        ImGui::Image((ImTextureID)mVideo->GetFrame()->GetTextureID(), ImVec2(contentRegion.x * 0.85f, contentRegion.y));
-        if (ImGui::BeginDragDropTarget()) {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_NAME")) {
-                const char* droppedItem = static_cast<const char*>(payload->Data);
-                SetVideo({ droppedItem });
+        if (mVideo)
+        {
+            ImGui::Image((ImTextureID)mVideo->GetFrame()->GetTextureID(), ImVec2(contentRegion.x * 0.85f, contentRegion.y * 0.8f));
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_NAME")) {
+                    const char* droppedItem = static_cast<const char*>(payload->Data);
+                    SetVideo({ droppedItem });
+                }
+            }
+        }
+        else
+        {
+            
+            ImGui::Image(0, ImVec2(contentRegion.x * 0.85f, contentRegion.y * 0.8f));
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_NAME")) {
+                    const char* droppedItem = static_cast<const char*>(payload->Data);
+                    SetVideo({ droppedItem });
+                }
             }
         }
 
@@ -79,10 +91,6 @@ namespace FrameExtractor
       
         //DTTrack += dt;
         //mFrameNumber = (int)(DTTrack * mVideo->GetFPS());
-
-		ImGui::End();
-
-        ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_NoDecoration);
         
         ImGui::PushFont(ImGuiManager::BoldFont);
         ImGui::SetNextItemWidth(ImGui::CalcTextSize(std::to_string(mFrameNumber).c_str()).x);
@@ -90,10 +98,18 @@ namespace FrameExtractor
         ImGui::PushStyleColor(ImGuiCol_FrameBg, { 0.f, 0.f, 0.f, 0.f });
         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, { 0.f, 0.f, 0.f, 0.f });
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, { 0.f, 0.f, 0.f, 0.f });
-        if (ImGui::DragInt("##FrameNumberDisplay", &mFrameNumber, 1.0f, 0, mVideo->GetMaxFrames(), ""))
+        if (mVideo)
         {
-            mVideo->Decode(mFrameNumber);
-            mIsPlaying = false;
+            if (ImGui::DragInt("##FrameNumberDisplay", &mFrameNumber, 1.0f, 0, mVideo->GetMaxFrames(), ""))
+            {
+                mVideo->Decode(mFrameNumber);
+                mIsPlaying = false;
+            }
+        }
+        else
+        {
+            int buffertmp = 0;
+            ImGui::DragInt("##FrameNumberDisplay", &buffertmp, 1.0f, 0, 0, "", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_NoInput);
         }
         ImVec2 itemPos = ImGui::GetItemRectMin(); // Bottom-left position of the item
         ImVec2 itemSize = ImGui::GetItemRectSize(); // Size of the item
@@ -115,46 +131,73 @@ namespace FrameExtractor
 
         ImGui::SameLine();
 
-        ImGui::SetNextItemWidth(ImGui::CalcTextSize(std::to_string(mVideo->GetMaxFrames()).c_str()).x);
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(std::to_string(mVideo->GetMaxFrames()).c_str()).x));
-        ImGui::Text("%d", mVideo->GetMaxFrames());
+
+       
+        if (mVideo)
+        {
+            ImGui::SetNextItemWidth(ImGui::CalcTextSize(std::to_string(mVideo->GetMaxFrames()).c_str()).x);
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(std::to_string(mVideo->GetMaxFrames()).c_str()).x));
+            ImGui::Text("%d", mVideo->GetMaxFrames());
+        }
+        else
+        {
+            ImGui::SetNextItemWidth(ImGui::CalcTextSize("-").x);
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("-").x));
+            ImGui::Text("-");
+        }
 
         {
-            int totalSeconds = mFrameNumber / mVideo->GetFPS();
-            int frames = mFrameNumber % mVideo->GetFPS();
-            int seconds = totalSeconds % 60;
-            int minutes = (totalSeconds / 60) % 60;
-            int hours = totalSeconds / 3600;
+            if (mVideo)
+            {
+                int totalSeconds = mFrameNumber / mVideo->GetFPS();
+                int frames = mFrameNumber % mVideo->GetFPS();
+                int seconds = totalSeconds % 60;
+                int minutes = (totalSeconds / 60) % 60;
+                int hours = totalSeconds / 3600;
 
-            std::ostringstream oss;
-            oss << std::setfill('0')
-                << std::setw(2) << hours << ":"
-                << std::setw(2) << minutes << ":"
-                << std::setw(2) << seconds << ":"
-                << std::setw(2) << frames;
+                std::ostringstream oss;
+                oss << std::setfill('0')
+                    << std::setw(2) << hours << ":"
+                    << std::setw(2) << minutes << ":"
+                    << std::setw(2) << seconds << ":"
+                    << std::setw(2) << frames;
 
-            ImGui::Text(oss.str().c_str());
+                ImGui::Text(oss.str().c_str());
+            }
+            else
+            {
+				ImGui::Text("-");
+			}
         }
         ImGui::SameLine();
 
         {
-            int totalSeconds = mVideo->GetMaxFrames() / mVideo->GetFPS();
-            int frames = mVideo->GetMaxFrames() % mVideo->GetFPS();
-            int seconds = totalSeconds % 60;
-            int minutes = (totalSeconds / 60) % 60;
-            int hours = totalSeconds / 3600;
+            if(mVideo)
+            {
+                int totalSeconds = mVideo->GetMaxFrames() / mVideo->GetFPS();
+                int frames = mVideo->GetMaxFrames() % mVideo->GetFPS();
+                int seconds = totalSeconds % 60;
+                int minutes = (totalSeconds / 60) % 60;
+                int hours = totalSeconds / 3600;
 
-            std::ostringstream oss;
-            oss << std::setfill('0')
-                << std::setw(2) << hours << ":"
-                << std::setw(2) << minutes << ":"
-                << std::setw(2) << seconds << ":"
-                << std::setw(2) << frames;
+                std::ostringstream oss;
+                oss << std::setfill('0')
+                    << std::setw(2) << hours << ":"
+                    << std::setw(2) << minutes << ":"
+                    << std::setw(2) << seconds << ":"
+                    << std::setw(2) << frames;
 
-            ImGui::SetNextItemWidth(ImGui::CalcTextSize(oss.str().c_str()).x);
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(oss.str().c_str()).x));
+                ImGui::SetNextItemWidth(ImGui::CalcTextSize(oss.str().c_str()).x);
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(oss.str().c_str()).x));
 
-            ImGui::Text(oss.str().c_str());
+                ImGui::Text(oss.str().c_str());
+            }
+            else
+            {
+                ImGui::SetNextItemWidth(ImGui::CalcTextSize("-").x);
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("-").x));
+                ImGui::Text("-");
+            }
 
         }
 
@@ -165,35 +208,43 @@ namespace FrameExtractor
 
         contentRegion = ImGui::GetContentRegionAvail();
         ImGui::SetNextItemWidth(contentRegion.x);
-        if (ImGui::SliderInt("##FrameNumber", &mFrameNumber, 0, mVideo->GetMaxFrames(), ""))
+        if(mVideo)
         {
-            if (!initialIn)
+            if (ImGui::SliderInt("##FrameNumber", &mFrameNumber, 0, mVideo->GetMaxFrames(), ""))
             {
-                wasPlaying = mIsPlaying;
-            }
-            initialIn = true;
-            mVideo->Decode(mFrameNumber);
-            mIsPlaying = false;
-        }
-        else
-        {
-            if (mIsPlaying)
-            {
-                if (mFrameNumber < mVideo->GetMaxFrames())
+                if (!initialIn)
                 {
-                    mVideo->Decode(mFrameNumber);
-                    DTTrack += dt * mSpeedMultiplier;
-                    mFrameNumber = (int)(DTTrack * mVideo->GetFPS());
-                    if (mFrameNumber >= mVideo->GetMaxFrames())
+                    wasPlaying = mIsPlaying;
+                }
+                initialIn = true;
+                mVideo->Decode(mFrameNumber);
+                mIsPlaying = false;
+            }
+            else
+            {
+                if (mIsPlaying)
+                {
+                    if (mFrameNumber < mVideo->GetMaxFrames())
                     {
-						mFrameNumber = mVideo->GetMaxFrames() - 1;
-					}
-                    else if (mFrameNumber < 0)
-                    {
-                        mFrameNumber = 0;
+                        mVideo->Decode(mFrameNumber);
+                        DTTrack += dt * mSpeedMultiplier;
+                        mFrameNumber = (int)(DTTrack * mVideo->GetFPS());
+                        if (mFrameNumber >= mVideo->GetMaxFrames())
+                        {
+                            mFrameNumber = mVideo->GetMaxFrames() - 1;
+                        }
+                        else if (mFrameNumber < 0)
+                        {
+                            mFrameNumber = 0;
+                        }
                     }
                 }
             }
+        }
+        else
+        {
+            int bufferTmp = 0;
+            ImGui::SliderInt("##FrameNumber", &bufferTmp, 0, 0, "", ImGuiSliderFlags_NoInput | ImGuiSliderFlags_AlwaysClamp);
         }
 
         // Get ImGui's draw list for custom rendering
@@ -213,11 +264,13 @@ namespace FrameExtractor
             draw_list->AddLine(ImVec2(x, y1), ImVec2(x, y2), IM_COL32(200, 200, 200, 255));
         }
 
-
-        if (ImGui::IsItemDeactivatedAfterEdit()) {
-            initialIn = false;
-            mIsPlaying = wasPlaying;
-            DTTrack = (float)mFrameNumber / mVideo->GetFPS();
+        if (mVideo)
+        {
+            if (ImGui::IsItemDeactivatedAfterEdit()) {
+                initialIn = false;
+                mIsPlaying = wasPlaying;
+                DTTrack = (float)mFrameNumber / mVideo->GetFPS();
+            }
         }
 
         ImGui::Spacing();
@@ -235,8 +288,11 @@ namespace FrameExtractor
         if (ImGui::ImageButton((ImTextureID)mIcons[SKIP_TO_START_ICON]->GetTextureID(), { buttonSize, buttonSize }) ||
             (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
-            CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, 0, mVideo));
-            mIsPlaying = false;
+            if (mVideo)
+            {
+                CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, 0, mVideo));
+                mIsPlaying = false;
+            }
         }
         if (ImGui::IsItemHovered())
         {
@@ -255,7 +311,8 @@ namespace FrameExtractor
         if (ImGui::ImageButton((ImTextureID)mIcons[SLOW_DOWN_ICON]->GetTextureID(), { buttonSize,buttonSize }) || 
             (isWindowFocused && ctrlHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
-            CommandHistory::execute(std::make_unique<CallFunctionCommand>(std::bind(&ViewportPanel::SlowDown, this), std::bind(&ViewportPanel::SpeedUp, this)));
+            if (mVideo)
+                CommandHistory::execute(std::make_unique<CallFunctionCommand>(std::bind(&ViewportPanel::SlowDown, this), std::bind(&ViewportPanel::SpeedUp, this)));
         }
         if (ImGui::IsItemHovered())
         {
@@ -273,13 +330,16 @@ namespace FrameExtractor
         if (ImGui::ImageButton((ImTextureID)mIcons[BACKWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && !ctrlHeld && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
-            int buffer = mFrameNumber - 1;
-            if (buffer < 0)
+            if(mVideo)
             {
-                buffer = 0;
+                int buffer = mFrameNumber - 1;
+                if (buffer < 0)
+                {
+                    buffer = 0;
+                }
+                CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, buffer, mVideo));
+                mIsPlaying = false;
             }
-            CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, buffer, mVideo));
-            mIsPlaying = false;
         }
         if (ImGui::IsItemHovered())
         {
@@ -295,8 +355,11 @@ namespace FrameExtractor
             if (ImGui::ImageButton((ImTextureID)mIcons[PLAY_ICON]->GetTextureID(), { buttonSize,buttonSize }) 
                 || (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_Space)))
             {
-                CommandHistory::execute(std::make_unique<PlayCommand>(&mIsPlaying, &mFrameNumber, mFrameNumber, mVideo));
-                DTTrack = (float)mFrameNumber / mVideo->GetFPS();
+                if(mVideo)
+                {
+                    CommandHistory::execute(std::make_unique<PlayCommand>(&mIsPlaying, &mFrameNumber, mFrameNumber, mVideo));
+                    DTTrack = (float)mFrameNumber / mVideo->GetFPS();
+                }
             }
         }
         else
@@ -304,7 +367,10 @@ namespace FrameExtractor
             if (ImGui::ImageButton((ImTextureID)mIcons[STOP_ICON]->GetTextureID(), { buttonSize,buttonSize })
                 || (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_Space)))
             {
-                CommandHistory::execute(std::make_unique<ModifyPropertyCommand<bool>>(&mIsPlaying, true, false));
+                if(mVideo)
+                {
+                    CommandHistory::execute(std::make_unique<ModifyPropertyCommand<bool>>(&mIsPlaying, true, false));
+                }
             }
         }
         if (ImGui::IsItemHovered())
@@ -319,13 +385,16 @@ namespace FrameExtractor
         if (ImGui::ImageButton((ImTextureID)mIcons[FORWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && !ctrlHeld && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
         {
-            int buffer = mFrameNumber + 1;
-            if (buffer > mVideo->GetMaxFrames())
+            if(mVideo)
             {
-                buffer = mVideo->GetMaxFrames();
+                int buffer = mFrameNumber + 1;
+                if (buffer > mVideo->GetMaxFrames())
+                {
+                    buffer = mVideo->GetMaxFrames();
+                }
+                CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, buffer, mVideo));
+                mIsPlaying = false;
             }
-            CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, buffer, mVideo));
-            mIsPlaying = false;
         }
         if (ImGui::IsItemHovered())
         {
@@ -339,7 +408,10 @@ namespace FrameExtractor
         if (ImGui::ImageButton((ImTextureID)mIcons[SPEED_UP_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && ctrlHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
         {
-            CommandHistory::execute(std::make_unique<CallFunctionCommand>(std::bind(&ViewportPanel::SpeedUp, this), std::bind(&ViewportPanel::SlowDown, this)));
+            if(mVideo)
+            {
+                CommandHistory::execute(std::make_unique<CallFunctionCommand>(std::bind(&ViewportPanel::SpeedUp, this), std::bind(&ViewportPanel::SlowDown, this)));
+            }
         }
 
         if (ImGui::IsItemHovered())
@@ -358,8 +430,11 @@ namespace FrameExtractor
         if (ImGui::ImageButton((ImTextureID)mIcons[SKIP_TO_END_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
         {
-            mIsPlaying = false;
-            CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, mVideo->GetMaxFrames()-1, mVideo));
+            if(mVideo)
+            {
+                mIsPlaying = false;
+                CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, mVideo->GetMaxFrames() - 1, mVideo));
+            }
         }
         if (ImGui::IsItemHovered())
         {
@@ -406,16 +481,19 @@ namespace FrameExtractor
         }
 
 
-        if (mBBCache.find(mVideo->GetPath()) != mBBCache.end())
+        if(mVideo)
         {
-            if (mBBCache[mVideo->GetPath()].find(mFrameNumber) != mBBCache[mVideo->GetPath()].end())
+            if (mBBCache.find(mVideo->GetPath()) != mBBCache.end())
             {
-                const std::vector<BoundingBox>& boxes = mBBCache[mVideo->GetPath()][mFrameNumber];
-                for (const auto& AABB : boxes)
+                if (mBBCache[mVideo->GetPath()].find(mFrameNumber) != mBBCache[mVideo->GetPath()].end())
                 {
-                    ImVec2 topLeft = { cursor.x + AABB.minX / mVideo->GetWidth() * regionX, cursor.y + AABB.minY / mVideo->GetHeight() * regionY };
-                    ImVec2 bottomRight = { cursor.x + AABB.maxX / mVideo->GetWidth() * regionX, cursor.y + AABB.maxY / mVideo->GetHeight() * regionY };
-                    drawList->AddRect(topLeft, bottomRight, IM_COL32(150, 170, 23, 255), 0.0f, 0, 5.0f); // red border, 2px thick
+                    const std::vector<BoundingBox>& boxes = mBBCache[mVideo->GetPath()][mFrameNumber];
+                    for (const auto& AABB : boxes)
+                    {
+                        ImVec2 topLeft = { cursor.x + AABB.minX / mVideo->GetWidth() * regionX, cursor.y + AABB.minY / mVideo->GetHeight() * regionY };
+                        ImVec2 bottomRight = { cursor.x + AABB.maxX / mVideo->GetWidth() * regionX, cursor.y + AABB.maxY / mVideo->GetHeight() * regionY };
+                        drawList->AddRect(topLeft, bottomRight, IM_COL32(150, 170, 23, 255), 0.0f, 0, 5.0f); // red border, 2px thick
+                    }
                 }
             }
         }

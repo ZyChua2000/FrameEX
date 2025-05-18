@@ -61,6 +61,28 @@ namespace FrameExtractor
 		}
 		return {};
 	}
+	void CopyToClipboard(std::string text)
+	{
+		// Open the clipboard
+		OpenClipboard(nullptr);
+		// Empty the clipboard
+		EmptyClipboard();
+
+		// Allocate a global memory object for the text
+		HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, text.size() + 1);
+
+
+		// Lock the handle and copy the text to the buffer
+		char* pGlobal = static_cast<char*>(GlobalLock(hGlobal));
+		memcpy(pGlobal, text.c_str(), text.size() + 1);
+		GlobalUnlock(hGlobal);
+
+		// Place the handle on the clipboard
+		SetClipboardData(CF_TEXT, hGlobal);
+
+		// Close the clipboard
+		CloseClipboard();
+	}
 }
 
 

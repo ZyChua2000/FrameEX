@@ -147,7 +147,6 @@
     <ClInclude Include="inc\Core\LoggerManager.hpp" />
     <ClInclude Include="inc\Core\PlatformUtils.hpp" />
     <ClInclude Include="inc\Core\WindowManager.hpp" />
-    <ClInclude Include="inc\Core\YAMLSerialiser.hpp" />
     <ClInclude Include="inc\FrameExtractorPCH.hpp" />
     <ClInclude Include="inc\GUI\ConsolePanel.hpp" />
     <ClInclude Include="inc\GUI\ExplorerPanel.hpp" />
@@ -630,6 +629,10 @@
     <ClInclude Include="lib\glm\glm\vec3.hpp" />
     <ClInclude Include="lib\glm\glm\vec4.hpp" />
     <ClInclude Include="lib\glm\glm\vector_relational.hpp" />
+    <ClInclude Include="inc\Core\Project.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\ApplicationManager.cpp" />
@@ -637,8 +640,11 @@
     <ClCompile Include="src\Core\ExcelSerialiser.cpp" />
     <ClCompile Include="src\Core\LoggerManager.cpp" />
     <ClCompile Include="src\Core\PlatformUtils.cpp" />
+    <ClCompile Include="src\Core\Project.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\Core\WindowManager.cpp" />
-    <ClCompile Include="src\Core\YAMLSerialiser.cpp" />
     <ClCompile Include="src\EntryPoint.cpp" />
     <ClCompile Include="src\FrameExtractorPCH.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
