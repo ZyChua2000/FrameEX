@@ -70,7 +70,7 @@ namespace FrameExtractor
 	struct AggregateData
 	{
 		// Pre-existing Data
-		std::string ShopperTrack_ID = "DIOR224";
+		std::string StoreID = "DIOR224";
 		int8_t Enters = 3;
 		int8_t Exit = 0;
 

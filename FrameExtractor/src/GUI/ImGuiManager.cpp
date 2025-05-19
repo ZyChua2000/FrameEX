@@ -35,6 +35,7 @@
 
 namespace FrameExtractor
 {
+	static bool open_quit_popup = false;
 
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 	{
@@ -296,13 +297,14 @@ namespace FrameExtractor
 			{
 				if (ImGui::BeginMenu("File"))
 				{
-					if (ImGui::MenuItem("Open Project...")) {
+					if (ImGui::MenuItem("  Open Project...")) {
 						auto projectFile = OpenFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
 						if (std::filesystem::exists(projectFile))
 						{
 							mProject.LoadProject(projectFile);
 							mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
 							mProjectPanel->OnLoad();
+							APP_CORE_INFO(("Opened Project " + projectFile.filename().string()).c_str());
 						}
 						else
 						{
@@ -310,7 +312,7 @@ namespace FrameExtractor
 						}
 					}
 
-					if (ImGui::MenuItem("Save Project..."))
+					if (ImGui::MenuItem("  Save Project..."))
 					{
 						if (!mProject.IsProjectLoaded())
 						{
@@ -322,16 +324,25 @@ namespace FrameExtractor
 						}
 					}
 
-					if (ImGui::MenuItem("New Project..."))
+					if (ImGui::MenuItem("  New Project..."))
 					{
 						auto projectFile = SaveFileDialog("Project Name");
-						mProject.CreateProject(projectFile.filename().string(), projectFile.parent_path());
-						mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
+						if (std::filesystem::exists(projectFile.parent_path()))
+						{
+							mProject.CreateProject(projectFile.filename().string(), projectFile.parent_path());
+							mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
+							APP_CORE_INFO(("Created New Project " + projectFile.filename().string()).c_str());
+						}
 					}
 
-					if (ImGui::MenuItem("Preferences...##MainMenuPreference"))
+					if (ImGui::MenuItem("  Preferences...##MainMenuPreference"))
 					{
 						open_preferences_popup = true;
+					}
+
+					if (ImGui::MenuItem("  Quit..."))
+					{
+						open_quit_popup = true;
 					}
 
 					ImGui::EndMenu();
@@ -349,18 +360,54 @@ namespace FrameExtractor
 
 			ImGui::PopStyleVar();
 
-			
-			if (open_error_popup)
-			{
-				ImGui::OpenPopup("NoProjectLoadedModal");
-				open_error_popup = false;
-			}
+		
+
 			ImGuiIO& io = ImGui::GetIO();
 			ImVec2 center = { io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f };
 
+			if (open_quit_popup)
+			{
+				ImGui::OpenPopup("Quit##Modal");
+				open_quit_popup = false;
+			}
+
+
+			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+			ImGui::SetNextWindowSize({ lineHeight * 9 ,lineHeight * 4 }, ImGuiCond_Appearing);
+			if (ImGui::BeginPopupModal("Quit##Modal", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+			{
+				ImGui::Text("Are you sure you want to quit?");
+
+				float spacing = ImGui::GetStyle().ItemSpacing.x;
+				float totalWidth = lineHeight * 4 + spacing;
+				float windowWidth = ImGui::GetWindowSize().x;
+				float startX = (windowWidth - totalWidth) * 0.5f;
+				ImGui::Spacing();
+				ImGui::SetCursorPosX(startX);
+				if (ImGui::Button("No##QuitModal", { lineHeight * 2, lineHeight }))
+				{
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Yes##QuitModal", { lineHeight * 2, lineHeight }))
+				{
+					ApplicationManager::GetInstance()->Quit();
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
+			}
+
+			
+			if (open_error_popup)
+			{
+				ImGui::OpenPopup("No Project Loaded##Modal");
+				open_error_popup = false;
+			}
+
+			
 			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 			ImGui::SetNextWindowSize({ 900 * styleMultiplier , 600 * styleMultiplier }, ImGuiCond_Appearing);
-			if (ImGui::BeginPopupModal("NoProjectLoadedModal", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+			if (ImGui::BeginPopupModal("No Project Loaded##Modal", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 			{
 				ImGui::Text("No Project Loaded!\nPlease load a project to save.");
 				if (ImGui::Button("X##NoProjectLoadedModal", { lineHeight, lineHeight }))
@@ -545,5 +592,9 @@ namespace FrameExtractor
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
+	}
+	void ImGuiManager::QuitCallback()
+	{
+		open_quit_popup = true;
 	}
 }

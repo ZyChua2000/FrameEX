@@ -43,6 +43,8 @@ namespace FrameExtractor
 		static ImFont* LightFont;
 		static ImFont* RegularFont;
 		static ImFont* FrameRateFont;
+
+		static void QuitCallback();
 	private:
 		// panels
 		ViewportPanel* mViewportPanel;

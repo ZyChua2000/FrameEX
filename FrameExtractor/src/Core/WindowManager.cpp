@@ -14,6 +14,7 @@
 #include <Core/LoggerManager.hpp>
 #include <Core/WindowManager.hpp>
 #include <Core/ApplicationManager.hpp>
+#include <GUI/ImGuiManager.hpp>
 namespace FrameExtractor
 {
 	static bool sGLFWInitialized = false;
@@ -68,7 +69,7 @@ namespace FrameExtractor
 
 		glfwSetWindowCloseCallback((GLFWwindow*)mWindow, [](GLFWwindow* window)
 		{
-			ApplicationManager::GetInstance()->Quit();
+				ImGuiManager::QuitCallback();
 		});
 
 		glfwSetWindowPosCallback((GLFWwindow*)mWindow, [](GLFWwindow* window, int x, int y)

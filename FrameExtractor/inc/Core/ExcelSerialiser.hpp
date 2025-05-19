@@ -11,7 +11,7 @@
 #ifndef ExcelSerialiser_HPP
 #define ExcelSerialiser_HPP
 #include <filesystem>
-#include <GUI/ToolsPanel.hpp>
+#include <Core/Project.hpp>
 namespace FrameExtractor
 {
 	class ExcelSerialiser
@@ -22,6 +22,7 @@ namespace FrameExtractor
 
 		void ExportSpikeDipReport(std::map<std::string, std::map<int32_t, CountData>>& countedData);
 		std::map<std::string, std::map<int32_t, CountData>> ImportSpikeDipReport();
+		std::map<int32_t, std::map<std::string, std::map<int32_t, AggregateData>>> ImportAggregatorReport();
 	private:
 		std::filesystem::path mPath;
 	};

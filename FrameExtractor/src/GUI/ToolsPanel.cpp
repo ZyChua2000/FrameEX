@@ -73,6 +73,7 @@ namespace FrameExtractor
     void ToolsPanel::OnImGuiRender(float dt)
     {
         ImGui::Begin("Tools");
+        bool open_error_popup = false;
 
         if (ImGui::BeginTabBar("##ToolsBar", ImGuiTabBarFlags_Reorderable))
         {
@@ -87,10 +88,16 @@ namespace FrameExtractor
                 }
                 if (open)
                 {
+
                     ImGui::Columns(4);
                     if (ImGui::Button("Add Entry##Counting"))
                     {
-                        ImGui::OpenPopup("AddEntryPopup##Counting");
+                        if (!mProject->IsProjectLoaded())
+                        {
+                            open_error_popup = true;
+                        }
+                        else
+                            ImGui::OpenPopup("AddEntryPopup##Counting");
                     }
 
                     ImGui::NextColumn();
@@ -104,29 +111,39 @@ namespace FrameExtractor
 
                     if (ImGui::Button("Import Data##Counting"))
                     {
-                        auto spikeDipFile = OpenFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
-                        if (std::filesystem::exists(spikeDipFile))
+                        if (!mProject->IsProjectLoaded())
                         {
-                            ExcelSerialiser serialiser(spikeDipFile);
-                            mProject->mCountingData = serialiser.ImportSpikeDipReport();
+                            open_error_popup = true;
                         }
                         else
                         {
-                            APP_CORE_ERROR("Spike Dip file does not exist!");
+                            auto spikeDipFile = OpenFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
+                            if (std::filesystem::exists(spikeDipFile))
+                            {
+                                ExcelSerialiser serialiser(spikeDipFile);
+                                mProject->mCountingData = serialiser.ImportSpikeDipReport();
+                            }
+                            else
+                            {
+                                APP_CORE_ERROR("Spike Dip file does not exist!");
+                            }
                         }
                     }
                     ImGui::NextColumn();
 
                     if (ImGui::Button("Export Data##Counting"))
                     {
-                        auto projectFile = SaveFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
-                        projectFile.replace_extension(".xlsx");
-
-                        if (!projectFile.empty())
+                        if (!mProject->IsProjectLoaded())
                         {
-                            ExcelSerialiser serialiser(projectFile);
-                            serialiser.ExportSpikeDipReport(mCountingData);
+                            open_error_popup = true;
                         }
+                        else {
+                            auto projectFile = SaveFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
+                            projectFile.replace_extension(".xlsx");
+                            ExcelSerialiser serialiser(projectFile);
+                            serialiser.ExportSpikeDipReport(mProject->mCountingData);
+                        }
+
                     }
 
                     ImGui::Columns(1);
@@ -216,9 +233,6 @@ namespace FrameExtractor
                         auto ContentRegionAvailable = ImGui::GetContentRegionAvail();
                         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
                         float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
-                        ImGui::Separator();
-
-                        ImGui::SameLine();
                         bool open = ImGui::CollapsingHeader(store.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
                         ImGui::PopStyleVar();
                         ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
@@ -551,6 +565,7 @@ namespace FrameExtractor
 
                                                 }
                                                 ImGui::Unindent(lineHeight);
+
                                                 ImGui::Separator();
                                                 if (deleteIdx != -1)
                                                 {
@@ -561,6 +576,7 @@ namespace FrameExtractor
                                             ImGui::Unindent(lineHeight);
 
                                         }
+                                        ImGui::Columns(1);
                                     }
 
                                     ImGui::Unindent(lineHeight);
@@ -599,7 +615,12 @@ namespace FrameExtractor
                     ImGui::Columns(4);
                     if (ImGui::Button("Add Entry##Aggregate"))
                     {
-                        ImGui::OpenPopup("AddEntryPopup##Aggregate");
+                        if (!mProject->IsProjectLoaded())
+                        {
+                            open_error_popup = true;
+                        }
+                        else
+                            ImGui::OpenPopup("AddEntryPopup##Aggregate");
                     }
 
                     ImGui::NextColumn();
@@ -613,24 +634,39 @@ namespace FrameExtractor
 
                     if (ImGui::Button("Import Data##Aggregate"))
                     {
-                        auto spikeDipFile = OpenFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
-                        if (std::filesystem::exists(spikeDipFile))
+                        if (!mProject->IsProjectLoaded())
                         {
-                           // ExcelSerialiser serialiser(spikeDipFile);
-                           // SetData(serialiser.ImportSpikeDipReport());
+                            open_error_popup = true;
                         }
                         else
                         {
-                            //APP_CORE_ERROR("Spike Dip file does not exist!");
+                            auto spikeDipFile = OpenFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
+                            if (std::filesystem::exists(spikeDipFile))
+                            {
+                                ExcelSerialiser serialiser(spikeDipFile);
+                                mProject->mAggregateStoreData = serialiser.ImportAggregatorReport();
+                            }
+                            else
+                            {
+                                APP_CORE_ERROR("Spike Dip file does not exist!");
+                            }
                         }
                     }
                     ImGui::NextColumn();
 
                     if (ImGui::Button("Export Data##Aggregate"))
                     {
-                        auto text = ExportAggregateStoreDataAsString();
-                        APP_CORE_INFO(text.c_str());
-                        CopyToClipboard(text);
+
+                        if (!mProject->IsProjectLoaded())
+                        {
+                            open_error_popup = true;
+                        }
+                        else
+                        {
+                            auto text = ExportAggregateStoreDataAsString();
+                            APP_CORE_INFO(text.c_str());
+                            CopyToClipboard(text);
+                        }
 
                     }
 
@@ -643,14 +679,14 @@ namespace FrameExtractor
                     {
                         ImGui::Columns(2);
                         ImGui::SetColumnWidth(0, 120 * ImGuiManager::styleMultiplier);
-                        ImGui::Text("Store Code: ");
+                        ImGui::Text("Shopper ID: ");
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
                         ImGui::InputText("##Store Code##Aggregate: ", mStoreCodeBuffer, 16);
                         ImGui::NextColumn();
 
                         ImGui::SetColumnWidth(0, 120 * ImGuiManager::styleMultiplier);
-                        ImGui::Text("ShopperID: ");
+                        ImGui::Text("Store Code: ");
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
                         ImGui::InputText("##ShopperID##Aggregate: ", shopperIDBuffer, IM_ARRAYSIZE(shopperIDBuffer));
@@ -663,6 +699,12 @@ namespace FrameExtractor
                         ImGui::InputText("##Date##Aggregate: ", dateBuffer, IM_ARRAYSIZE(dateBuffer), ImGuiInputTextFlags_CharsDecimal);
                         ImGui::NextColumn();
 
+                        ImGui::Text("Hour: ");
+                        ImGui::NextColumn();
+                        ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
+                        ImGui::InputInt("##Hour:##Aggregate ", &mTimeBuffer, 1, 1);
+                        ImGui::NextColumn();
+
                         ImGui::Text("Enters: ");
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
@@ -673,13 +715,6 @@ namespace FrameExtractor
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
                         ImGui::InputInt("##Exit:##Aggregate ", &mExitBuffer, 1, 1);
-                        ImGui::NextColumn();
-
-
-                        ImGui::Text("Hour: ");
-                        ImGui::NextColumn();
-                        ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
-                        ImGui::InputInt("##Hour:##Aggregate ", &mTimeBuffer, 1, 1);
                         ImGui::NextColumn();
 
                         ImGui::Text("Entrances: ");
@@ -750,7 +785,7 @@ namespace FrameExtractor
                                         if (!mAggregateStoreData[date][storeID].contains(mTimeBuffer))
                                         {
                                             mAggregateStoreData[date][storeID][mTimeBuffer] = {};
-                                            mAggregateStoreData[date][storeID][mTimeBuffer].ShopperTrack_ID = shopperIDBuffer;
+                                            mAggregateStoreData[date][storeID][mTimeBuffer].StoreID = shopperIDBuffer;
                                             mAggregateStoreData[date][storeID][mTimeBuffer].Enters = mEnterBuffer;
                                             mAggregateStoreData[date][storeID][mTimeBuffer].Exit = mExitBuffer;
 
@@ -915,9 +950,9 @@ namespace FrameExtractor
                                         if (ImGui::CollapsingHeader((fmtTime(time) + "##Aggregate" + store).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                                         {
                                             ImGui::Columns(4);
-                                            ImGui::Text("Shopper ID: ");
+                                            ImGui::Text("Store ID: ");
                                             ImGui::SameLine();
-                                            ImGui::Text(mAggregateStoreData[date][store][time].ShopperTrack_ID.c_str());
+                                            ImGui::Text(mAggregateStoreData[date][store][time].StoreID.c_str());
                                             ImGui::NextColumn();
 
                                             ImGui::Text("Enters: ");
@@ -1362,6 +1397,25 @@ namespace FrameExtractor
 
            
         }
+        if (open_error_popup)
+        {
+            ImGui::OpenPopup("No Project Loaded##Modal");
+        }
+        ImGuiIO& io = ImGui::GetIO();
+        ImVec2 center = { io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f };
+
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize({ 900 * ImGuiManager::styleMultiplier , 600 * ImGuiManager::styleMultiplier }, ImGuiCond_Appearing);
+        if (ImGui::BeginPopupModal("No Project Loaded##Modal", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+        {
+            ImGui::Text("No Project Loaded!\nPlease create or load a project first.");
+            float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+            if (ImGui::Button("X##NoProjectLoadedModal", { lineHeight, lineHeight }))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
         ImGui::End();
     }
 
@@ -1375,11 +1429,65 @@ namespace FrameExtractor
     {
 
     }
+
+    static std::string MonthToString(int month)
+    {
+        if (month < 0 || month > 12) return "Unknown";
+
+        switch (month)
+        {
+        case 1: return "January";
+        case 2: return "February";
+        case 3: return "March";
+        case 4: return "April";
+        case 5: return "May";
+        case 6: return "June";
+        case 7: return "July";
+        case 8: return "August";
+        case 9: return "September";
+        case 10: return "October";
+        case 11: return "November";
+        case 12: return "December";
+        default: return "Unknown";
+        }
+    }
+
+    static std::string IntDayToSuffix(int day) {
+        if (day < 1 || day > 31) return "Invalid day";
+
+        std::string suffix;
+
+        if (day % 100 >= 11 && day % 100 <= 13) {
+            suffix = "th";
+        }
+        else {
+            switch (day % 10) {
+            case 1: suffix = "st"; break;
+            case 2: suffix = "nd"; break;
+            case 3: suffix = "rd"; break;
+            default: suffix = "th"; break;
+            }
+        }
+
+        return std::to_string(day) + suffix;
+    }
+    
+    static std::string DateIntToStr(const int& date)
+    {
+        int day = date / 1000000;
+        int month = (date / 10000) % 100;
+        int year = date % 10000;
+
+        return IntDayToSuffix(day) + " " + MonthToString(month) + " " + std::to_string(year);
+    }
+
     std::string ToolsPanel::ExportAggregateStoreDataAsString()
     {
         std::stringstream ss;
+        ss << "Hi all, Mailers and additional checks done:" << std::endl << "Anu Selma Jose" << std::endl << std::endl;
         for (auto& [date, storetimedata] : mProject->mAggregateStoreData)
         {
+            ss << DateIntToStr(date) << ":" << std::endl << std::endl;
             for (auto& [store, timeNData] : storetimedata)
             {
                 for (auto& [time, data] : timeNData)
@@ -1391,42 +1499,38 @@ namespace FrameExtractor
                     std::string month = reformattedDate.substr(2, 2);
                     std::string day = reformattedDate.substr(0, 2);
                     reformattedDate = year + month + day;
-                    ss << store << ", " << data.ShopperTrack_ID << ", " << reformattedDate << time << ", " << (int)data.Enters << ", " << (int)data.Exit << " ->" <<
+                    ss << store << ", " << data.StoreID << ", " << reformattedDate << ", "  << time << ", " << (int)data.Enters << ", " << (int)data.Exit << " -> " <<
                         data.mCustomer << " Customers";
                     int idx = 1;
                     for (auto& entrance : data.Entrance)
                     {
+                        if (data.Entrance.size() > 1)
+                        {
+                            ss << std::endl << "E" << idx;
+                        }
                         for (auto& frameSkip : entrance.mFrameSkips)
                         {
-                            ss << ", Video Skips from: " << frameSkip.first << " to " << frameSkip.second;
-                            if (data.Entrance.size() > 1)
-                            {
-                                ss << "(E" << idx << ")";
-                            }
+                            ss << ", Video Skips from: " << frameSkip.first << " to " << frameSkip.second;              
                         }
 
                         for (auto& blankVideo : entrance.mBlankedVideos)
                         {
                             ss << ", Video blanks after " << blankVideo;
-                            if (data.Entrance.size() > 1)
-                            {
-                                ss << "(E" << idx << ")";
-                            }
                         }
 
                         for (auto& corruptedVideo : entrance.mCorruptedVideos)
                         {
                             ss << ", Video " << corruptedVideo << " is corrupted";
-                            if (data.Entrance.size() > 1)
-                            {
-                                ss << "(E" << idx << ")";
-                            }
                         }
                         idx++;
                     }
                     ss << "\n";
                 }
+                ss << std::endl;
             }
+            ss << 
+                "Spike dip for " << IntDayToSuffix(date / 1000000) << " " << 
+                MonthToString((date / 10000) % 100) << " counted" << std::endl;
         }
 
         return ss.str();

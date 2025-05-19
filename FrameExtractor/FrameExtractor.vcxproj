@@ -92,6 +92,15 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Deb\GLAD.lib;lib\GLFW\lib\Deb\GLFW.lib;lib\IMGUI\lib\Deb\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSXd.lib;lib\yaml-cpp\lib\Deb\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST "resources"\ (xcopy /Q /E /Y /I "resources" "$(TargetDir)resources" &gt; nul) ELSE (xcopy /Q /Y /I "resources" "$(TargetDir)resources" &gt; nul)
+copy /B /Y "avcodec-62.dll" "$(TargetDir)avcodec-62.dll"
+copy /B /Y "avformat-62.dll" "$(TargetDir)avformat-62.dll"
+copy /B /Y "avutil-60.dll" "$(TargetDir)avutil-60.dll"
+copy /B /Y "swresample-6.dll" "$(TargetDir)swresample-6.dll"
+copy /B /Y "swscale-9.dll" "$(TargetDir)swscale-9.dll"
+copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -115,6 +124,15 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSX.lib;lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST "resources"\ (xcopy /Q /E /Y /I "resources" "$(TargetDir)resources" &gt; nul) ELSE (xcopy /Q /Y /I "resources" "$(TargetDir)resources" &gt; nul)
+copy /B /Y "avcodec-62.dll" "$(TargetDir)avcodec-62.dll"
+copy /B /Y "avformat-62.dll" "$(TargetDir)avformat-62.dll"
+copy /B /Y "avutil-60.dll" "$(TargetDir)avutil-60.dll"
+copy /B /Y "swresample-6.dll" "$(TargetDir)swresample-6.dll"
+copy /B /Y "swscale-9.dll" "$(TargetDir)swscale-9.dll"
+copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Distribution|x64'">
     <ClCompile>
@@ -138,6 +156,15 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>opengl32.lib;lib\ffmpeg\lib\avcodec.lib;lib\ffmpeg\lib\avutil.lib;lib\ffmpeg\lib\swscale.lib;lib\ffmpeg\lib\avformat.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\OpenXLSX\lib\OpenXLSX.lib;lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST "resources"\ (xcopy /Q /E /Y /I "resources" "$(TargetDir)resources" &gt; nul) ELSE (xcopy /Q /Y /I "resources" "$(TargetDir)resources" &gt; nul)
+copy /B /Y "avcodec-62.dll" "$(TargetDir)avcodec-62.dll"
+copy /B /Y "avformat-62.dll" "$(TargetDir)avformat-62.dll"
+copy /B /Y "avutil-60.dll" "$(TargetDir)avutil-60.dll"
+copy /B /Y "swresample-6.dll" "$(TargetDir)swresample-6.dll"
+copy /B /Y "swscale-9.dll" "$(TargetDir)swscale-9.dll"
+copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="inc\Core\ApplicationManager.hpp" />
@@ -146,6 +173,7 @@
     <ClInclude Include="inc\Core\ExcelSerialiser.hpp" />
     <ClInclude Include="inc\Core\LoggerManager.hpp" />
     <ClInclude Include="inc\Core\PlatformUtils.hpp" />
+    <ClInclude Include="inc\Core\Project.hpp" />
     <ClInclude Include="inc\Core\WindowManager.hpp" />
     <ClInclude Include="inc\FrameExtractorPCH.hpp" />
     <ClInclude Include="inc\GUI\ConsolePanel.hpp" />
@@ -629,10 +657,6 @@
     <ClInclude Include="lib\glm\glm\vec3.hpp" />
     <ClInclude Include="lib\glm\glm\vec4.hpp" />
     <ClInclude Include="lib\glm\glm\vector_relational.hpp" />
-    <ClInclude Include="inc\Core\Project.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\ApplicationManager.cpp" />
@@ -640,10 +664,7 @@
     <ClCompile Include="src\Core\ExcelSerialiser.cpp" />
     <ClCompile Include="src\Core\LoggerManager.cpp" />
     <ClCompile Include="src\Core\PlatformUtils.cpp" />
-    <ClCompile Include="src\Core\Project.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
+    <ClCompile Include="src\Core\Project.cpp" />
     <ClCompile Include="src\Core\WindowManager.cpp" />
     <ClCompile Include="src\EntryPoint.cpp" />
     <ClCompile Include="src\FrameExtractorPCH.cpp">

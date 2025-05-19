@@ -113,6 +113,17 @@ workspace "FrameEX"
 				"%{Library.AVFormat}"
 		}
 
+		postbuildcommands {
+				"{COPY} \"resources\" \"$(TargetDir)resources\"",
+				"{COPYFILE} \"avcodec-62.dll\" \"$(TargetDir)avcodec-62.dll\"",
+				"{COPYFILE} \"avformat-62.dll\" \"$(TargetDir)avformat-62.dll\"",
+				"{COPYFILE} \"avutil-60.dll\" \"$(TargetDir)avutil-60.dll\"",
+				"{COPYFILE} \"swresample-6.dll\" \"$(TargetDir)swresample-6.dll\"",
+				"{COPYFILE} \"swscale-9.dll\" \"$(TargetDir)swscale-9.dll\"",
+				"{COPYFILE} \"imgui.ini\" \"$(TargetDir)imgui.ini\""
+
+		}
+
 		filter "configurations:Debug"
 			defines "_DEB"
 			symbols "On"
