@@ -80,15 +80,34 @@ namespace FrameExtractor
 
 				for (auto entranceNum = 0; entranceNum < data.Entrance.size(); entranceNum++)
 				{
-					if (CheckEntryEmpty(data.Entrance[entranceNum]))
+					// per entrance data
+					if (CheckEntryEmpty(data.Entrance[entranceNum].mDesc))
 					{
 						continue;
 					}
-					ss << "E" << entranceNum + 1 << ": ";
+
+					// Person details
+					if (data.Entrance.size() > 1)
+						ss << "E" << entranceNum + 1 << ": ";
+
+					for (auto& frameSkip : data.Entrance[entranceNum].mFrameSkips)
+					{
+						ss << "Video Skipped from " << frameSkip.first << " to " << frameSkip.second << ", ";
+					}
+
+					for (auto& video : data.Entrance[entranceNum].mCorruptedVideos)
+					{
+						ss << "Video " << video << " is corrupted, ";
+					}
+
+					for (auto& time : data.Entrance[entranceNum].mBlankedVideos)
+					{
+						ss << "Video is blanked after " << time << ", ";
+					}
 
 					for (auto type = (int)ReCustomer; type <= ReOthers; type++)
 					{
-						for (auto personDesc : data.Entrance[entranceNum][type])
+						for (auto personDesc : data.Entrance[entranceNum].mDesc[type])
 						{
 							if (personDesc.IsMale)
 							{
@@ -251,7 +270,6 @@ namespace FrameExtractor
 		doc.close();
 
 		return output;
-
 
 	}
 

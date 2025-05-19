@@ -57,20 +57,44 @@ namespace YAML
             {
                 for (const auto& entrancePair : entranceData)
                 {
-                    int entranceIndex = entrancePair.first.as<int>();
+                    int entranceIndex = entrancePair.first.as<int>(); // Get entrance index
                     const auto& typeMap = entrancePair.second;
 
+                    // Resize Entrance vector if necessary
                     if (entranceIndex >= data.Entrance.size())
                         data.Entrance.resize(entranceIndex + 1);
 
                     auto& entranceTypes = data.Entrance[entranceIndex];
 
-                    for (const auto& typePair : typeMap)
+                    for (const auto& typePair : typeMap["DescDetails"])
                     {
-                        int typeIndex = typePair.first.as<int>();
-                        for (const auto& personNode : typePair.second)
+                        int typeIndex = typePair.first.as<int>(); // Get type index
+                        const Node& typeNode = typePair.second;
+
+                        // Decode mDesc (person descriptions)
+                        if (typeNode.IsSequence()) // Ensure that the node is a sequence (array) of person nodes
                         {
-                            entranceTypes[typeIndex].push_back(personNode.as<FrameExtractor::PersonDesc>());
+                            for (const auto& personNode : typeNode)
+                            {
+                                entranceTypes.mDesc[typeIndex].push_back(personNode.as<FrameExtractor::PersonDesc>());
+                            }
+                        }
+                       
+                    }
+                    entranceTypes.mCorruptedVideos = typeMap["FrameDetails"]["CorruptedVideos"].as<std::vector<std::string>>();
+                    entranceTypes.mBlankedVideos = typeMap["FrameDetails"]["BlankedVideos"].as<std::vector<std::string>>();
+                    const Node& frameSkipsNode = typeMap["FrameDetails"]["FrameSkips"];
+                    if (frameSkipsNode.IsSequence()) // Ensure it's a sequence of pairs
+                    {
+                        for (const auto& frameSkip : frameSkipsNode)
+                        {
+                            if (frameSkip.IsSequence() && frameSkip.size() == 2)
+                            {
+                                std::pair<std::string, std::string> frameSkipPair;
+                                frameSkipPair.first = frameSkip[0].as<std::string>();
+                                frameSkipPair.second = frameSkip[1].as<std::string>();
+                                entranceTypes.mFrameSkips.push_back(frameSkipPair);
+                            }
                         }
                     }
                 }
@@ -95,15 +119,28 @@ namespace YAML
             {
                 const auto& entranceTypes = data.Entrance[entranceIndex];
                 Node entranceNode;
-                for (size_t typeIndex = 0; typeIndex < entranceTypes.size(); ++typeIndex)
+                for (size_t typeIndex = 0; typeIndex < entranceTypes.mDesc.size(); ++typeIndex)
                 {
                     Node typeNode;
-                    for (const auto& person : entranceTypes[typeIndex])
+                    for (const auto& person : entranceTypes.mDesc[typeIndex])
                     {
                         typeNode.push_back(person);
                     }
-                    entranceNode[std::to_string(typeIndex)] = typeNode;
+                    entranceNode["DescDetails"][std::to_string(typeIndex)] = typeNode;
                 }
+
+                Node frameSkipsNode;
+                for (const auto& frameSkip : entranceTypes.mFrameSkips)
+                {
+                    Node pairNode;
+                    pairNode.push_back(frameSkip.first);
+                    pairNode.push_back(frameSkip.second);
+                    frameSkipsNode.push_back(pairNode);
+                }
+                entranceNode["FrameDetails"]["CorruptedVideos"] = entranceTypes.mCorruptedVideos;
+                entranceNode["FrameDetails"]["BlankedVideos"] = entranceTypes.mBlankedVideos;
+                entranceNode["FrameDetails"]["FrameSkips"] = frameSkipsNode;
+
                 entranceDataNode[std::to_string(entranceIndex)] = entranceNode;
             }
             node["EntranceData"] = entranceDataNode;

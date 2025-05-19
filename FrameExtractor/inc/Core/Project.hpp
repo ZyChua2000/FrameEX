@@ -43,6 +43,13 @@ namespace FrameExtractor
 		std::string Description = "";
 	};
 
+	struct CountingEntrance
+	{
+		std::array <std::vector<PersonDesc>, EntryType::ReOthers + 1> mDesc;
+		std::vector<std::pair<std::string, std::string>> mFrameSkips; // time to time
+		std::vector<std::string> mCorruptedVideos; // name
+		std::vector<std::string> mBlankedVideos; // time
+	};
 
 	struct CountData // Represents 1 hour
 	{
@@ -55,8 +62,9 @@ namespace FrameExtractor
 		int32_t mOthers = 0;
 		int32_t mReOthers = 0;
 
-		std::vector<std::array<std::vector<PersonDesc>, EntryType::ReOthers + 1>> Entrance;
+		std::vector<CountingEntrance> Entrance;
 		// Entrance Num, Data Category, Person Data
+		//Entrance
 	};
 
 	struct AggregateEntrance
