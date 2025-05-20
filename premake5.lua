@@ -24,32 +24,25 @@ workspace "FrameEX"
 	IncludeDir["YAML"] = "FrameExtractor/lib/yaml-cpp/include"
 
 	LibraryDir = {}
-	LibraryDir["GLAD_Debug"] = "lib/GLAD/lib/Deb"
-	LibraryDir["GLAD_Release"] = "lib/GLAD/lib/Rel"
-	LibraryDir["GLFW_Debug"] = "lib/GLFW/lib/Deb"
-	LibraryDir["GLFW_Release"] = "lib/GLFW/lib/Rel"
-	LibraryDir["IMGUI_Debug"] = "lib/IMGUI/lib/Deb"
-	LibraryDir["IMGUI_Release"] = "lib/IMGUI/lib/Rel"
 	LibraryDir["FFMPEG"] = "lib/ffmpeg/lib"
 	LibraryDir["OpenXLSX"] = "lib/OpenXLSX/lib"
-	LibraryDir["YAML_Debug"] = "lib/yaml-cpp/lib/Deb"
-	LibraryDir["YAML_Release"] = "lib/yaml-cpp/lib/Rel"
 
 	Library = {}
-	Library["GLAD_Debug"] = "%{LibraryDir.GLAD_Debug}/GLAD.lib"
-	Library["GLAD_Release"] = "%{LibraryDir.GLAD_Release}/GLAD.lib"
-	Library["GLFW_Debug"] = "%{LibraryDir.GLFW_Debug}/GLFW.lib"
-	Library["GLFW_Release"] = "%{LibraryDir.GLFW_Release}/GLFW.lib"
-	Library["IMGUI_Debug"] = "%{LibraryDir.IMGUI_Debug}/IMGUI.lib"
-	Library["IMGUI_Release"] = "%{LibraryDir.IMGUI_Release}/IMGUI.lib"
 	Library["AVUtil"] = "%{LibraryDir.FFMPEG}/avutil.lib"
 	Library["AVCodec"] = "%{LibraryDir.FFMPEG}/avcodec.lib"
 	Library["AVFormat"] = "%{LibraryDir.FFMPEG}/avformat.lib"
 	Library["SWScale"] = "%{LibraryDir.FFMPEG}/swscale.lib"
 	Library["OpenXLSX_Release"] = "%{LibraryDir.OpenXLSX}/OpenXLSX.lib"
 	Library["OpenXLSX_Debug"] = "%{LibraryDir.OpenXLSX}/OpenXLSXd.lib"
-	Library["YAML_Debug"] = "%{LibraryDir.YAML_Debug}/yaml-cpp.lib"
-	Library["YAML_Release"] = "%{LibraryDir.YAML_Release}/yaml-cpp.lib"
+
+	group "Dependencies"
+		include "FrameExtractor/lib/GLAD/premake5.lua"
+		include "FrameExtractor/lib/yaml-cpp/premake5.lua"
+		include "FrameExtractor/lib/GLFW/premake5.lua"
+		include "FrameExtractor/lib/IMGUI/premake5.lua"
+
+	group ""
+
 
 	project "FrameExtractor"
 		location "FrameExtractor"
@@ -93,6 +86,10 @@ workspace "FrameEX"
 		links
 		{
 			"opengl32.lib",
+			"GLAD",
+			"YAML",
+			"GLFW",
+			"ImGui"
 		}
 
 
@@ -130,11 +127,7 @@ workspace "FrameEX"
 			runtime "Debug"
 			links
 			{
-				"%{Library.GLAD_Debug}",
-				"%{Library.GLFW_Debug}",
-				"%{Library.IMGUI_Debug}",
 				"%{Library.OpenXLSX_Debug}",
-				"%{Library.YAML_Debug}"
 			}
 
 
@@ -144,11 +137,7 @@ workspace "FrameEX"
 			runtime "Release"
 			links
 			{
-				"%{Library.GLAD_Release}",
-				"%{Library.GLFW_Release}",
-				"%{Library.IMGUI_Release}",
 				"%{Library.OpenXLSX_Release}",
-				"%{Library.YAML_Release}"
 			}
 
 		filter "configurations:Distribution"
@@ -157,9 +146,5 @@ workspace "FrameEX"
 			runtime "Release"
 			links
 			{
-				"%{Library.GLAD_Release}",
-				"%{Library.GLFW_Release}",
-				"%{Library.IMGUI_Release}",
 				"%{Library.OpenXLSX_Release}",
-				"%{Library.YAML_Release}"
 			}

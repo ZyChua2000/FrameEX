@@ -65,7 +65,7 @@ namespace FrameExtractor
 		if (mCurrentPath != mProject->GetAssetsDir())
 		{
 			
-			if (ImGui::ImageButton((ImTextureID)mFolderIcon->GetTextureID(), {printedThumbnailSize, printedThumbnailSize}, {0,0}, {1,1}, -1, {0,0,0,0}, {1,1,1,1}))
+			if (ImGui::ImageButton(("##ExplorerSelected" + mCurrentPath.string()).c_str(), (ImTextureID)mFolderIcon->GetTextureID(), {printedThumbnailSize, printedThumbnailSize}, {0,0}, {1,1}, {0,0,0,0}, {1,1,1,1}))
 			{
 				mSelectedPath = mCurrentPath.parent_path();
 			}
@@ -112,7 +112,7 @@ namespace FrameExtractor
 				screenID = static_cast<uint64_t>(mFileIcon->GetTextureID());
 			}
 
-			if (ImGui::ImageButton((ImTextureID)screenID, { printedThumbnailSize, printedThumbnailSize }, { 0,0 }, { 1,1 }, -1, { 0,0,0,0 }, { 1,1,1,1 }))
+			if (ImGui::ImageButton(("##ExplorerEntry" + filenameStr).c_str(), (ImTextureID)screenID, {printedThumbnailSize, printedThumbnailSize}, {0,0}, {1,1}, {0,0,0,0}, {1,1,1,1}))
 			{
 				mSelectedPath = entry;
 			}

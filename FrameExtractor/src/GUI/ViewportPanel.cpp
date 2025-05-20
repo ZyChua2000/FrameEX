@@ -281,11 +281,12 @@ namespace FrameExtractor
         float totalWidth = buttonCount * buttonSize + (buttonCount - 1) * spacing;
         float startX = (ImGui::GetContentRegionAvail().x - totalWidth) * 0.5f;
         ImGuiIO& io = ImGui::GetIO();
-        auto ctrlHeld = io.KeysDown[ImGuiKey_RightCtrl] || io.KeysDown[ImGuiKey_LeftCtrl];
-        auto shiftHeld = io.KeysDown[ImGuiKey_RightShift] || io.KeysDown[ImGuiKey_LeftShift];
+       
+        auto ctrlHeld = ImGui::IsKeyDown(ImGuiKey_RightCtrl) || ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
+        auto shiftHeld = ImGui::IsKeyDown(ImGuiKey_RightShift) || ImGui::IsKeyDown(ImGuiKey_LeftShift);
         bool isWindowFocused = ImGui::IsWindowFocused();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + startX);
-        if (ImGui::ImageButton((ImTextureID)mIcons[SKIP_TO_START_ICON]->GetTextureID(), { buttonSize, buttonSize }) ||
+        if (ImGui::ImageButton("#IconSkipToStart", (ImTextureID)mIcons[SKIP_TO_START_ICON]->GetTextureID(), {buttonSize, buttonSize}) ||
             (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
             if (mVideo)
@@ -308,7 +309,7 @@ namespace FrameExtractor
 
         ImGui::SameLine();
       
-        if (ImGui::ImageButton((ImTextureID)mIcons[SLOW_DOWN_ICON]->GetTextureID(), { buttonSize,buttonSize }) || 
+        if (ImGui::ImageButton("#IconSlowDown", (ImTextureID)mIcons[SLOW_DOWN_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && ctrlHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
             if (mVideo)
@@ -327,7 +328,7 @@ namespace FrameExtractor
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton((ImTextureID)mIcons[BACKWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+        if (ImGui::ImageButton("#IconBackward", (ImTextureID)mIcons[BACKWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && !ctrlHeld && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
             if(mVideo)
@@ -352,7 +353,7 @@ namespace FrameExtractor
 
         if (!mIsPlaying)
         {
-            if (ImGui::ImageButton((ImTextureID)mIcons[PLAY_ICON]->GetTextureID(), { buttonSize,buttonSize }) 
+            if (ImGui::ImageButton("#IconPlay", (ImTextureID)mIcons[PLAY_ICON]->GetTextureID(), { buttonSize,buttonSize })
                 || (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_Space)))
             {
                 if(mVideo)
@@ -364,7 +365,7 @@ namespace FrameExtractor
         }
         else
         {
-            if (ImGui::ImageButton((ImTextureID)mIcons[STOP_ICON]->GetTextureID(), { buttonSize,buttonSize })
+            if (ImGui::ImageButton("#IconStop", (ImTextureID)mIcons[STOP_ICON]->GetTextureID(), { buttonSize,buttonSize })
                 || (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_Space)))
             {
                 if(mVideo)
@@ -382,7 +383,7 @@ namespace FrameExtractor
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton((ImTextureID)mIcons[FORWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+        if (ImGui::ImageButton("#IconForward", (ImTextureID)mIcons[FORWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && !ctrlHeld && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
         {
             if(mVideo)
@@ -405,7 +406,7 @@ namespace FrameExtractor
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton((ImTextureID)mIcons[SPEED_UP_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+        if (ImGui::ImageButton("#IconSpeedUp", (ImTextureID)mIcons[SPEED_UP_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && ctrlHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
         {
             if(mVideo)
@@ -427,7 +428,7 @@ namespace FrameExtractor
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton((ImTextureID)mIcons[SKIP_TO_END_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+        if (ImGui::ImageButton("#IconSkipToEnd", (ImTextureID)mIcons[SKIP_TO_END_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
         {
             if(mVideo)

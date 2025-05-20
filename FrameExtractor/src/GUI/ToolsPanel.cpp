@@ -14,6 +14,7 @@
 #include <Core/PlatformUtils.hpp>
 #include <GUI/ExplorerPanel.hpp>
 #include <GUI/ImGuiManager.hpp>
+#include <GUI/GUIUtils.hpp>
 #include <Core/ExcelSerialiser.hpp>
 #define ERROR_DATEFMT 1
 #define ERROR_MISSINGFIELD 2
@@ -21,45 +22,6 @@
 namespace FrameExtractor
 {
 
-    int FilterNumbersAndColon(ImGuiInputTextCallbackData* data)
-    {
-        if (data->EventChar < 256)
-        {
-            char c = static_cast<char>(data->EventChar);
-            if ((c >= '0' && c <= '9') || c == ':')
-                return 0; // allow
-            return 1;     // block
-        }
-        return 0;
-    }
-
-
-    bool isValidFormat(const char* buffer) {
-        // Expected format is "DD:DD:DD" => length 8
-        for (int i = 0; i < 8; ++i) {
-            if (i == 2 || i == 5) {
-                if (buffer[i] != ':') return false;
-            }
-            else {
-                if (!std::isdigit(static_cast<unsigned char>(buffer[i]))) return false;
-            }
-        }
-
-        // Ensure the string is exactly 8 characters and not longer
-        return buffer[8] == '\0';
-    }
-
-    static std::string fmtTime(int inTime)
-    {
-        if (inTime >= 10)
-        {
-            return std::to_string(inTime) + "00hrs";
-        }
-        else
-        {
-            return "0" + std::to_string(inTime) + "00hrs";
-        }
-    }
     ToolsPanel::ToolsPanel(Project* project) : mProject(project)
     {
 
@@ -323,7 +285,7 @@ namespace FrameExtractor
                                 }
                                 ImGui::SameLine();
 
-                                if (ImGui::CollapsingHeader((fmtTime(time) + "##Counting" + store).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                                if (ImGui::CollapsingHeader((Format::fmtTime(time) + "##Counting" + store).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                                 {
 
                                     ImGui::Columns(2);
@@ -467,8 +429,6 @@ namespace FrameExtractor
 
                                                     auto& data = mCountingData[store][time].Entrance[entrance].mDesc[entryType][entry];
                                                     char DescBuffer[128] = {};
-                                                    char timeStampBuffer[16] = {};
-                                                    std::memcpy(timeStampBuffer, data.timeStamp.c_str(), data.timeStamp.size());
                                                     std::memcpy(DescBuffer, data.Description.c_str(), 128);
 
                                                     if (data.IsMale)
@@ -486,77 +446,9 @@ namespace FrameExtractor
                                                         }
                                                     }
                                                     ImGui::SameLine();
-                                                    ImGui::SetNextItemWidth(80 * ImGuiManager::styleMultiplier);
-                                                    if (ImGui::InputText(("##timestamp##Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(time) + store + std::to_string(entry)).c_str(),
-                                                        timeStampBuffer,
-                                                        9,
-                                                        ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCharFilter,
-                                                        FilterNumbersAndColon
-                                                    ))
-                                                    {
-                                                        if (isValidFormat(timeStampBuffer))
-                                                            data.timeStamp = timeStampBuffer;
-                                                        else
-                                                        {
-                                                            std::string timeStampStr(timeStampBuffer);
-                                                            if (timeStampStr != "")
-                                                            {
-                                                                timeStampStr.erase(std::remove(timeStampStr.begin(), timeStampStr.end(), ':'), timeStampStr.end());
-                                                                if (timeStampStr.size() > 6)
-                                                                {
-                                                                    int last2Digits = std::stoi(timeStampStr.substr(timeStampStr.size() - 2));
-                                                                    int mid2 = std::stoi(timeStampStr.substr(timeStampStr.size() - 4, 2));
-                                                                    int firstDigits = std::stoi(timeStampStr.substr(0, timeStampStr.size() - 4));
+                                                    Widget::Time(("##timestamp##Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(time) + store + std::to_string(entry)).c_str(),
+                                                        data.timeStamp, 80 * ImGuiManager::styleMultiplier);
 
-                                                                    if (last2Digits >= 60)
-                                                                    {
-                                                                        last2Digits -= 60;
-                                                                        mid2 += 1;
-                                                                    }
-                                                                    if (mid2 >= 60)
-                                                                    {
-                                                                        mid2 -= 60;
-                                                                        firstDigits += 1;
-                                                                    }
-                                                                    firstDigits = firstDigits % 24;
-
-                                                                    std::ostringstream ossTime;
-                                                                    ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                        << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                        << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                    data.timeStamp = ossTime.str();
-                                                                }
-                                                                else
-                                                                {
-                                                                    std::string timeStampStr(timeStampBuffer);
-
-                                                                    int intTime = std::stoi(timeStampBuffer);
-                                                                    int last2Digits = intTime % 100;
-                                                                    int mid2 = (intTime / 100) % 100;
-                                                                    int firstDigits = (intTime / 10000) % 100;
-                                                                    if (last2Digits >= 60)
-                                                                    {
-                                                                        last2Digits -= 60;
-                                                                        mid2 += 1;
-                                                                    }
-                                                                    if (mid2 >= 60)
-                                                                    {
-                                                                        mid2 -= 60;
-                                                                        firstDigits += 1;
-                                                                    }
-                                                                    firstDigits = firstDigits % 24;
-
-                                                                    std::ostringstream ossTime;
-                                                                    ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                        << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                        << std::setfill('0') << std::setw(2) << last2Digits;
-                                                                    data.timeStamp = ossTime.str();
-                                                                    APP_CORE_INFO(data.timeStamp.c_str());
-                                                                }
-                                                            }
-                                                        }
-                                                    }
                                                     ImGui::SameLine();
                                                     if (ImGui::InputText(("##Description##Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(time) + store + std::to_string(entry)).c_str(), DescBuffer, 128, ImGuiInputTextFlags_EnterReturnsTrue))
                                                     {
@@ -604,145 +496,14 @@ namespace FrameExtractor
                                             for (auto& frameSkip : mCountingData[store][time].Entrance[entrance].mFrameSkips)
                                             {
 
-                                                char buffer[16] = {};
-                                                std::memcpy(buffer, frameSkip.first.c_str(), frameSkip.first.size());
-                                                ImGui::SetNextItemWidth(lineHeight * 4);
-                                                if (ImGui::InputText(("##FrameSkipBegin##Counting" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(), buffer, 16, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCharFilter, FilterNumbersAndColon))
-                                                {
-                                                    if (isValidFormat(buffer))
-                                                    {
-                                                        frameSkip.first = buffer;
-                                                    }
-                                                    else
-                                                    {
-                                                        std::string timeStampStr(buffer);
-                                                        if (timeStampStr != "")
-                                                        {
-                                                            timeStampStr.erase(std::remove(timeStampStr.begin(), timeStampStr.end(), ':'), timeStampStr.end());
-                                                            if (timeStampStr.size() > 6)
-                                                            {
-                                                                int last2Digits = std::stoi(timeStampStr.substr(timeStampStr.size() - 2));
-                                                                int mid2 = std::stoi(timeStampStr.substr(timeStampStr.size() - 4, 2));
-                                                                int firstDigits = std::stoi(timeStampStr.substr(0, timeStampStr.size() - 4));
-
-                                                                if (last2Digits >= 60)
-                                                                {
-                                                                    last2Digits -= 60;
-                                                                    mid2 += 1;
-                                                                }
-                                                                if (mid2 >= 60)
-                                                                {
-                                                                    mid2 -= 60;
-                                                                    firstDigits += 1;
-                                                                }
-                                                                firstDigits = firstDigits % 24;
-
-                                                                std::ostringstream ossTime;
-                                                                ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                    << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                    << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                frameSkip.first = ossTime.str();
-                                                            }
-                                                            else
-                                                            {
-                                                                int intTime = std::stoi(buffer);
-                                                                int last2Digits = intTime % 100;
-                                                                int mid2 = (intTime / 100) % 100;
-                                                                int firstDigits = (intTime / 10000) % 100;
-                                                                if (last2Digits >= 60)
-                                                                {
-                                                                    last2Digits -= 60;
-                                                                    mid2 += 1;
-                                                                }
-                                                                if (mid2 >= 60)
-                                                                {
-                                                                    mid2 -= 60;
-                                                                    firstDigits += 1;
-                                                                }
-                                                                firstDigits = firstDigits % 24;
-
-                                                                std::ostringstream ossTime;
-                                                                ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                    << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                    << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                frameSkip.first = ossTime.str();
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                                Widget::Time(("##FrameSkipBegin##Counting" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(),
+                                                    frameSkip.first, lineHeight * 4);
 
                                                 ImGui::NextColumn();
-                                                char buffer2[16] = {};
-                                                std::memcpy(buffer2, frameSkip.second.c_str(), frameSkip.second.size());
-                                                ImGui::SetNextItemWidth(lineHeight * 4);
-                                                if (ImGui::InputText(("##FrameSkipEnd##Counting" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(), buffer2, 16, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCharFilter, FilterNumbersAndColon))
-                                                {
-                                                    if (isValidFormat(buffer2))
-                                                    {
-                                                        frameSkip.second = buffer2;
-                                                    }
-                                                    else
-                                                    {
-                                                        std::string timeStampStr(buffer2);
-                                                        if (timeStampStr != "")
-                                                        {
-                                                            timeStampStr.erase(std::remove(timeStampStr.begin(), timeStampStr.end(), ':'), timeStampStr.end());
-                                                            if (timeStampStr.size() > 6)
-                                                            {
-                                                                int last2Digits = std::stoi(timeStampStr.substr(timeStampStr.size() - 2));
-                                                                int mid2 = std::stoi(timeStampStr.substr(timeStampStr.size() - 4, 2));
-                                                                int firstDigits = std::stoi(timeStampStr.substr(0, timeStampStr.size() - 4));
 
-                                                                if (last2Digits >= 60)
-                                                                {
-                                                                    last2Digits -= 60;
-                                                                    mid2 += 1;
-                                                                }
-                                                                if (mid2 >= 60)
-                                                                {
-                                                                    mid2 -= 60;
-                                                                    firstDigits += 1;
-                                                                }
-                                                                firstDigits = firstDigits % 24;
+                                                Widget::Time(("##FrameSkipEnd##Counting" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(),
+                                                    frameSkip.second, lineHeight * 4);
 
-                                                                std::ostringstream ossTime;
-                                                                ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                    << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                    << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                frameSkip.second = ossTime.str();
-                                                            }
-                                                            else
-                                                            {
-                                                                int intTime = std::stoi(buffer2);
-                                                                int last2Digits = intTime % 100;
-                                                                int mid2 = (intTime / 100) % 100;
-                                                                int firstDigits = (intTime / 10000) % 100;
-                                                                if (last2Digits >= 60)
-                                                                {
-                                                                    last2Digits -= 60;
-                                                                    mid2 += 1;
-                                                                }
-                                                                if (mid2 >= 60)
-                                                                {
-                                                                    mid2 -= 60;
-                                                                    firstDigits += 1;
-                                                                }
-                                                                firstDigits = firstDigits % 24;
-
-                                                                std::ostringstream ossTime;
-                                                                ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                    << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                    << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                frameSkip.second = ossTime.str();
-
-                                                            }
-                                                        }
-                                                    }
-                                                }
                                                 ImGui::SameLine();
                                                 if (ImGui::Button(("-##RemoveFrameSkip##Counting" + std::to_string(entrance) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
                                                 {
@@ -781,76 +542,9 @@ namespace FrameExtractor
 
                                             for (auto& blankVideo : mCountingData[store][time].Entrance[entrance].mBlankedVideos)
                                             {
+                                                Widget::Time(("##BlankVideoTime##Counting" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(),
+                                                    blankVideo, lineHeight * 4);
 
-                                                char buffer[16] = {};
-                                                std::memcpy(buffer, blankVideo.c_str(), blankVideo.size());
-                                                ImGui::SetNextItemWidth(lineHeight * 4);
-                                                if (ImGui::InputText(("##BlankVideoTime##Counting" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(), buffer, 16, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCharFilter, FilterNumbersAndColon))
-                                                {
-                                                    if (isValidFormat(buffer))
-                                                    {
-                                                        blankVideo = buffer;
-                                                    }
-                                                    else
-                                                    {
-                                                        std::string timeStampStr(buffer);
-                                                        if (timeStampStr != "")
-                                                        {
-                                                            timeStampStr.erase(std::remove(timeStampStr.begin(), timeStampStr.end(), ':'), timeStampStr.end());
-                                                            if (timeStampStr.size() > 6)
-                                                            {
-                                                                int last2Digits = std::stoi(timeStampStr.substr(timeStampStr.size() - 2));
-                                                                int mid2 = std::stoi(timeStampStr.substr(timeStampStr.size() - 4, 2));
-                                                                int firstDigits = std::stoi(timeStampStr.substr(0, timeStampStr.size() - 4));
-
-                                                                if (last2Digits >= 60)
-                                                                {
-                                                                    last2Digits -= 60;
-                                                                    mid2 += 1;
-                                                                }
-                                                                if (mid2 >= 60)
-                                                                {
-                                                                    mid2 -= 60;
-                                                                    firstDigits += 1;
-                                                                }
-                                                                firstDigits = firstDigits % 24;
-
-                                                                std::ostringstream ossTime;
-                                                                ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                    << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                    << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                blankVideo = ossTime.str();
-                                                            }
-                                                            else
-                                                            {
-                                                                int intTime = std::stoi(buffer);
-                                                                int last2Digits = intTime % 100;
-                                                                int mid2 = (intTime / 100) % 100;
-                                                                int firstDigits = (intTime / 10000) % 100;
-                                                                if (last2Digits >= 60)
-                                                                {
-                                                                    last2Digits -= 60;
-                                                                    mid2 += 1;
-                                                                }
-                                                                if (mid2 >= 60)
-                                                                {
-                                                                    mid2 -= 60;
-                                                                    firstDigits += 1;
-                                                                }
-                                                                firstDigits = firstDigits % 24;
-
-                                                                std::ostringstream ossTime;
-                                                                ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                    << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                    << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                blankVideo = ossTime.str();
-
-                                                            }
-                                                        }
-                                                    }
-                                                }
                                                 ImGui::SameLine();
                                                 if (ImGui::Button(("-##RemoveBlankVideo##Counting" + std::to_string(entrance) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
                                                 {
@@ -866,7 +560,7 @@ namespace FrameExtractor
 
                                             ImGui::Separator();
 
-                                            if (ImGui::Button(("+##AddCorruptedVideo##Aggregate" + std::to_string(entrance) + std::to_string(time) + store).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                            if (ImGui::Button(("+##AddCorruptedVideo##Counting" + std::to_string(entrance) + std::to_string(time) + store).c_str(), ImVec2{ lineHeight ,lineHeight }))
                                             {
                                                 mCountingData[store][time].Entrance[entrance].mCorruptedVideos.push_back({ });
                                             }
@@ -888,13 +582,13 @@ namespace FrameExtractor
                                                 char buffer[32] = {};
                                                 std::memcpy(buffer, corruptedVideo.c_str(), corruptedVideo.size());
                                                 ImGui::SetNextItemWidth(lineHeight * 4);
-                                                if (ImGui::InputText(("##CorruptedName##Aggregate" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(), buffer, 16))
+                                                if (ImGui::InputText(("##CorruptedName##Counting" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(), buffer, 16))
                                                 {
                                                     corruptedVideo = buffer;
                                                 }
 
                                                 ImGui::SameLine();
-                                                if (ImGui::Button(("-##RemoveCorruptedVideo##Aggregate" + std::to_string(entrance) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                                if (ImGui::Button(("-##RemoveCorruptedVideo##Counting" + std::to_string(entrance) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
                                                 {
                                                     mCountingData[store][time].Entrance[entrance].mCorruptedVideos.erase(mCountingData[store][time].Entrance[entrance].mCorruptedVideos.begin() + idx);
                                                     break;
@@ -1288,7 +982,7 @@ namespace FrameExtractor
                                         }
                                         ImGui::SameLine();
 
-                                        if (ImGui::CollapsingHeader((fmtTime(time) + "##Aggregate" + store).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                                        if (ImGui::CollapsingHeader((Format::fmtTime(time) + "##Aggregate" + store).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                                         {
                                             ImGui::Columns(4);
                                             ImGui::Text("Store ID: ");
@@ -1366,146 +1060,14 @@ namespace FrameExtractor
                                                     }
                                                     for (auto& frameSkip : mAggregateStoreData[date][store][time].Entrance[entranceNum].mFrameSkips)
                                                     {
-
-                                                        char buffer[16] = {};
-                                                        std::memcpy(buffer, frameSkip.first.c_str(), frameSkip.first.size());
-                                                        ImGui::SetNextItemWidth(lineHeight * 4);
-                                                        if (ImGui::InputText(("##FrameSkipBegin##Aggregate" + std::to_string(entranceNum) + std::to_string(idx) + std::to_string(time) + store).c_str(), buffer, 16, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCharFilter, FilterNumbersAndColon))
-                                                        {
-                                                            if (isValidFormat(buffer))
-                                                            {
-                                                                frameSkip.first = buffer;
-                                                            }
-                                                            else
-                                                            {
-                                                                std::string timeStampStr(buffer);
-                                                                if (timeStampStr != "")
-                                                                {
-                                                                    timeStampStr.erase(std::remove(timeStampStr.begin(), timeStampStr.end(), ':'), timeStampStr.end());
-                                                                    if (timeStampStr.size() > 6)
-                                                                    {
-                                                                        int last2Digits = std::stoi(timeStampStr.substr(timeStampStr.size() - 2));
-                                                                        int mid2 = std::stoi(timeStampStr.substr(timeStampStr.size() - 4, 2));
-                                                                        int firstDigits = std::stoi(timeStampStr.substr(0, timeStampStr.size() - 4));
-
-                                                                        if (last2Digits >= 60)
-                                                                        {
-                                                                            last2Digits -= 60;
-                                                                            mid2 += 1;
-                                                                        }
-                                                                        if (mid2 >= 60)
-                                                                        {
-                                                                            mid2 -= 60;
-                                                                            firstDigits += 1;
-                                                                        }
-                                                                        firstDigits = firstDigits % 24;
-
-                                                                        std::ostringstream ossTime;
-                                                                        ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                            << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                            << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                        frameSkip.first = ossTime.str();
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        int intTime = std::stoi(buffer);
-                                                                        int last2Digits = intTime % 100;
-                                                                        int mid2 = (intTime / 100) % 100;
-                                                                        int firstDigits = (intTime / 10000) % 100;
-                                                                        if (last2Digits >= 60)
-                                                                        {
-                                                                            last2Digits -= 60;
-                                                                            mid2 += 1;
-                                                                        }
-                                                                        if (mid2 >= 60)
-                                                                        {
-                                                                            mid2 -= 60;
-                                                                            firstDigits += 1;
-                                                                        }
-                                                                        firstDigits = firstDigits % 24;
-
-                                                                        std::ostringstream ossTime;
-                                                                        ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                            << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                            << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                        frameSkip.first = ossTime.str();
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
+                                                        Widget::Time(("##FrameSkipBegin##Aggregate" + std::to_string(entranceNum) + std::to_string(idx) + std::to_string(time) + store).c_str(),
+                                                            frameSkip.first, lineHeight * 4);
 
                                                         ImGui::NextColumn();
-                                                        char buffer2[16] = {};
-                                                        std::memcpy(buffer2, frameSkip.second.c_str(), frameSkip.second.size());
-                                                        ImGui::SetNextItemWidth(lineHeight * 4);
-                                                        if (ImGui::InputText(("##FrameSkipEnd##Aggregate" + std::to_string(entranceNum) + std::to_string(idx) + std::to_string(time) + store).c_str(), buffer2, 16, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCharFilter, FilterNumbersAndColon))
-                                                        {
-                                                            if (isValidFormat(buffer2))
-                                                            {
-                                                                frameSkip.second = buffer2;
-                                                            }
-                                                            else
-                                                            {
-                                                                std::string timeStampStr(buffer2);
-                                                                if (timeStampStr != "")
-                                                                {
-                                                                    timeStampStr.erase(std::remove(timeStampStr.begin(), timeStampStr.end(), ':'), timeStampStr.end());
-                                                                    if (timeStampStr.size() > 6)
-                                                                    {
-                                                                        int last2Digits = std::stoi(timeStampStr.substr(timeStampStr.size() - 2));
-                                                                        int mid2 = std::stoi(timeStampStr.substr(timeStampStr.size() - 4, 2));
-                                                                        int firstDigits = std::stoi(timeStampStr.substr(0, timeStampStr.size() - 4));
 
-                                                                        if (last2Digits >= 60)
-                                                                        {
-                                                                            last2Digits -= 60;
-                                                                            mid2 += 1;
-                                                                        }
-                                                                        if (mid2 >= 60)
-                                                                        {
-                                                                            mid2 -= 60;
-                                                                            firstDigits += 1;
-                                                                        }
-                                                                        firstDigits = firstDigits % 24;
+                                                        Widget::Time(("##FrameSkipEnd##Aggregate" + std::to_string(entranceNum) + std::to_string(idx) + std::to_string(time) + store).c_str(),
+                                                            frameSkip.second, lineHeight * 4);
 
-                                                                        std::ostringstream ossTime;
-                                                                        ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                            << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                            << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                        frameSkip.second = ossTime.str();
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        int intTime = std::stoi(buffer2);
-                                                                        int last2Digits = intTime % 100;
-                                                                        int mid2 = (intTime / 100) % 100;
-                                                                        int firstDigits = (intTime / 10000) % 100;
-                                                                        if (last2Digits >= 60)
-                                                                        {
-                                                                            last2Digits -= 60;
-                                                                            mid2 += 1;
-                                                                        }
-                                                                        if (mid2 >= 60)
-                                                                        {
-                                                                            mid2 -= 60;
-                                                                            firstDigits += 1;
-                                                                        }
-                                                                        firstDigits = firstDigits % 24;
-
-                                                                        std::ostringstream ossTime;
-                                                                        ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                            << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                            << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                        frameSkip.second = ossTime.str();
-
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
                                                         ImGui::SameLine();
                                                         if (ImGui::Button(("-##RemoveFrameSkip##Aggregate" + std::to_string(entranceNum) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
                                                         {
@@ -1542,76 +1104,9 @@ namespace FrameExtractor
 
                                                     for (auto& blankVideo : mAggregateStoreData[date][store][time].Entrance[entranceNum].mBlankedVideos)
                                                     {
-
-                                                        char buffer[16] = {};
-                                                        std::memcpy(buffer, blankVideo.c_str(), blankVideo.size());
-                                                        ImGui::SetNextItemWidth(lineHeight * 4);
-                                                        if (ImGui::InputText(("##BlankVideoTime##Aggregate" + std::to_string(entranceNum) + std::to_string(idx) + std::to_string(time) + store).c_str(), buffer, 16, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCharFilter, FilterNumbersAndColon))
-                                                        {
-                                                            if (isValidFormat(buffer))
-                                                            {
-                                                                blankVideo = buffer;
-                                                            }
-                                                            else
-                                                            {
-                                                                std::string timeStampStr(buffer);
-                                                                if (timeStampStr != "")
-                                                                {
-                                                                    timeStampStr.erase(std::remove(timeStampStr.begin(), timeStampStr.end(), ':'), timeStampStr.end());
-                                                                    if (timeStampStr.size() > 6)
-                                                                    {
-                                                                        int last2Digits = std::stoi(timeStampStr.substr(timeStampStr.size() - 2));
-                                                                        int mid2 = std::stoi(timeStampStr.substr(timeStampStr.size() - 4, 2));
-                                                                        int firstDigits = std::stoi(timeStampStr.substr(0, timeStampStr.size() - 4));
-
-                                                                        if (last2Digits >= 60)
-                                                                        {
-                                                                            last2Digits -= 60;
-                                                                            mid2 += 1;
-                                                                        }
-                                                                        if (mid2 >= 60)
-                                                                        {
-                                                                            mid2 -= 60;
-                                                                            firstDigits += 1;
-                                                                        }
-                                                                        firstDigits = firstDigits % 24;
-
-                                                                        std::ostringstream ossTime;
-                                                                        ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                            << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                            << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                        blankVideo = ossTime.str();
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        int intTime = std::stoi(buffer);
-                                                                        int last2Digits = intTime % 100;
-                                                                        int mid2 = (intTime / 100) % 100;
-                                                                        int firstDigits = (intTime / 10000) % 100;
-                                                                        if (last2Digits >= 60)
-                                                                        {
-                                                                            last2Digits -= 60;
-                                                                            mid2 += 1;
-                                                                        }
-                                                                        if (mid2 >= 60)
-                                                                        {
-                                                                            mid2 -= 60;
-                                                                            firstDigits += 1;
-                                                                        }
-                                                                        firstDigits = firstDigits % 24;
-
-                                                                        std::ostringstream ossTime;
-                                                                        ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
-                                                                            << std::setfill('0') << std::setw(2) << mid2 << ":"
-                                                                            << std::setfill('0') << std::setw(2) << last2Digits;
-
-                                                                        blankVideo = ossTime.str();
-
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
+                                                        Widget::Time(("##BlankVideoTime##Aggregate" + std::to_string(entranceNum) + std::to_string(idx) + std::to_string(time) + store).c_str(),
+                                                            blankVideo, lineHeight * 4);
+                                                       
                                                         ImGui::SameLine();
                                                         if (ImGui::Button(("-##RemoveBlankVideo##Aggregate" + std::to_string(entranceNum) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
                                                         {

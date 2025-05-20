@@ -105,6 +105,9 @@
     <ClInclude Include="inc\GUI\ExplorerPanel.hpp">
       <Filter>inc\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="inc\GUI\GUIUtils.hpp">
+      <Filter>inc\GUI</Filter>
+    </ClInclude>
     <ClInclude Include="inc\GUI\IPanel.hpp">
       <Filter>inc\GUI</Filter>
     </ClInclude>
@@ -1575,6 +1578,9 @@
       <Filter>src\GUI</Filter>
     </ClCompile>
     <ClCompile Include="src\GUI\ExplorerPanel.cpp">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI\GUIUtils.cpp">
       <Filter>src\GUI</Filter>
     </ClCompile>
     <ClCompile Include="src\GUI\ImGuiManager.cpp">
