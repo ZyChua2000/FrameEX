@@ -17,6 +17,7 @@ namespace FrameExtractor
 	namespace Widget
 	{
 		void Time(const char* label, std::string& inText, float itemWidth);
+		void InputInt(const char* id, const char* display, int32_t& data);
 	}
 
 	namespace Format

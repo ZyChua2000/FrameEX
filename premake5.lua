@@ -22,6 +22,7 @@ workspace "FrameEX"
 	IncludeDir["STBI"] = "FrameExtractor/lib/stb_image"
 	IncludeDir["OpenXLSX"] = "FrameExtractor/lib/OpenXLSX/inc"
 	IncludeDir["YAML"] = "FrameExtractor/lib/yaml-cpp/include"
+	IncludeDir["RTTR"] = "FrameExtractor/lib/rttr/src"
 
 	LibraryDir = {}
 	LibraryDir["FFMPEG"] = "lib/ffmpeg/lib"
@@ -40,6 +41,7 @@ workspace "FrameEX"
 		include "FrameExtractor/lib/yaml-cpp/premake5.lua"
 		include "FrameExtractor/lib/GLFW/premake5.lua"
 		include "FrameExtractor/lib/IMGUI/premake5.lua"
+		include "FrameExtractor/lib/rttr/premake5.lua"
 
 	group ""
 
@@ -79,6 +81,7 @@ workspace "FrameEX"
 			"%{IncludeDir.FFMPEG}",
 			"%{IncludeDir.STBI}",
 			"%{IncludeDir.OpenXLSX}",
+			"%{IncludeDir.RTTR}",
 			"%{IncludeDir.YAML}"
 		}
 
@@ -89,7 +92,8 @@ workspace "FrameEX"
 			"GLAD",
 			"YAML",
 			"GLFW",
-			"ImGui"
+			"ImGui",
+			"RTTR"
 		}
 
 

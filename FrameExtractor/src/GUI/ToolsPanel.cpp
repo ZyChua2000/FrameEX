@@ -40,596 +40,8 @@ namespace FrameExtractor
         if (ImGui::BeginTabBar("##ToolsBar", ImGuiTabBarFlags_Reorderable))
         {
             {
-                auto& mCountingData = mProject->mCountingData;
-                auto open = ImGui::BeginTabItem("Counting##ToolsBar");
-                if (ImGui::IsItemHovered())
-                {
-                    ImGui::BeginTooltip();
-                    ImGui::Text("Counting Tasks (e.g. Spike Dip)");
-                    ImGui::EndTooltip();
-                }
-                if (open)
-                {
-
-                    ImGui::Columns(4);
-                    if (ImGui::Button("Add Entry##Counting"))
-                    {
-                        if (!mProject->IsProjectLoaded())
-                        {
-                            open_error_popup = true;
-                        }
-                        else
-                            ImGui::OpenPopup("AddEntryPopup##Counting");
-                    }
-
-                    ImGui::NextColumn();
-
-                    if (ImGui::Button("Clear##Counting"))
-                    {
-                        mCountingData.clear();
-                    }
-
-                    ImGui::NextColumn();
-
-                    if (ImGui::Button("Import Data##Counting"))
-                    {
-                        if (!mProject->IsProjectLoaded())
-                        {
-                            open_error_popup = true;
-                        }
-                        else
-                        {
-                            auto spikeDipFile = OpenFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
-                            if (std::filesystem::exists(spikeDipFile))
-                            {
-                                ExcelSerialiser serialiser(spikeDipFile);
-                                mProject->mCountingData = serialiser.ImportSpikeDipReport();
-                            }
-                            else
-                            {
-                                APP_CORE_ERROR("Spike Dip file does not exist!");
-                            }
-                        }
-                    }
-                    ImGui::NextColumn();
-
-                    if (ImGui::Button("Export Data##Counting"))
-                    {
-                        if (!mProject->IsProjectLoaded())
-                        {
-                            open_error_popup = true;
-                        }
-                        else {
-                            auto projectFile = SaveFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
-                            projectFile.replace_extension(".xlsx");
-                            ExcelSerialiser serialiser(projectFile);
-                            serialiser.ExportSpikeDipReport(mProject->mCountingData);
-                        }
-
-                    }
-
-                    ImGui::Columns(1);
-
-                    ImGui::SetNextWindowSize({ 270 * ImGuiManager::styleMultiplier, 120 * ImGuiManager::styleMultiplier + 40 }, ImGuiCond_Always);
-                    if (ImGui::BeginPopup("AddEntryPopup##Counting", ImGuiWindowFlags_NoMove))
-                    {
-
-                        ImGui::Columns(2);
-                        ImGui::SetColumnWidth(0, 120 * ImGuiManager::styleMultiplier);
-                        ImGui::Text("Store Code: ");
-                        ImGui::NextColumn();
-                        ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
-                        ImGui::InputText("##Store Code##Counting: ", mStoreCodeBuffer, 16);
-                        ImGui::NextColumn();
-
-                        ImGui::Text("Hour: ");
-                        ImGui::NextColumn();
-                        ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
-                        ImGui::InputInt("##Hour:##Counting ", &mTimeBuffer, 1, 1);
-                        ImGui::NextColumn();
-
-                        ImGui::Text("Entrances: ");
-                        ImGui::NextColumn();
-                        ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
-                        ImGui::InputInt("##Entrances##Counting: ", &mEntranceBuffer, 1, 1);
-                        ImGui::Columns(1);
-                        ImGui::Separator();
-                        if (ImGui::Button("Confirm"))
-                        {
-                            std::string storeID(mStoreCodeBuffer);
-                            if (storeID != "")
-                            {
-                                std::memset(mStoreCodeBuffer, 0, 16);
-                                if (!mCountingData.contains(storeID))
-                                {
-                                    mCountingData[storeID] = {};
-                                }
-
-                                if (!mCountingData[storeID].empty())
-                                {
-                                    if (mEntranceBuffer > mCountingData[storeID].begin()->second.Entrance.size())
-                                    {
-                                        for (auto& [time, counter] : mCountingData[storeID])
-                                        {
-                                            counter.Entrance.resize(mEntranceBuffer, {});
-                                        }
-                                    }
-                                    else
-                                    {
-                                        mEntranceBuffer = mCountingData[storeID].begin()->second.Entrance.size();
-                                    }
-                                }
-
-                                if (!mCountingData[storeID].contains(mTimeBuffer))
-                                {
-                                    mCountingData[storeID][mTimeBuffer] = {};
-                                }
-                                for (int i = 0; i < mEntranceBuffer; i++)
-                                    mCountingData[storeID][mTimeBuffer].Entrance.push_back({});
-                                mEntranceBuffer = 1;
-                                mTimeBuffer = 0;
-                            }
-                            ImGui::CloseCurrentPopup();
-                        }
-
-                        ImGui::SameLine();
-
-                        if (ImGui::Button("Cancel##Counting"))
-                        {
-                            std::memset(mStoreCodeBuffer, 0, 16);
-                            mEntranceBuffer = 1;
-                            mTimeBuffer = 0;
-                            ImGui::CloseCurrentPopup();
-                        }
-
-                        ImGui::EndPopup();
-                    }
-
-
-                    ImVec2 windowSize = ImGui::GetContentRegionAvail();
-                    ImGui::BeginChild("ScrollableRegion##Counting", ImVec2(windowSize.x, windowSize.y), true);
-
-                    for (auto& [store, timeNData] : mCountingData)
-                    {
-
-                        auto ContentRegionAvailable = ImGui::GetContentRegionAvail();
-                        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
-                        float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
-                        bool open = ImGui::CollapsingHeader(store.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
-                        ImGui::PopStyleVar();
-                        ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
-                        if (ImGui::Button(("+##AddOptions##Counting" + store).c_str(), ImVec2{ lineHeight,lineHeight }))
-                        {
-                            ImGui::OpenPopup(("AddOptionsPopup##Counting" + store).c_str(), ImGuiPopupFlags_NoOpenOverExistingPopup);
-                        }
-
-                        if (ImGui::BeginPopup(("AddOptionsPopup##Counting" + store).c_str(), ImGuiWindowFlags_NoMove))
-                        {
-                            if (ImGui::Button("Add New Entrance##Counting"))
-                            {
-                                for (auto& [time, entData] : timeNData)
-                                {
-                                    entData.Entrance.push_back({});
-                                }
-                                ImGui::CloseCurrentPopup();
-                            }
-                            if (ImGui::Button("Add New Time##Counting"))
-                            {
-                                ImGui::OpenPopup(("AddTimePopUp##Counting" + store).c_str());
-                            }
-
-                            bool closePopup = false;
-                            if (ImGui::BeginPopup(("AddTimePopUp##Counting" + store).c_str(), ImGuiWindowFlags_NoMove))
-                            {
-                                ImGui::InputInt("##Hour:##CountingTimePopup ", &mTimeBuffer, 1, 1, ImGuiInputTextFlags_CharsDecimal);
-                                if (ImGui::Button("Confirm##AddTimePopup##Counting"))
-                                {
-                                    if (mTimeBuffer >= 0 && mTimeBuffer < 24)
-                                    {
-                                        if (!mCountingData[store].contains(mTimeBuffer))
-                                        {
-                                            auto entranceNum = mCountingData[store].begin()->second.Entrance.size();
-
-                                            mCountingData[store][mTimeBuffer] = {};
-                                            for (int i = 0; i < entranceNum; i++)
-                                            {
-                                                mCountingData[store][mTimeBuffer].Entrance.push_back({});
-                                            }
-                                        }
-                                        mTimeBuffer = 0;
-                                    }
-                                    closePopup = true;
-                                    ImGui::CloseCurrentPopup();
-                                }
-
-                                if (ImGui::Button("Cancel##AddTimePopup##Counting"))
-                                {
-                                    ImGui::CloseCurrentPopup();
-                                    mTimeBuffer = 0;
-                                }
-                                ImGui::EndPopup();
-                            }
-
-                            ImGui::Separator();
-
-                            if (ImGui::Button("X", { lineHeight, lineHeight }))
-                            {
-                                ImGui::CloseCurrentPopup();
-                            }
-
-                            if (closePopup)
-                            {
-                                ImGui::CloseCurrentPopup();
-                            }
-
-                            ImGui::EndPopup();
-                        }
-
-
-
-                        if (open)
-                        {
-                            ImGui::Indent(lineHeight);
-                            for (auto& [time, data] : timeNData)
-                            {
-                                if (ImGui::Button(("-##timeMinus##Counting" + store + std::to_string(time)).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                {
-                                    mCountingData[store].erase(time);
-                                    break;
-                                }
-                                if (ImGui::IsItemHovered())
-                                {
-                                    ImGui::BeginTooltip();
-                                    ImGui::Text("Remove this timing");
-                                    ImGui::EndTooltip();
-                                }
-                                ImGui::SameLine();
-
-                                if (ImGui::CollapsingHeader((Format::fmtTime(time) + "##Counting" + store).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-                                {
-
-                                    ImGui::Columns(2);
-
-                                    ImGui::Text("Customer");
-                                    ImGui::NextColumn();
-                                    {
-                                        int32_t buffer = mCountingData[store][time].mCustomer;
-                                        if (ImGui::InputInt(("##Customer##Counting" + store + std::to_string(time)).c_str(), &buffer, 1, 100, ImGuiInputTextFlags_CharsDecimal))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&mCountingData[store][time].mCustomer, mCountingData[store][time].mCustomer, buffer));
-                                        }
-                                    }
-                                    ImGui::NextColumn();
-
-                                    ImGui::Text("Re-Customer");
-                                    ImGui::NextColumn();
-                                    {
-                                        int32_t buffer = mCountingData[store][time].mReCustomer;
-                                        if (ImGui::InputInt(("##Customer Re-entry##Counting" + store + std::to_string(time)).c_str(), &buffer, 1, 100 , ImGuiInputTextFlags_CharsDecimal))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&mCountingData[store][time].mReCustomer, mCountingData[store][time].mReCustomer, buffer));
-                                        }
-
-                                    }
-                                    ImGui::NextColumn();
-
-                                    ImGui::Separator();
-
-                                    ImGui::Text("Suspected Staff");
-                                    ImGui::NextColumn();
-                                    {
-                                        int32_t buffer = mCountingData[store][time].mSuspectedStaff;
-                                        if (ImGui::InputInt(("##Suspected Staff##Counting" + store + std::to_string(time)).c_str(), &buffer, 1, 100, ImGuiInputTextFlags_CharsDecimal))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&mCountingData[store][time].mSuspectedStaff, mCountingData[store][time].mSuspectedStaff, buffer));
-                                        }
-                                    }
-                                    ImGui::NextColumn();
-
-                                    ImGui::Text("Re-Suspected Staff");
-                                    ImGui::NextColumn();
-                                    {
-                                        int32_t buffer = mCountingData[store][time].mReSuspectedStaff;
-                                        if (ImGui::InputInt(("##Suspected Staff Re-entry##Counting" + store + std::to_string(time)).c_str(), &buffer, 1, 100, ImGuiInputTextFlags_CharsDecimal))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&mCountingData[store][time].mReSuspectedStaff, mCountingData[store][time].mReSuspectedStaff, buffer));
-                                        }
-                                    }
-                                    ImGui::NextColumn();
-
-                                    ImGui::Separator();
-
-                                    ImGui::Text("Children");
-                                    ImGui::NextColumn();
-                                    {
-                                        int32_t buffer = mCountingData[store][time].mChildren;
-                                        if (ImGui::InputInt(("##Children##Counting" + store + std::to_string(time)).c_str(), &buffer, 1, 100, ImGuiInputTextFlags_CharsDecimal))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&mCountingData[store][time].mChildren, mCountingData[store][time].mChildren, buffer));
-                                        }
-                                    }
-                                    ImGui::NextColumn();
-
-                                    ImGui::Text("Re-Children");
-                                    ImGui::NextColumn();
-                                    {
-                                        int32_t buffer = mCountingData[store][time].mReChildren;
-                                        if (ImGui::InputInt(("##Children Re-entry##Counting" + store + std::to_string(time)).c_str(), &buffer, 1, 100, ImGuiInputTextFlags_CharsDecimal))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&mCountingData[store][time].mReChildren, mCountingData[store][time].mReChildren, buffer));
-                                        }
-                                    }
-                                    ImGui::NextColumn();
-
-                                    ImGui::Separator();
-
-                                    ImGui::Text("Others");
-                                    ImGui::NextColumn();
-                                    {
-                                        int32_t buffer = mCountingData[store][time].mOthers;
-                                        if (ImGui::InputInt(("##Others##Counting" + store + std::to_string(time)).c_str(), &buffer, 1, 100, ImGuiInputTextFlags_CharsDecimal))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&mCountingData[store][time].mOthers, mCountingData[store][time].mOthers, buffer));
-                                        }
-                                    }
-                                    ImGui::NextColumn();
-
-                                    ImGui::Text("Re-Others");
-                                    ImGui::NextColumn();
-                                    {
-                                        int32_t buffer = mCountingData[store][time].mReOthers;
-                                        if (ImGui::InputInt(("##Others Re-entry##Counting" + store + std::to_string(time)).c_str(), &buffer, 1, 100, ImGuiInputTextFlags_CharsDecimal))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&mCountingData[store][time].mReOthers, mCountingData[store][time].mReOthers, buffer));
-                                        }
-                                    }
-                                    ImGui::NextColumn();
-
-                                    ImGui::Columns(1);
-                                    ImGui::Indent(lineHeight);
-                                    for (int32_t entrance = 0; entrance < mCountingData[store][time].Entrance.size(); entrance++)
-                                    {
-                                        if (ImGui::Button(("-##EntrancesMinus##Counting" + store + std::to_string(time) + std::to_string(entrance)).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                        {
-                                            if (mCountingData[store].begin()->second.Entrance.size() > 1)
-                                            {
-                                                for (auto& [time, counter] : mCountingData[store])
-                                                {
-                                                    counter.Entrance.erase(counter.Entrance.begin() + entrance);
-                                                }
-                                                break;
-                                            }
-                                        }
-                                        if (ImGui::IsItemHovered())
-                                        {
-                                            ImGui::BeginTooltip();
-                                            ImGui::Text("Remove this entrance");
-                                            ImGui::EndTooltip();
-                                        }
-                                        ImGui::SameLine();
-
-                                        if (ImGui::CollapsingHeader(("Entrance " + std::to_string(entrance + 1) + "##Entrances##Counting" + store).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-                                        {
-                                            ImGui::Indent(lineHeight);
-                                            ImGui::BeginChild(("##DescDetails" + std::to_string(entrance) + std::to_string(time) + store).c_str(), { 0, lineHeight * 10 }, true);
-
-                                            for (auto entryType = (int)EntryType::ReCustomer; entryType <= ReOthers; entryType++)
-                                            {
-                                                int32_t deleteIdx = -1;
-                                                if (ImGui::Button(("+##mTimestamp2##Counting" + EntryTypeToString((EntryType)entryType) + std::to_string(time) + store + std::to_string(entrance)).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                                {
-                                                    mCountingData[store][time].Entrance[entrance].mDesc[entryType].push_back({});
-                                                }
-                                                ImGui::SameLine();
-                                                ImGui::Text((EntryTypeToString((EntryType)entryType) + " Descriptions").c_str());
-
-                                                ImGui::Indent(lineHeight);
-                                                for (int32_t entry = 0; entry < mCountingData[store][time].Entrance[entrance].mDesc[entryType].size(); entry++)
-                                                {
-
-                                                    auto& data = mCountingData[store][time].Entrance[entrance].mDesc[entryType][entry];
-                                                    char DescBuffer[128] = {};
-                                                    std::memcpy(DescBuffer, data.Description.c_str(), 128);
-
-                                                    if (data.IsMale)
-                                                    {
-                                                        if (ImGui::Button(("M####Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(time) + store + std::to_string(entry)).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                                        {
-                                                            data.IsMale = false;
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        if (ImGui::Button(("F####Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(time) + store + std::to_string(entry)).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                                        {
-                                                            data.IsMale = true;
-                                                        }
-                                                    }
-                                                    ImGui::SameLine();
-                                                    Widget::Time(("##timestamp##Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(time) + store + std::to_string(entry)).c_str(),
-                                                        data.timeStamp, 80 * ImGuiManager::styleMultiplier);
-
-                                                    ImGui::SameLine();
-                                                    if (ImGui::InputText(("##Description##Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(time) + store + std::to_string(entry)).c_str(), DescBuffer, 128, ImGuiInputTextFlags_EnterReturnsTrue))
-                                                    {
-                                                        data.Description = DescBuffer;
-                                                    }
-                                                    ImGui::SameLine();
-                                                    if (ImGui::Button(("-####Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + store + std::to_string(time) + std::to_string(entry)).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                                    {
-                                                        deleteIdx = entrance;
-                                                    }
-
-                                                }
-                                                ImGui::Unindent(lineHeight);
-
-                                                ImGui::Separator();
-                                                if (deleteIdx != -1)
-                                                {
-                                                    mCountingData[store][time].Entrance[entrance].mDesc[entryType].erase(mCountingData[store][time].Entrance[entrance].mDesc[entryType].begin() + deleteIdx);
-                                                }
-
-                                            }
-
-                                            ImGui::EndChild();
-                                            ImGui::BeginChild(("##FrameDetails" + std::to_string(entrance) + std::to_string(time) + store).c_str(), {0, lineHeight*10}, true);
-                                            if (ImGui::Button(("+##AddFrameSkip##Counting" + std::to_string(entrance) + std::to_string(time) + store).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                            {
-                                                mCountingData[store][time].Entrance[entrance].mFrameSkips.push_back({ "00:00:00", "00:00:00" });
-                                            }
-
-                                            ImGui::SameLine();
-                                            ImGui::PushFont(ImGuiManager::BoldFont);
-                                            ImGui::Text("Frame Skips");
-                                            ImGui::PopFont();
-                                            ImGui::Indent(lineHeight * 2);
-                                            int idx = 0;
-                                            if (!mCountingData[store][time].Entrance[entrance].mFrameSkips.empty())
-                                            {
-                                                ImGui::Columns(2);
-                                                ImGui::SetColumnWidth(0, lineHeight * 4.5f);
-                                                ImGui::Text("Start Time");
-                                                ImGui::NextColumn();
-                                                ImGui::Text("End Time");
-                                                ImGui::NextColumn();
-                                            }
-                                            for (auto& frameSkip : mCountingData[store][time].Entrance[entrance].mFrameSkips)
-                                            {
-
-                                                Widget::Time(("##FrameSkipBegin##Counting" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(),
-                                                    frameSkip.first, lineHeight * 4);
-
-                                                ImGui::NextColumn();
-
-                                                Widget::Time(("##FrameSkipEnd##Counting" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(),
-                                                    frameSkip.second, lineHeight * 4);
-
-                                                ImGui::SameLine();
-                                                if (ImGui::Button(("-##RemoveFrameSkip##Counting" + std::to_string(entrance) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                                {
-                                                    mCountingData[store][time].Entrance[entrance].mFrameSkips.erase(mCountingData[store][time].Entrance[entrance].mFrameSkips.begin() + idx);
-                                                    break;
-                                                }
-                                                ImGui::NextColumn();
-
-                                                idx++;
-
-
-
-                                            }
-
-                                            ImGui::Unindent(lineHeight * 2);
-                                            ImGui::Columns(1);
-
-                                            ImGui::Separator();
-
-                                            if (ImGui::Button(("+##AddBlankVideo##Counting" + std::to_string(entrance) + std::to_string(time) + store).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                            {
-                                                mCountingData[store][time].Entrance[entrance].mBlankedVideos.push_back({ "00:00:00" });
-                                            }
-
-                                            ImGui::SameLine();
-                                            ImGui::PushFont(ImGuiManager::BoldFont);
-                                            ImGui::Text("Blank Videos");
-                                            ImGui::PopFont();
-                                            ImGui::Indent(lineHeight * 2);
-                                            idx = 0;
-
-                                            if (!mCountingData[store][time].Entrance[entrance].mBlankedVideos.empty())
-                                            {
-                                                ImGui::Text("Blank Time");
-                                            }
-
-                                            for (auto& blankVideo : mCountingData[store][time].Entrance[entrance].mBlankedVideos)
-                                            {
-                                                Widget::Time(("##BlankVideoTime##Counting" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(),
-                                                    blankVideo, lineHeight * 4);
-
-                                                ImGui::SameLine();
-                                                if (ImGui::Button(("-##RemoveBlankVideo##Counting" + std::to_string(entrance) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                                {
-                                                    mCountingData[store][time].Entrance[entrance].mBlankedVideos.erase(mCountingData[store][time].Entrance[entrance].mBlankedVideos.begin() + idx);
-                                                    break;
-                                                }
-                                                idx++;
-
-                                            }
-
-                                            ImGui::Columns(1);
-                                            ImGui::Unindent(lineHeight * 2);
-
-                                            ImGui::Separator();
-
-                                            if (ImGui::Button(("+##AddCorruptedVideo##Counting" + std::to_string(entrance) + std::to_string(time) + store).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                            {
-                                                mCountingData[store][time].Entrance[entrance].mCorruptedVideos.push_back({ });
-                                            }
-
-                                            ImGui::SameLine();
-                                            ImGui::PushFont(ImGuiManager::BoldFont);
-                                            ImGui::Text("Corrupted Videos");
-                                            ImGui::PopFont();
-                                            ImGui::Indent(lineHeight * 2);
-                                            idx = 0;
-                                            if (!mCountingData[store][time].Entrance[entrance].mCorruptedVideos.empty())
-                                            {
-                                                ImGui::Text("Video Name");
-                                            }
-
-                                            for (auto& corruptedVideo : mCountingData[store][time].Entrance[entrance].mCorruptedVideos)
-                                            {
-
-                                                char buffer[32] = {};
-                                                std::memcpy(buffer, corruptedVideo.c_str(), corruptedVideo.size());
-                                                ImGui::SetNextItemWidth(lineHeight * 4);
-                                                if (ImGui::InputText(("##CorruptedName##Counting" + std::to_string(entrance) + std::to_string(idx) + std::to_string(time) + store).c_str(), buffer, 16))
-                                                {
-                                                    corruptedVideo = buffer;
-                                                }
-
-                                                ImGui::SameLine();
-                                                if (ImGui::Button(("-##RemoveCorruptedVideo##Counting" + std::to_string(entrance) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
-                                                {
-                                                    mCountingData[store][time].Entrance[entrance].mCorruptedVideos.erase(mCountingData[store][time].Entrance[entrance].mCorruptedVideos.begin() + idx);
-                                                    break;
-                                                }
-                                                ImGui::NextColumn();
-                                                idx++;
-
-                                            }
-
-                                            ImGui::Unindent(lineHeight * 2);
-
-                                            ImGui::EndChild();
-
-
-                                            // Frame skips
-                                            ImGui::Unindent(lineHeight);
-
-                                        }
-                                        ImGui::Columns(1);
-                                    }
-
-                                    ImGui::Unindent(lineHeight);
-
-                                }
-                            }
-
-                            ImGui::Unindent(lineHeight);
-
-                            if (mCountingData[store].empty())
-                            {
-                                mCountingData.erase(store);
-                                break;
-                            }
-                        }
-
-                    }
-
-
-                    ImGui::EndChild();
-                    ImGui::EndTabItem();
-                }
+                CountingTab();
+               
             }
 
             {
@@ -1373,6 +785,534 @@ namespace FrameExtractor
         }
 
         return ss.str();
+    }
+
+    void ToolsPanel::CountingTab()
+    {
+        auto& mCountingData = mProject->mCountingData;
+        auto open = ImGui::BeginTabItem("Counting##ToolsBar");
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
+        float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::Text("Counting Tasks (e.g. Spike Dip)");
+            ImGui::EndTooltip();
+        }
+        if (open)
+        {
+
+            ImGui::Columns(4);
+            if (ImGui::Button("Add Entry##Counting"))
+            {
+                if (!mProject->IsProjectLoaded())
+                {
+                   // open_error_popup = true;
+                }
+                else
+                    ImGui::OpenPopup("AddEntryPopup##Counting");
+            }
+
+            ImGui::NextColumn();
+
+            if (ImGui::Button("Clear##Counting"))
+            {
+                mCountingData.clear();
+            }
+
+            ImGui::NextColumn();
+
+            if (ImGui::Button("Import Data##Counting"))
+            {
+                if (!mProject->IsProjectLoaded())
+                {
+                    //open_error_popup = true;
+                }
+                else
+                {
+                    auto spikeDipFile = OpenFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
+                    if (std::filesystem::exists(spikeDipFile))
+                    {
+                        ExcelSerialiser serialiser(spikeDipFile);
+                        mProject->mCountingData = serialiser.ImportSpikeDipReport();
+                    }
+                    else
+                    {
+                        APP_CORE_ERROR("Spike Dip file does not exist!");
+                    }
+                }
+            }
+            ImGui::NextColumn();
+
+            if (ImGui::Button("Export Data##Counting"))
+            {
+                if (!mProject->IsProjectLoaded())
+                {
+                    //open_error_popup = true;
+                }
+                else {
+                    auto projectFile = SaveFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
+                    projectFile.replace_extension(".xlsx");
+                    ExcelSerialiser serialiser(projectFile);
+                    serialiser.ExportSpikeDipReport(mProject->mCountingData);
+                }
+
+            }
+
+            ImGui::Columns(1);
+
+            ImGui::SetNextWindowSize({ 270 * ImGuiManager::styleMultiplier, 120 * ImGuiManager::styleMultiplier + 40 }, ImGuiCond_Always);
+            if (ImGui::BeginPopup("AddEntryPopup##Counting", ImGuiWindowFlags_NoMove))
+            {
+
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 120 * ImGuiManager::styleMultiplier);
+                ImGui::Text("Store Code: ");
+                ImGui::NextColumn();
+                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
+                ImGui::InputText("##Store Code##Counting: ", mStoreCodeBuffer, 16);
+                ImGui::NextColumn();
+
+                ImGui::Text("Hour: ");
+                ImGui::NextColumn();
+                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
+                ImGui::InputInt("##Hour:##Counting ", &mTimeBuffer, 1, 1);
+                ImGui::NextColumn();
+
+                ImGui::Text("Entrances: ");
+                ImGui::NextColumn();
+                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
+                ImGui::InputInt("##Entrances##Counting: ", &mEntranceBuffer, 1, 1);
+                ImGui::Columns(1);
+                ImGui::Separator();
+                if (ImGui::Button("Confirm"))
+                {
+                    std::string storeID(mStoreCodeBuffer);
+                    if (storeID != "")
+                    {
+                        std::memset(mStoreCodeBuffer, 0, 16);
+                        if (!mCountingData.contains(storeID))
+                        {
+                            mCountingData[storeID] = {};
+                        }
+
+                        if (!mCountingData[storeID].empty())
+                        {
+                            if (mEntranceBuffer > mCountingData[storeID].begin()->second.Entrance.size())
+                            {
+                                for (auto& [time, counter] : mCountingData[storeID])
+                                {
+                                    counter.Entrance.resize(mEntranceBuffer, {});
+                                }
+                            }
+                            else
+                            {
+                                mEntranceBuffer = mCountingData[storeID].begin()->second.Entrance.size();
+                            }
+                        }
+
+                        if (!mCountingData[storeID].contains(mTimeBuffer))
+                        {
+                            mCountingData[storeID][mTimeBuffer] = {};
+                            for (int i = 0; i < mEntranceBuffer; i++)
+                                mCountingData[storeID][mTimeBuffer].Entrance.push_back({});
+                        }
+                      
+                        mEntranceBuffer = 1;
+                        mTimeBuffer = 0;
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("Cancel##Counting"))
+                {
+                    std::memset(mStoreCodeBuffer, 0, 16);
+                    mEntranceBuffer = 1;
+                    mTimeBuffer = 0;
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndPopup();
+            }
+
+
+            ImVec2 windowSize = ImGui::GetContentRegionAvail();
+            ImGui::BeginChild("ScrollableRegion##Counting", ImVec2(windowSize.x, windowSize.y), true);
+
+            if (ImGui::ArrowButton("##CountingPageBack", ImGuiDir_Left))
+            {
+                if (mCountingPage.mStorePage > 0)
+                {
+                    mCountingPage.mStorePage--;
+                }
+           }
+            ImGui::SameLine();
+
+            float spacing = ImGui::GetStyle().ItemSpacing.x;
+            float arrow_button_width = ImGui::GetFrameHeight(); // Arrow buttons are square
+            float total_spacing = spacing * 2; // space between 3 items
+
+            // Calculate remaining width
+            float remaining_width = ImGui::GetContentRegionAvail().x;
+            float middle_button_width = remaining_width - (arrow_button_width + total_spacing);
+
+            std::string PageNumStr = "NIL";
+
+            if (!mProject->IsProjectLoaded()) PageNumStr = "No Project Loaded";
+            else
+                if (!mCountingData.empty())
+                {
+                    if (mCountingPage.mStorePage >= mCountingData.size())
+                    {
+                        mCountingPage.mDatePage = mCountingData.size() - 1;
+                    }
+                    auto StorePageIT = mCountingData.begin();
+                    std::advance(StorePageIT, mCountingPage.mStorePage);
+                    PageNumStr = (StorePageIT->first);
+                }
+
+
+            ImGui::Button(PageNumStr.c_str(), ImVec2(middle_button_width, 0));
+            ImGui::SameLine();
+            if (ImGui::ArrowButton("##CountingPageNext", ImGuiDir_Right))
+            {
+                if (mCountingPage.mStorePage < mCountingData.size() - 1)
+                    mCountingPage.mStorePage++;
+            }
+            ImGui::Separator();
+
+
+            if (!mCountingData.empty())
+            {
+                auto StorePageIT = mCountingData.begin();
+                std::advance(StorePageIT, mCountingPage.mStorePage);
+
+                auto& StoreCode = StorePageIT->first;                
+                if (ImGui::BeginTabBar("##CountingTabBar"))
+                {
+                    int houridx = 0;
+                    for (auto& [hour, Data] : StorePageIT->second)
+                    {
+                        std::string hourText = "        ";
+                        if (hour >= 10)
+                            hourText += std::to_string(hour) + "hrs  ";
+                        else
+                            hourText += "0" + std::to_string(hour) + "hrs  ";
+
+                        bool hour2Bool = true;
+
+                        if (ImGui::BeginTabItem((hourText + "##Counting").c_str(), &hour2Bool, ImGuiTabItemFlags_NoReorder))
+                        {
+                            mCountingPage.mHourPage = houridx;
+
+                            auto hourIT = StorePageIT->second.begin();
+                            std::advance(hourIT, mCountingPage.mHourPage);
+                            auto& Hour = hourIT->first;
+                            auto& Data = hourIT->second;
+
+
+                            if (ImGui::CollapsingHeader("Statistics##Counting", ImGuiTreeNodeFlags_DefaultOpen))
+                            {
+                                ImGui::Indent(lineHeight);
+                                ImGui::Columns(2);
+                                {
+                                    ImGui::PushFont(ImGuiManager::BoldFont);
+                                    ImGui::Text("Customer: ");
+                                    ImGui::PopFont();
+                                    ImGui::NextColumn();
+                                    auto buffer = Data.mCustomer;
+                                    if (ImGui::InputInt("##Customer##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                    {
+                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, buffer));
+                                    }
+                                    ImGui::NextColumn();
+
+                                }
+
+
+                                {
+                                    ImGui::PushFont(ImGuiManager::BoldFont);
+                                    ImGui::Text("Re-entry Customer: ");
+                                    ImGui::PopFont();
+                                    ImGui::NextColumn();
+                                    auto buffer = Data.mReCustomer;
+                                    if (ImGui::InputInt("##ReCustomer##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                    {
+                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mReCustomer, Data.mReCustomer, buffer));
+                                    }
+                                    ImGui::NextColumn();
+
+                                }
+
+                                {
+                                    ImGui::PushFont(ImGuiManager::BoldFont);
+                                    ImGui::Text("Suspected Staff: ");
+                                    ImGui::PopFont();
+                                    ImGui::NextColumn();
+                                    auto buffer = Data.mSuspectedStaff;
+                                    if (ImGui::InputInt("##SusStaff##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                    {
+                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mSuspectedStaff, Data.mSuspectedStaff, buffer));
+                                    }
+                                    ImGui::NextColumn();
+
+                                }
+
+                                {
+                                    ImGui::PushFont(ImGuiManager::BoldFont);
+                                    ImGui::Text("Re-entry Suspected Staff: ");
+                                    ImGui::PopFont();
+                                    ImGui::NextColumn();
+                                    auto buffer = Data.mReSuspectedStaff;
+                                    if (ImGui::InputInt("##ReSusStaff##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                    {
+                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mReSuspectedStaff, Data.mReSuspectedStaff, buffer));
+                                    }
+                                    ImGui::NextColumn();
+
+                                }
+
+                                {
+                                    ImGui::PushFont(ImGuiManager::BoldFont);
+                                    ImGui::Text("Children: ");
+                                    ImGui::PopFont();
+                                    ImGui::NextColumn();
+                                    auto buffer = Data.mChildren;
+                                    if (ImGui::InputInt("##Children##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                    {
+                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mChildren, Data.mChildren, buffer));
+                                    }
+                                    ImGui::NextColumn();
+
+                                }
+
+                                {
+                                    ImGui::PushFont(ImGuiManager::BoldFont);
+                                    ImGui::Text("Re-entry Children: ");
+                                    ImGui::PopFont();
+                                    ImGui::NextColumn();
+                                    auto buffer = Data.mReChildren;
+                                    if (ImGui::InputInt("##ReChildren##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                    {
+                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mReChildren, Data.mReChildren, buffer));
+                                    }
+                                    ImGui::NextColumn();
+
+                                }
+                                {
+                                    ImGui::PushFont(ImGuiManager::BoldFont);
+                                    ImGui::Text("Others: ");
+                                    ImGui::PopFont();
+                                    ImGui::NextColumn();
+                                    auto buffer = Data.mOthers;
+                                    if (ImGui::InputInt("##Others##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                    {
+                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mOthers, Data.mOthers, buffer));
+                                    }
+                                    ImGui::NextColumn();
+
+                                }
+
+                                {
+                                    ImGui::PushFont(ImGuiManager::BoldFont);
+                                    ImGui::Text("Re-entry Others: ");
+                                    ImGui::PopFont();
+                                    ImGui::NextColumn();
+                                    auto buffer = Data.mReOthers;
+                                    if (ImGui::InputInt("##ReOthers##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                    {
+                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mReOthers, Data.mReOthers, buffer));
+                                    }
+                                    ImGui::NextColumn();
+
+                                }
+                                ImGui::Columns(1);
+                                ImGui::Unindent(lineHeight);
+
+                            }
+
+                            auto notesOpen = ImGui::CollapsingHeader("Notes##Counting", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+                            ImGui::Indent(lineHeight);
+                            if (notesOpen)
+                            {
+                                int idx = 1;
+                                for (auto& Entrance : Data.Entrance)
+                                {
+                                    auto entranceOpen = ImGui::CollapsingHeader(("Entrance" + std::to_string(idx) + "##Counting").c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
+                                    if (entranceOpen)
+                                    {
+                                        ImGui::BeginChild(("Entrance" + std::to_string(idx) + "##CountingChild").c_str(), {}, ImGuiChildFlags_Border);
+                                        int idx2 = 0;
+
+                                        if (ImGui::Button(("+##AddFrameSkip##Counting" + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                        {
+                                            Entrance.mFrameSkips.push_back({ "00:00:00" , "00:00:00" });
+                                        }
+
+                                        ImGui::SameLine();
+                                        ImGui::PushFont(ImGuiManager::BoldFont);
+                                        ImGui::Text("Frame Skips");
+                                        ImGui::PopFont();
+
+                                        ImGui::Columns(2);
+                                        if (!Entrance.mFrameSkips.empty())
+                                        {
+                                            ImGui::Text("Start Time");
+                                            ImGui::NextColumn();
+                                            ImGui::Text("End Time");
+                                            ImGui::NextColumn();
+
+                                        }
+
+                                        for (auto& frameSkip : Entrance.mFrameSkips)
+                                        {
+                                            Widget::Time(("##FrameSkipsStart##Counting" + std::to_string(idx2)).c_str(),
+                                                frameSkip.first, lineHeight * 4);
+
+                                            ImGui::NextColumn();
+
+                                            Widget::Time(("##FrameSkipsEnd##Counting" + std::to_string(idx2)).c_str(),
+                                                frameSkip.second, lineHeight * 4);
+
+                                            ImGui::SameLine();
+
+                                            if (ImGui::Button(("-##RemoveFrameSkip##Counting" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                            {
+                                                Entrance.mFrameSkips.erase(Entrance.mFrameSkips.begin() + idx2);
+                                                break;
+                                            }
+                                            ImGui::NextColumn();
+                                            idx2++;
+                                        }
+                                        ImGui::Columns(1);
+
+
+                                        ImGui::Separator();
+                                        idx2 = 0;
+
+                                        if (Entrance.mBlankedVideos.empty())
+                                        {
+                                            if (ImGui::Button(("+##AddBlankVideo##Counting" + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                            {
+                                                Entrance.mBlankedVideos.push_back({ false, "00:00:00" });
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (ImGui::Button(("-##RemoveBlankVideo##Counting" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                            {
+                                                Entrance.mBlankedVideos.clear();
+                                            }
+                                        }
+
+                                        ImGui::SameLine();
+                                        ImGui::PushFont(ImGuiManager::BoldFont);
+                                        ImGui::Text("Blank Videos");
+                                        ImGui::PopFont();
+
+
+                                        if (!Entrance.mBlankedVideos.empty())
+                                        {
+                                            if (Entrance.mBlankedVideos[0].first)
+                                            {
+                                                if (ImGui::Button("Start##CountingBlankedVideos", { lineHeight * 2,0 }))
+                                                {
+                                                    CommandHistory::execute(std::make_unique<ModifyPropertyCommand<bool>>(&Entrance.mBlankedVideos[0].first, Entrance.mBlankedVideos[0].first, false));
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (ImGui::Button("End##CountingBlankedVideos", { lineHeight * 2,0 }))
+                                                {
+                                                    CommandHistory::execute(std::make_unique<ModifyPropertyCommand<bool>>(&Entrance.mBlankedVideos[0].first, Entrance.mBlankedVideos[0].first, true));
+                                                }
+                                            }
+
+                                            ImGui::SameLine();
+                                            Widget::Time(("##BlankVideoTime##Counting" + std::to_string(idx2)).c_str(),
+                                                Entrance.mBlankedVideos[0].second, lineHeight * 4);
+
+                                        }
+
+                                        ImGui::Separator();
+                                        idx2 = 0;
+
+                                        if (ImGui::Button(("+##AddCorruptedTime##Counting" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                        {
+                                            Entrance.mCorruptedVideos.push_back({ "" });
+                                        }
+
+                                        ImGui::SameLine();
+                                        ImGui::PushFont(ImGuiManager::BoldFont);
+                                        ImGui::Text("Corrupted Videos");
+                                        ImGui::PopFont();
+
+                                        if (!Entrance.mCorruptedVideos.empty())
+                                        {
+                                            ImGui::Text("Video Name");
+                                        }
+
+                                        for (auto& corruptedVideo : Entrance.mCorruptedVideos)
+                                        {
+                                            char buffer[16] = {};
+                                            std::memcpy(buffer, corruptedVideo.c_str(), corruptedVideo.size());
+                                            ImGui::SetNextItemWidth(lineHeight * 4);
+                                            if (ImGui::InputText(("##CorruptedName##Counting" + std::to_string(idx2)).c_str(), buffer, 16))
+                                            {
+                                                std::string newText = buffer;
+                                                CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&corruptedVideo, corruptedVideo, newText));
+                                            }
+
+
+                                            ImGui::SameLine();
+                                            if (ImGui::Button(("-##RemoveCorruptedVideo##Counting" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                            {
+                                                Entrance.mCorruptedVideos.erase(Entrance.mCorruptedVideos.begin() + idx2);
+                                                break;
+                                            }
+                                            idx2++;
+                                        }
+
+                                        ImGui::Separator();
+                                        ImGui::PushFont(ImGuiManager::BoldFont);
+                                        ImGui::Text("Additional Notes");
+                                        ImGui::PopFont();
+                                        char buffer[256] = {};
+                                        std::memcpy(buffer, Entrance.mAdditionalNotes.c_str(), Entrance.mAdditionalNotes.size());
+                                        if (ImGui::InputTextMultiline("##NotesCounting", buffer, IM_ARRAYSIZE(buffer), ImVec2(ImGui::GetContentRegionAvail().x, lineHeight * 5)))
+                                        {
+                                            std::string newText = buffer;
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&Entrance.mAdditionalNotes, Entrance.mAdditionalNotes, newText));
+                                        }
+
+                                        ImGui::EndChild();
+                                    }
+                                    idx++;
+                                }
+                            }
+                            ImGui::Unindent(lineHeight);
+                            ImGui::EndTabItem();
+                           
+                        }
+                        if (!hour2Bool)
+                        {
+                            StorePageIT->second.erase(hour);
+                            break;
+                        }
+                        houridx++;
+                    }
+                    ImGui::EndTabBar();
+                }
+            }
+
+            ImGui::EndChild();
+            ImGui::PopStyleVar();
+
+            ImGui::EndTabItem();
+        }
     }
    
 }

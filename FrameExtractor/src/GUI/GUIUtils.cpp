@@ -10,6 +10,7 @@
 
 #include <FrameExtractorPCH.hpp>
 #include <GUI/GUIUtils.hpp>
+#include <Core/Command.hpp>
 #include <imgui.h>
 namespace FrameExtractor
 {
@@ -126,4 +127,14 @@ namespace FrameExtractor
             }
         }
 	}
+    void Widget::InputInt(const char* label, const char* display, int32_t& data)
+    {
+        ImGui::Text("Customer: ");
+        ImGui::SameLine();
+        auto buffer = data;
+        if (ImGui::InputInt(label, &buffer, 1, 100, ImGuiInputTextFlags_CharsDecimal))
+        {
+            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&data, data, buffer));
+        }
+    }
 }

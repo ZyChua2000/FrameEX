@@ -82,7 +82,7 @@ namespace YAML
                        
                     }
                     entranceTypes.mCorruptedVideos = typeMap["FrameDetails"]["CorruptedVideos"].as<std::vector<std::string>>();
-                    entranceTypes.mBlankedVideos = typeMap["FrameDetails"]["BlankedVideos"].as<std::vector<std::string>>();
+                    entranceTypes.mBlankedVideos = typeMap["FrameDetails"]["BlankedVideos"].as<std::vector<std::pair<bool,std::string>>>();
                     const Node& frameSkipsNode = typeMap["FrameDetails"]["FrameSkips"];
                     if (frameSkipsNode.IsSequence()) // Ensure it's a sequence of pairs
                     {
@@ -137,8 +137,16 @@ namespace YAML
                     pairNode.push_back(frameSkip.second);
                     frameSkipsNode.push_back(pairNode);
                 }
+                Node blankNode;
+                for (const auto& blankedVideos : entranceTypes.mBlankedVideos)
+                {
+                    Node pairNode;
+                    pairNode.push_back(blankedVideos.first);
+                    pairNode.push_back(blankedVideos.second);
+                    blankNode.push_back(pairNode);
+                }
                 entranceNode["FrameDetails"]["CorruptedVideos"] = entranceTypes.mCorruptedVideos;
-                entranceNode["FrameDetails"]["BlankedVideos"] = entranceTypes.mBlankedVideos;
+                entranceNode["FrameDetails"]["BlankedVideos"] = blankNode;
                 entranceNode["FrameDetails"]["FrameSkips"] = frameSkipsNode;
 
                 entranceDataNode[std::to_string(entranceIndex)] = entranceNode;
@@ -309,6 +317,7 @@ namespace FrameExtractor
 
     Project::Project()
     {
+        
     }
 
     Project::~Project()

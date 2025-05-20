@@ -80,12 +80,7 @@ namespace FrameExtractor
 
 				for (auto entranceNum = 0; entranceNum < data.Entrance.size(); entranceNum++)
 				{
-					// per entrance data
-					if (CheckEntryEmpty(data.Entrance[entranceNum].mDesc))
-					{
-						continue;
-					}
-
+		
 					// Person details
 					if (data.Entrance.size() > 1)
 						ss << "E" << entranceNum + 1 << ": ";
@@ -102,7 +97,12 @@ namespace FrameExtractor
 
 					for (auto& time : data.Entrance[entranceNum].mBlankedVideos)
 					{
-						ss << "Video is blanked after " << time << ", ";
+						ss << "Video is blanked after " << time.second << ", ";
+					}
+					// per entrance data
+					if (CheckEntryEmpty(data.Entrance[entranceNum].mDesc))
+					{
+						continue;
 					}
 
 					for (auto type = (int)ReCustomer; type <= ReOthers; type++)

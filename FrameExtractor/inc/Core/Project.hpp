@@ -13,6 +13,10 @@
 #define Project_HPP
 #include <filesystem>
 #include <map>
+#include <array>
+#include <vector>
+
+//#include <rttr/variant.h>
 namespace FrameExtractor
 {
 
@@ -48,7 +52,8 @@ namespace FrameExtractor
 		std::array <std::vector<PersonDesc>, EntryType::ReOthers + 1> mDesc;
 		std::vector<std::pair<std::string, std::string>> mFrameSkips; // time to time
 		std::vector<std::string> mCorruptedVideos; // name
-		std::vector<std::string> mBlankedVideos; // time
+		std::vector<std::pair<bool,std::string>> mBlankedVideos; // time
+		std::string mAdditionalNotes;
 	};
 
 	struct CountData // Represents 1 hour
@@ -117,7 +122,8 @@ namespace FrameExtractor
 		std::filesystem::path mAssetDir;
 		std::filesystem::path mExportDir;
 		std::filesystem::path mProjectFilePath;
-		
+		//std::vector<rttr::variant> mDataList;
+
 	};
 }
 
