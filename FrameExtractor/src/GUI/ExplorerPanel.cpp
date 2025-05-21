@@ -99,13 +99,14 @@ namespace FrameExtractor
 			}
 			else if (extension == ".mp4")
 			{
-				if (!mExplorerFileIcons.contains(entry))
+				if (!mCache.contains(entry))
 				{
 					Video video(entry);
 					video.Decode(0);
-					mExplorerFileIcons[entry] = video.GetFrame();
+					mCache[entry].mTexture = video.GetFrame();
+					mCache[entry].mMaxFrames = video.GetMaxFrames();
 				}
-				screenID = static_cast<uint64_t>(mExplorerFileIcons[entry]->GetTextureID());
+				screenID = static_cast<uint64_t>(mCache[entry].mTexture->GetTextureID());
 			}
 			else
 			{
@@ -150,14 +151,15 @@ namespace FrameExtractor
 		ImGui::End();
 	}
 
-	Ref<Texture> ExplorerPanel::GetExplorerFileIcon(std::filesystem::path path)
+	Cache ExplorerPanel::GetCache(std::filesystem::path path)
 	{
-		if (!mExplorerFileIcons.contains(path))
+		if (!mCache.contains(path))
 		{
 			Video video(path);
 			video.Decode(0);
-			mExplorerFileIcons[path] = video.GetFrame();
+			mCache[path].mMaxFrames = video.GetMaxFrames();
+			mCache[path].mTexture = video.GetFrame();
 		}
-		return mExplorerFileIcons[path];
+		return mCache[path];
 	}
 }

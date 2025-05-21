@@ -18,6 +18,13 @@
 #include <Core/Project.hpp>
 namespace FrameExtractor
 {
+
+	struct Cache
+	{
+		Ref<Texture> mTexture;
+		uint32_t mMaxFrames;
+	};
+
 	class ExplorerPanel : public IPanel
 	{
 	public:
@@ -25,14 +32,14 @@ namespace FrameExtractor
 		~ExplorerPanel() override;
 		virtual void OnImGuiRender(float dt) override;
 		virtual const char* GetName() const override { return "File Explorer"; }
-		Ref<Texture> GetExplorerFileIcon(std::filesystem::path);
+		Cache GetCache(std::filesystem::path);
 		inline void SetCurrentPath(std::filesystem::path path) { mCurrentPath = path; }
 	private:
 		std::filesystem::path mCurrentPath;
 		std::filesystem::path mSelectedPath;
 		Ref<Texture> mFileIcon;
 		Ref<Texture> mFolderIcon;
-		std::map<std::filesystem::path, Ref<Texture>> mExplorerFileIcons;
+		std::map<std::filesystem::path, Cache> mCache;
 		Project* mProject;
 	};
 

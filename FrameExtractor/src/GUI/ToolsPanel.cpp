@@ -279,7 +279,7 @@ namespace FrameExtractor
                     if (std::filesystem::exists(spikeDipFile))
                     {
                         ExcelSerialiser serialiser(spikeDipFile);
-                        mProject->mCountingData = serialiser.ImportSpikeDipReport();
+                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::map<Project::StoreCode, std::map<Project::Hour, CountData>>>>(&mProject->mCountingData, mProject->mCountingData, serialiser.ImportSpikeDipReport()));
                     }
                     else
                     {
@@ -346,32 +346,9 @@ namespace FrameExtractor
                                     mCountingPage.mStorePage++;
                                 }
                             }
-                            mCountingData[storeID] = {};
-                            
                         }
+                        CommandHistory::execute(std::make_unique<AddStoreEntry>(&mCountingData, storeID, mEntranceBuffer, mTimeBuffer));
 
-                        if (!mCountingData[storeID].empty())
-                        {
-                            if (mEntranceBuffer > mCountingData[storeID].begin()->second.Entrance.size())
-                            {
-                                for (auto& [time, counter] : mCountingData[storeID])
-                                {
-                                    counter.Entrance.resize(mEntranceBuffer, {});
-                                }
-                            }
-                            else
-                            {
-                                mEntranceBuffer = mCountingData[storeID].begin()->second.Entrance.size();
-                            }
-                        }
-
-                        if (!mCountingData[storeID].contains(mTimeBuffer))
-                        {
-                            mCountingData[storeID][mTimeBuffer] = {};
-                            for (int i = 0; i < mEntranceBuffer; i++)
-                                mCountingData[storeID][mTimeBuffer].Entrance.push_back({});
-                        }
-                      
                         mEntranceBuffer = 1;
                         mTimeBuffer = 0;
                     }
@@ -399,7 +376,7 @@ namespace FrameExtractor
             {
                 if (mCountingPage.mStorePage > 0)
                 {
-                    mCountingPage.mStorePage--;
+                    CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mCountingPage.mStorePage, mCountingPage.mStorePage, mCountingPage.mStorePage - 1));
                 }
            }
             ImGui::SameLine();
@@ -420,7 +397,7 @@ namespace FrameExtractor
                 {
                     if (mCountingPage.mStorePage >= mCountingData.size())
                     {
-                        mCountingPage.mDatePage = mCountingData.size() - 1;
+                        mCountingPage.mStorePage = mCountingData.size() - 1;
                     }
 
                     auto StorePageIT = mCountingData.begin();
@@ -446,7 +423,7 @@ namespace FrameExtractor
                 {
                     bool is_selected = mCountingPage.mStorePage == i;
                     if (ImGui::Selectable(keys[i].c_str(), &is_selected))
-                        mCountingPage.mStorePage = i;
+                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mCountingPage.mStorePage, mCountingPage.mStorePage, i));
 
                     if (is_selected)
                         ImGui::SetItemDefaultFocus();
@@ -503,7 +480,7 @@ namespace FrameExtractor
             if (ImGui::ArrowButton("##CountingPageNext", ImGuiDir_Right))
             {
                 if (mCountingPage.mStorePage < mCountingData.size() - 1)
-                    mCountingPage.mStorePage++;
+                    CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mCountingPage.mStorePage, mCountingPage.mStorePage, mCountingPage.mStorePage + 1));
             }
 
             ImGui::SameLine();
@@ -519,7 +496,9 @@ namespace FrameExtractor
             {
                 auto StorePageIT = mCountingData.begin();
                 std::advance(StorePageIT, mCountingPage.mStorePage);
-
+                auto& StorePageITData = *StorePageIT;
+                auto StoreCodeFromIT = StorePageITData.first;
+                auto& TimeDataFromIT = StorePageITData.second;
        
 
 
@@ -527,7 +506,7 @@ namespace FrameExtractor
                 {
                     if (ImGui::MenuItem("Add New Entrance##CountingStoreSettings"))
                     {
-                        for (auto& [time, data] : StorePageIT->second)
+                        for (auto& [time, data] : mCountingData[StoreCodeFromIT])
                         {
                             data.Entrance.push_back({});
                         }
@@ -562,14 +541,14 @@ namespace FrameExtractor
                             {
                                 if (mTimeBuffer >= 0 && mTimeBuffer < 24)
                                 {
-                                    if (!StorePageIT->second.contains(mTimeBuffer))
+                                    if (!mCountingData[StoreCodeFromIT].contains(mTimeBuffer))
                                     {
-                                        auto entranceNum = StorePageIT->second.begin()->second.Entrance.size();
+                                        auto entranceNum = mCountingData[StoreCodeFromIT].begin()->second.Entrance.size();
 
-                                        StorePageIT->second[mTimeBuffer] = {};
+                                        mCountingData[StoreCodeFromIT][mTimeBuffer] = {};
                                         for (int i = 0; i < entranceNum; i++)
                                         {
-                                            StorePageIT->second[mTimeBuffer].Entrance.push_back({});
+                                            mCountingData[StoreCodeFromIT][mTimeBuffer].Entrance.push_back({});
                                         }
                                     }
                                     mTimeBuffer = 0;
@@ -618,13 +597,18 @@ namespace FrameExtractor
                             ImGui::SameLine();
                             if (ImGui::Button("Yes##RemoveStoreModal", { lineHeight * 2, lineHeight }))
                             {
-                                StorePageIT = mCountingData.erase(StorePageIT);
-                                if (StorePageIT != mCountingData.begin())
+                                CommandHistory::execute(std::make_unique<EraseKeyCommand<std::map<Project::StoreCode,std::map<Project::Hour,CountData>>>>(&mCountingData, mCountingPage.mStorePage));
+                                if (mCountingPage.mStorePage != 0)
                                 {
-                                    std::advance(StorePageIT, -1);
-                                    mCountingPage.mStorePage -= 1;
+                                    mCountingPage.mStorePage--;
                                 }
-									
+                                //CommandHistory::execute(std::make_unique<EraseKeyIteratorCommand<std::map<Project::StoreCode, std::map<Project::Hour, CountData>>>>(&mCountingData, &StorePageIT));
+                               // if (StorePageIT != mCountingData.begin())
+                                {
+                                //    std::advance(StorePageIT, -1);
+                                //    mCountingPage.mStorePage -= 1;
+                                }
+
                                 closePopup = true;
                                 ImGui::CloseCurrentPopup();
                             }
@@ -646,12 +630,15 @@ namespace FrameExtractor
 
                 if (!mCountingData.empty())
                 {
-                    auto& StoreCode = StorePageIT->first;
+                    auto StorePageITPostOp = mCountingData.begin();
+                    std::advance(StorePageITPostOp, mCountingPage.mStorePage);
+
+                    auto StoreCode = StorePageITPostOp->first;
 
                     if (ImGui::BeginTabBar("##CountingTabBar"))
                     {
                         int houridx = 0;
-                        for (auto& [hour, Data] : StorePageIT->second)
+                        for (auto& [hour, Data] : mCountingData[StoreCode])
                         {
                             std::string hourText = "        ";
                             if (hour >= 10)
@@ -664,7 +651,7 @@ namespace FrameExtractor
                             {
                                 mCountingPage.mHourPage = houridx;
 
-                                auto hourIT = StorePageIT->second.begin();
+                                auto hourIT = mCountingData[StoreCode].begin();
                                 std::advance(hourIT, mCountingPage.mHourPage);
                                 auto& Hour = hourIT->first;
                                 auto& Data = hourIT->second;
@@ -806,7 +793,7 @@ namespace FrameExtractor
 
                                             if (ImGui::Button(("-##MinusEntranceCounting" + std::to_string(idx)).c_str(), { lineHeight, 0 }))
                                             {
-                                                Data.Entrance.erase(Data.Entrance.begin() + idx - 1);
+                                                CommandHistory::execute(std::make_unique<VectorEraseCommand<CountingEntrance>>(&Data.Entrance, idx-1));
                                                 break;
                                             }
 
@@ -817,9 +804,81 @@ namespace FrameExtractor
                                             ImGui::BeginChild(("Entrance" + std::to_string(idx) + "##CountingChild").c_str(), {}, ImGuiChildFlags_Border);
                                             int idx2 = 0;
 
+
+                                            for (int entryType = EntryType::ReCustomer; entryType <= EntryType::ReOthers; entryType++)
+                                            {
+                                                int32_t deleteIdx = -1;
+                                                if (ImGui::Button(("+##mTimestamp2##Counting" + EntryTypeToString((EntryType)entryType) + std::to_string(hour) + StoreCode + std::to_string(idx)).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                                {
+                                                    CommandHistory::execute(std::make_unique<PushBackCommand<PersonDesc>>(&mCountingData[StoreCode][hour].Entrance[idx - 1].mDesc[entryType], PersonDesc{}));
+                                                }
+                                                ImGui::SameLine();
+                                                ImGui::Text((EntryTypeToString((EntryType)entryType) + " Descriptions").c_str());
+
+                                                ImGui::Indent(lineHeight);
+                                                for (int32_t entry = 0; entry < mCountingData[StoreCode][hour].Entrance[idx-1].mDesc[entryType].size(); entry++)
+                                                {
+
+                                                    auto& data = mCountingData[StoreCode][hour].Entrance[idx - 1].mDesc[entryType][entry];
+                                                    char DescBuffer[128] = {};
+                                                    char timeStampBuffer[16] = {};
+                                                    std::memcpy(timeStampBuffer, data.timeStamp.c_str(), data.timeStamp.size());
+                                                    std::memcpy(DescBuffer, data.Description.c_str(), 128);
+
+                                                    if (data.IsMale)
+                                                    {
+                                                        if (ImGui::Button(("M####Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(hour) + StoreCode + std::to_string(entry)).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                                        {
+                                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<bool>>(&data.IsMale, data.IsMale, !data.IsMale));
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if (ImGui::Button(("F####Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(hour) + StoreCode + std::to_string(entry)).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                                        {
+                                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<bool>>(&data.IsMale, data.IsMale, !data.IsMale));
+                                                        }
+                                                    }
+                                                    ImGui::SameLine();
+
+                                                    Widget::Time(("##timestamp##Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(hour) + StoreCode + std::to_string(entry)).c_str(), data.timeStamp, 80 * ImGuiManager::styleMultiplier);
+                                                   
+                                                    ImGui::SameLine();
+                                                    {
+                                                        auto lineLength = ImGui::GetContentRegionAvail().x;
+                                                        lineLength -= (lineHeight + ImGui::GetStyle().FramePadding.x * 3);
+                                                        ImGui::SetNextItemWidth(lineLength);
+                                                    }
+
+
+                                                    if (ImGui::InputText(("##Description##Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(hour) + StoreCode + std::to_string(entry)).c_str(), DescBuffer, 128))
+                                                    {
+                                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&data.Description, data.Description, std::string(DescBuffer)));
+
+                                                    }
+                                                    ImGui::SameLine();
+                                                    if (ImGui::Button(("-####Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + StoreCode + std::to_string(hour) + std::to_string(entry)).c_str(), ImVec2{ lineHeight ,lineHeight }))
+                                                    {
+                                                        deleteIdx = entry;
+                                                    }
+
+                                                }
+                                                ImGui::Unindent(lineHeight);
+
+                                                ImGui::Separator();
+                                                if (deleteIdx != -1)
+                                                {
+                                                    CommandHistory::execute(std::make_unique<VectorEraseCommand<PersonDesc>>(&mCountingData[StoreCode][hour].Entrance[idx - 1].mDesc[entryType], deleteIdx));
+                                                }
+
+                                            }
+
+                                            ImGui::NewLine();
+
                                             if (ImGui::Button(("+##AddFrameSkip##Counting" + std::to_string(idx)).c_str(), ImVec2{ lineHeight, 0 }))
                                             {
-                                                Entrance.mFrameSkips.push_back({ "00:00:00" , "00:00:00" });
+
+                                                CommandHistory::execute(std::make_unique<PushBackCommand<std::pair<std::string, std::string>>>(&Entrance.mFrameSkips, std::pair<std::string, std::string>("00:00:00", "00:00:00")));
                                             }
 
                                             ImGui::SameLine();
@@ -852,7 +911,7 @@ namespace FrameExtractor
 
                                                 if (ImGui::Button(("-##RemoveFrameSkip##Counting" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight, 0 }))
                                                 {
-                                                    Entrance.mFrameSkips.erase(Entrance.mFrameSkips.begin() + idx2);
+                                                    CommandHistory::execute(std::make_unique<VectorEraseCommand<std::pair<std::string, std::string>>>(&Entrance.mFrameSkips, idx2));
                                                     break;
                                                 }
                                                 ImGui::NextColumn();
@@ -868,14 +927,14 @@ namespace FrameExtractor
                                             {
                                                 if (ImGui::Button(("+##AddBlankVideo##Counting" + std::to_string(idx)).c_str(), ImVec2{ lineHeight, 0 }))
                                                 {
-                                                    Entrance.mBlankedVideos.push_back({ false, "00:00:00" });
+                                                    CommandHistory::execute(std::make_unique<PushBackCommand<std::pair<bool, std::string>>>(&Entrance.mBlankedVideos, std::pair<bool, std::string>(false, "00:00:00")));
                                                 }
                                             }
                                             else
                                             {
                                                 if (ImGui::Button(("-##RemoveBlankVideo##Counting" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight, 0 }))
                                                 {
-                                                    Entrance.mBlankedVideos.clear();
+                                                    CommandHistory::execute(std::make_unique<VectorEraseCommand<std::pair<bool, std::string>>>(&Entrance.mBlankedVideos, 0));
                                                 }
                                             }
 
@@ -913,7 +972,7 @@ namespace FrameExtractor
 
                                             if (ImGui::Button(("+##AddCorruptedTime##Counting" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight, 0 }))
                                             {
-                                                Entrance.mCorruptedVideos.push_back({ "" });
+                                                CommandHistory::execute(std::make_unique<PushBackCommand<std::string>>(&Entrance.mCorruptedVideos, std::string("")));
                                             }
 
                                             ImGui::SameLine();
@@ -921,17 +980,12 @@ namespace FrameExtractor
                                             ImGui::Text("Corrupted Videos");
                                             ImGui::PopFont();
 
-                                            if (!Entrance.mCorruptedVideos.empty())
-                                            {
-                                                ImGui::Text("Video Name");
-                                            }
-
                                             for (auto& corruptedVideo : Entrance.mCorruptedVideos)
                                             {
                                                 char buffer[16] = {};
                                                 std::memcpy(buffer, corruptedVideo.c_str(), corruptedVideo.size());
                                                 ImGui::SetNextItemWidth(lineHeight * 4);
-                                                if (ImGui::InputText(("##CorruptedName##Counting" + std::to_string(idx2)).c_str(), buffer, 16))
+                                                if (ImGui::InputTextWithHint(("##CorruptedName##Counting" + std::to_string(idx2)).c_str(), "Video Name", buffer, 16))
                                                 {
                                                     std::string newText = buffer;
                                                     CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&corruptedVideo, corruptedVideo, newText));
@@ -941,7 +995,7 @@ namespace FrameExtractor
                                                 ImGui::SameLine();
                                                 if (ImGui::Button(("-##RemoveCorruptedVideo##Counting" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight, 0 }))
                                                 {
-                                                    Entrance.mCorruptedVideos.erase(Entrance.mCorruptedVideos.begin() + idx2);
+                                                    CommandHistory::execute(std::make_unique<VectorEraseCommand<std::string>>(&Entrance.mCorruptedVideos, idx2));
                                                     break;
                                                 }
                                                 idx2++;
@@ -970,19 +1024,46 @@ namespace FrameExtractor
                             }
                             if (!hour2Bool)
                             {
-                                StorePageIT->second.erase(hour);
-                                break;
+                                ImGui::OpenPopup(("Remove Hour##Modal" + std::to_string(hour)).c_str());
+                            }
+                            {
+                                ImVec2 center = ImGui::GetWindowViewport()->Pos;
+                                center.x += ImGui::GetWindowViewport()->Size.x * 0.5f;
+                                center.y += ImGui::GetWindowViewport()->Size.y * 0.5f;
+                                ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+                            }
+                            if (ImGui::BeginPopupModal(("Remove Hour##Modal" + std::to_string(hour)).c_str(), NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+                            {
+                                ImGui::Text("Are you sure you want to remove this hour?");
+
+                                float spacing = ImGui::GetStyle().ItemSpacing.x;
+                                float totalWidth = lineHeight * 4 + spacing;
+                                float windowWidth = ImGui::GetWindowSize().x;
+                                float startX = (windowWidth - totalWidth) * 0.5f;
+                                ImGui::Spacing();
+                                ImGui::SetCursorPosX(startX);
+                                if (ImGui::Button("No##ClearDataModal", { lineHeight * 2, lineHeight }))
+                                {
+                                    ImGui::CloseCurrentPopup();
+                                }
+                                ImGui::SameLine();
+                                if (ImGui::Button("Yes##ClearDataModal", { lineHeight * 2, lineHeight }))
+                                {
+                                    if (mCountingData[StoreCode].size() == 1)
+                                    {
+                                        CommandHistory::execute(std::make_unique<EraseKeyCommand<std::map<Project::StoreCode, std::map<Project::Hour, CountData>>>>(&mCountingData, mCountingPage.mStorePage));
+                                    }
+                                    else
+                                        CommandHistory::execute(std::make_unique<EraseKeyCommand<std::map<Project::Hour,CountData>>>(&mCountingData[StoreCode], houridx));
+                                    ImGui::CloseCurrentPopup();
+                                    ImGui::EndPopup();
+                                    break;
+                                }
+                                ImGui::EndPopup();
                             }
                             houridx++;
                         }
-                        if (StorePageIT->second.empty())
-                        {
-                            StorePageIT = mCountingData.erase(StorePageIT);
-                            if (StorePageIT != mCountingData.begin())
-                            {
-                                std::advance(StorePageIT, -1);
-                            }
-                        }
+                       
                         ImGui::EndTabBar();
                     }
                 }
@@ -1010,7 +1091,7 @@ namespace FrameExtractor
 
             if (open_clear_popup)
             {
-				ImGui::OpenPopup("ClearData##Modal");
+				ImGui::OpenPopup("Clear Data##Modal");
 			}
             {
                 ImVec2 center = ImGui::GetWindowViewport()->Pos;
@@ -1018,7 +1099,7 @@ namespace FrameExtractor
                 center.y += ImGui::GetWindowViewport()->Size.y * 0.5f;
                 ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
             }
-            if (ImGui::BeginPopupModal("ClearData##Modal", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+            if (ImGui::BeginPopupModal("Clear Data##Modal", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
             {
                 ImGui::Text("Are you sure you want to clear the data?");
 
@@ -1035,6 +1116,7 @@ namespace FrameExtractor
                 ImGui::SameLine();
                 if (ImGui::Button("Yes##ClearDataModal", { lineHeight * 2, lineHeight }))
                 {
+                    CommandHistory::execute(std::make_unique<ClearContainerCommand<std::map<Project::StoreCode, std::map<Project::Hour, CountData>>>>(&mCountingData));
                     mCountingData.clear();
                     ImGui::CloseCurrentPopup();
                 }

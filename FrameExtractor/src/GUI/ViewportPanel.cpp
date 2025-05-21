@@ -287,7 +287,7 @@ namespace FrameExtractor
         bool isWindowFocused = ImGui::IsWindowFocused();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + startX);
         if (ImGui::ImageButton("#IconSkipToStart", (ImTextureID)mIcons[SKIP_TO_START_ICON]->GetTextureID(), {buttonSize, buttonSize}) ||
-            (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
+            (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_Home)))
         {
             if (mVideo)
             {
@@ -309,8 +309,8 @@ namespace FrameExtractor
 
         ImGui::SameLine();
       
-        if (ImGui::ImageButton("#IconSlowDown", (ImTextureID)mIcons[SLOW_DOWN_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
-            (isWindowFocused && ctrlHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
+        if (ImGui::ImageButton("#IconSpeedUp", (ImTextureID)mIcons[SLOW_DOWN_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+            (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
             if (mVideo)
                 CommandHistory::execute(std::make_unique<CallFunctionCommand>(std::bind(&ViewportPanel::SlowDown, this), std::bind(&ViewportPanel::SpeedUp, this)));
@@ -329,14 +329,18 @@ namespace FrameExtractor
         ImGui::SameLine();
 
         if (ImGui::ImageButton("#IconBackward", (ImTextureID)mIcons[BACKWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
-            (isWindowFocused && !ctrlHeld && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
+            (isWindowFocused && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
             if(mVideo)
             {
-                int buffer = mFrameNumber - 1;
-                if (buffer < 0)
+                float buffer = mFrameNumber;
+                if (ctrlHeld)
                 {
-                    buffer = 0;
+                    buffer -= 5 * std::clamp(std::fabsf(mSpeedMultiplier), 1.f, 100.f);
+                }
+                else
+                {
+                    buffer -= 1;
                 }
                 CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, buffer, mVideo));
                 mIsPlaying = false;
@@ -384,11 +388,20 @@ namespace FrameExtractor
         ImGui::SameLine();
 
         if (ImGui::ImageButton("#IconForward", (ImTextureID)mIcons[FORWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
-            (isWindowFocused && !ctrlHeld && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
+            (isWindowFocused && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
         {
             if(mVideo)
             {
-                int buffer = mFrameNumber + 1;
+                float buffer = mFrameNumber;
+                if (ctrlHeld) 
+                { 
+                    buffer += 5 * std::clamp(std::fabsf(mSpeedMultiplier), 1.f, 100.f);
+                }
+                else
+                {
+                    buffer += 1;
+                }
+
                 if (buffer > mVideo->GetMaxFrames())
                 {
                     buffer = mVideo->GetMaxFrames();
@@ -406,8 +419,8 @@ namespace FrameExtractor
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton("#IconSpeedUp", (ImTextureID)mIcons[SPEED_UP_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
-            (isWindowFocused && ctrlHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
+        if (ImGui::ImageButton("#IconSlowDown", (ImTextureID)mIcons[SPEED_UP_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+            (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
         {
             if(mVideo)
             {
@@ -429,7 +442,7 @@ namespace FrameExtractor
         ImGui::SameLine();
 
         if (ImGui::ImageButton("#IconSkipToEnd", (ImTextureID)mIcons[SKIP_TO_END_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
-            (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
+            (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_End)))
         {
             if(mVideo)
             {

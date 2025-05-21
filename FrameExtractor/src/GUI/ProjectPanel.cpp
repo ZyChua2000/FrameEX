@@ -90,7 +90,7 @@ namespace FrameExtractor
 
             ImGui::SameLine();
 
-            ImGui::Button(fileName.c_str(), {regionAvail.x - lineHeight - ImGui::GetStyle().FramePadding.y * 2.0f, lineHeight});
+            ImGui::Button((fileName + " [" + std::to_string(ExPanel->GetCache(entry).mMaxFrames) + "]").c_str(), {regionAvail.x - lineHeight - ImGui::GetStyle().FramePadding.y * 2.0f, lineHeight});
             if (ImGui::BeginDragDropSource())
             {
                 ImGui::SetDragDropPayload("ITEM_NAME", filePath.c_str(), filePath.size() + 1);
@@ -106,7 +106,7 @@ namespace FrameExtractor
                 float printedThumbnailSize = (float)128 * ImGuiManager::styleMultiplier;
 
                 ImGui::BeginTooltip();
-                ImGui::Image((ImTextureID)ExPanel->GetExplorerFileIcon(entry)->GetTextureID(), { printedThumbnailSize ,printedThumbnailSize });
+                ImGui::Image((ImTextureID)ExPanel->GetCache(entry).mTexture->GetTextureID(), { printedThumbnailSize ,printedThumbnailSize });
                 ImGui::EndTooltip();
             }
             deletionTrack++;

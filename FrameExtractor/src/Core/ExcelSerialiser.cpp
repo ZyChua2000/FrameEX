@@ -97,7 +97,10 @@ namespace FrameExtractor
 
 					for (auto& time : data.Entrance[entranceNum].mBlankedVideos)
 					{
-						ss << "Video is blanked after " << time.second << ", ";
+						if (time.first) // start
+							ss << "Video starts after " << time.second << ", ";
+						else
+							ss << "Video is blanked after" << time.second << ", ";
 					}
 					// per entrance data
 					if (CheckEntryEmpty(data.Entrance[entranceNum].mDesc))
@@ -120,6 +123,29 @@ namespace FrameExtractor
 							ss << EntryTypeToString((EntryType)type) + " wearing " << personDesc.Description << " at " << personDesc.timeStamp << ", ";
 						}
 					}
+
+					std::string additionalNotes = data.Entrance[entranceNum].mAdditionalNotes;
+					size_t start_pos = 0;
+					while ((start_pos = additionalNotes.find("\r\n", start_pos)) != std::string::npos) {
+						additionalNotes.replace(start_pos, 2, " ");
+						// No need to increment by 2 since we replaced it with 1 character
+						start_pos += 1;
+					}
+
+					// Then replace remaining lone '\n' or '\r'
+					start_pos = 0;
+					while ((start_pos = additionalNotes.find("\n", start_pos)) != std::string::npos) {
+						additionalNotes.replace(start_pos, 1, " ");
+						start_pos += 1;
+					}
+
+					start_pos = 0;
+					while ((start_pos = additionalNotes.find("\r", start_pos)) != std::string::npos) {
+						additionalNotes.replace(start_pos, 1, " ");
+						start_pos += 1;
+					}
+
+					ss << additionalNotes;
 				}
 				wks.cell(Count, 11).value() = ss.str();
 

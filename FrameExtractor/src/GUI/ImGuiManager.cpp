@@ -286,18 +286,64 @@ namespace FrameExtractor
 			if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
 				window_flags |= ImGuiWindowFlags_NoBackground;
 
-			static bool open_preferences_popup = false;
-			static bool open_error_popup = false;
+			bool open_preferences_popup = false;
+			bool open_error_popup = false;
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 			ImGui::Begin("DockSpace", &p_open, window_flags);
 			float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 			
+			if ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_N)))
+			{
+				auto projectFile = SaveFileDialog("Project Name");
+				if (std::filesystem::exists(projectFile.parent_path()))
+				{
+					mProject.CreateProject(projectFile.filename().string(), projectFile.parent_path());
+					mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
+					APP_CORE_INFO(("Created New Project " + projectFile.filename().string()).c_str());
+				}
+			}
+			if ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_S)))
+			{
+				if (!mProject.IsProjectLoaded())
+				{
+					open_error_popup = true;
+				}
+				else
+				{
+					mProject.SaveProject();
+				}
+
+			}
+			if ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_O)))
+			{
+				auto projectFile = OpenFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
+				if (std::filesystem::exists(projectFile))
+				{
+					mProject.LoadProject(projectFile);
+					mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
+					mProjectPanel->OnLoad();
+					APP_CORE_INFO(("Opened Project " + projectFile.filename().string()).c_str());
+				}
+				else
+				{
+					APP_CORE_ERROR("Spike Dip file does not exist!");
+				}
+			}
+			if ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_P)))
+			{
+				open_preferences_popup = true;
+
+			}
+			if ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_Q)))
+			{
+				open_quit_popup = true;
+			}
 			if (ImGui::BeginMenuBar())
 			{
 				if (ImGui::BeginMenu("File"))
 				{
-					if (ImGui::MenuItem("  Open Project...")) {
+					if (ImGui::MenuItem("  Open Project...", "(CTRL + O)")) {
 						auto projectFile = OpenFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
 						if (std::filesystem::exists(projectFile))
 						{
@@ -312,7 +358,7 @@ namespace FrameExtractor
 						}
 					}
 
-					if (ImGui::MenuItem("  Save Project..."))
+					if (ImGui::MenuItem("  Save Project...", "(CTRL + S)"))
 					{
 						if (!mProject.IsProjectLoaded())
 						{
@@ -324,7 +370,7 @@ namespace FrameExtractor
 						}
 					}
 
-					if (ImGui::MenuItem("  New Project..."))
+					if (ImGui::MenuItem("  New Project...", "(CTRL + N)"))
 					{
 						auto projectFile = SaveFileDialog("Project Name");
 						if (std::filesystem::exists(projectFile.parent_path()))
@@ -335,12 +381,12 @@ namespace FrameExtractor
 						}
 					}
 
-					if (ImGui::MenuItem("  Preferences...##MainMenuPreference"))
+					if (ImGui::MenuItem("  Preferences...##MainMenuPreference", "(CTRL + P)"))
 					{
 						open_preferences_popup = true;
 					}
 
-					if (ImGui::MenuItem("  Quit..."))
+					if (ImGui::MenuItem("  Quit...", "(CTRL + Q)"))
 					{
 						open_quit_popup = true;
 					}

@@ -12,9 +12,26 @@
 #define COMMAND_HPP
 #include <memory>
 #include <stack>
+#include <type_traits>
+#include <utility> // for std::declval
+#include <vector>
+#include <map>
 #include <Graphics/Video.hpp>
+#include <Core/Project.hpp>
+#include <Core/ExcelSerialiser.hpp>
 namespace FrameExtractor
 {
+
+	template<typename, typename = std::void_t<>>
+	struct has_clear : std::false_type {};
+
+	template<typename T>
+	struct has_clear<T, std::void_t<decltype(std::declval<T&>().clear())>> : std::true_type {};
+
+	template<typename T>
+	inline constexpr bool has_clear_v = has_clear<T>::value;
+
+
 
 	class ICommand
 	{
@@ -120,6 +137,196 @@ namespace FrameExtractor
 			funcDe_Execute();
 		}
 	};
+
+	template <typename Map>
+	class EraseKeyCommand : public ICommand
+	{
+	private:
+		Map* originalData;
+		Map duplicateData;
+		int distance;
+
+		// Static assertion to ensure Map is a std::map-like container
+		static_assert(std::is_same<typename Map::key_type, typename Map::key_type>::value,
+			"Map must be a std::map or similar container with valid key_type");
+	public:
+		EraseKeyCommand(Map* OD, int dist)
+			: originalData(OD), duplicateData(*OD), distance(dist) {
+		}
+
+		void execute() override {
+			
+			auto IT = originalData->begin();
+			std::advance(IT, distance);
+			originalData->erase(IT);
+		}
+
+		void undo() override {
+			*originalData = duplicateData;
+		}
+	};
+
+	template <typename Key, typename Val>
+	class AddKeyCommand : public ICommand
+	{
+	private:
+		std::map<Key,Val>* originalData;
+		Key newKey;
+		Val value;
+
+	public:
+		AddKeyCommand(std::map<Key, Val>* OD, Key key, Val val)
+			: originalData(OD), newKey(key), value(val) {
+		}
+
+		void execute() override {
+			(*originalData)[newKey] = value;
+		}
+
+		void undo() override {
+			originalData->erase(newKey);
+		}
+	};
+
+	template <typename ValType>
+	class PushBackCommand : public ICommand
+	{
+	private:
+		std::vector<ValType>* original;
+		ValType val;
+
+	public:
+		PushBackCommand(std::vector<ValType>* OD, ValType data)
+			: original(OD), val(data) {
+		}
+
+		void execute() override {
+
+			original->push_back(val);
+		}
+
+		void undo() override {
+			original->pop_back();
+		}
+	};
+
+	template <typename ValType>
+	class VectorEraseCommand : public ICommand
+	{
+	private:
+		std::vector<ValType>* original;
+		int distance;
+		ValType val;
+
+	public:
+		VectorEraseCommand(std::vector<ValType>* OD, int data)
+			: original(OD), distance(data) {
+			val = (*original)[distance];
+		}
+
+		void execute() override {
+
+			original->erase(original->begin() + distance);
+		}
+
+		void undo() override {
+			original->insert(original->begin() + distance, val);
+		}
+	};
+
+	template <typename Container>
+	class ClearContainerCommand : public ICommand
+	{
+	private:
+		Container* container;
+		Container oldData;
+
+		static_assert(has_clear_v<Container>, "ClearContainerCommand requires Container to have a clear() method");
+
+	public:
+		ClearContainerCommand(Container* ogContainer) : container(ogContainer), oldData(*ogContainer) {}
+
+		void execute() override
+		{
+			container->clear();
+		}
+
+		void undo() override
+		{
+			*container = oldData;
+		}
+
+	};
+
+	class AddStoreEntry : public ICommand
+	{
+	private:
+		std::map<Project::StoreCode, std::map<Project::Hour, CountData>>* mOriginalData;
+		Project::StoreCode newKey;
+		int EntranceBuffer;
+		int TimeBuffer;
+
+		// derived
+		int oldEntrances;
+		bool hadOld = false;
+	public:
+		AddStoreEntry(std::map<Project::StoreCode, std::map<Project::Hour, CountData>>* countData, Project::StoreCode key, int ent, int time) : mOriginalData(countData), newKey(key), EntranceBuffer(ent), TimeBuffer(time)
+		{
+
+		}
+		void execute() override {
+			if (!mOriginalData->contains(newKey))
+			{
+				(*mOriginalData)[newKey] = {};
+				hadOld = true;
+			}
+
+			if (!(*mOriginalData)[newKey].empty())
+			{
+				oldEntrances = (*mOriginalData)[newKey].begin()->second.Entrance.size();
+				if (EntranceBuffer > oldEntrances)
+				{
+					for (auto& [time, counter] : (*mOriginalData)[newKey])
+					{
+						counter.Entrance.resize(EntranceBuffer, {});
+					}
+				}
+				else
+				{
+					EntranceBuffer = (*mOriginalData)[newKey].begin()->second.Entrance.size();
+				}
+			}
+
+			if (!(*mOriginalData)[newKey].contains(TimeBuffer))
+			{
+				(*mOriginalData)[newKey][TimeBuffer] = {};
+				for (int i = 0; i < EntranceBuffer; i++)
+					(*mOriginalData)[newKey][TimeBuffer].Entrance.push_back({});
+			}
+
+		}
+
+		void undo() override
+		{
+			(*mOriginalData)[newKey].erase(TimeBuffer);
+			if (hadOld)
+			{
+				mOriginalData->erase(newKey);
+			}
+			else if (!(*mOriginalData)[newKey].empty())
+			{
+				if (EntranceBuffer > oldEntrances)
+				{
+					for (auto& [time, counter] : (*mOriginalData)[newKey])
+					{
+						counter.Entrance.resize(oldEntrances, {});
+					}
+				}
+			}
+		}
+
+	};
+
 }
 
 

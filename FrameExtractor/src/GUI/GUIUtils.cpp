@@ -65,7 +65,7 @@ namespace FrameExtractor
         {
             if (Format::isValidFormat(buffer))
             {
-                inText = buffer;
+                CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&inText, inText, std::string(buffer)));
             }
             else
             {
@@ -96,7 +96,7 @@ namespace FrameExtractor
                             << std::setfill('0') << std::setw(2) << mid2 << ":"
                             << std::setfill('0') << std::setw(2) << last2Digits;
 
-                        inText = ossTime.str();
+                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&inText, inText, ossTime.str()));
                     }
                     else
                     {
@@ -121,7 +121,7 @@ namespace FrameExtractor
                             << std::setfill('0') << std::setw(2) << mid2 << ":"
                             << std::setfill('0') << std::setw(2) << last2Digits;
 
-                        inText = ossTime.str();
+                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&inText, inText, ossTime.str()));
                     }
                 }
             }
