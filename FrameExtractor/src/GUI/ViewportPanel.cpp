@@ -15,6 +15,7 @@
 #include <Graphics/Video.hpp>
 namespace FrameExtractor
 {
+    static long long timer = 0;
     ViewportPanel::ViewportPanel(const std::string& name, ImVec2& size, ImVec2& pos) : 
         mName(name),
 		mViewportSize(size),
@@ -93,40 +94,53 @@ namespace FrameExtractor
         //mFrameNumber = (int)(DTTrack * mVideo->GetFPS());
         
         ImGui::PushFont(ImGuiManager::BoldFont);
-        ImGui::SetNextItemWidth(ImGui::CalcTextSize(std::to_string(mFrameNumber).c_str()).x);
         //ImGui::PushStyleVar(ImGuiStyleVar_)
         ImGui::PushStyleColor(ImGuiCol_FrameBg, { 0.f, 0.f, 0.f, 0.f });
         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, { 0.f, 0.f, 0.f, 0.f });
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, { 0.f, 0.f, 0.f, 0.f });
         if (mVideo)
         {
-            if (ImGui::DragInt("##FrameNumberDisplay", &mFrameNumber, 1.0f, 0, mVideo->GetMaxFrames(), ""))
+
+            float lineHeight = (ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f);
+
+            ImVec2 widgetSize(ImGui::CalcTextSize(std::to_string(mFrameNumber).c_str()).x, lineHeight); // Size of the widget
+            ImVec2 p = ImGui::GetCursorScreenPos();            
+            ImGui::SetNextItemAllowOverlap();
+            // We make a "dummy" item that doesn't interact but allows hover detection
+            ImGui::InvisibleButton("##frameNumber_hover_check", widgetSize); // Invisible button (no interaction)
+
+            // Check if the mouse is hovering over the dummy area
+            bool isHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenOverlapped | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+
+            if (isHovered)
             {
-                mVideo->Decode(mFrameNumber);
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(82, 168, 255, 255)); // Change text color on hover
+            }
+            ImGui::SetCursorScreenPos(p);
+
+            ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, { 0.f,0.f });
+            ImGui::SetNextItemWidth(ImGui::CalcTextSize("XXXXXX").x);
+            if (ImGui::DragInt("##FrameNumberDisplay", &mFrameNumber, 1.0f, 0, mVideo->GetMaxFrames()-1, "%d"))
+            {
+                mVideo->Decode((uint32_t)mFrameNumber);
                 mIsPlaying = false;
             }
+            ImGui::PopStyleVar();
+
+            if (isHovered)
+            {
+                ImGui::PopStyleColor();
+            }
+            
         }
         else
         {
             int buffertmp = 0;
-            ImGui::DragInt("##FrameNumberDisplay", &buffertmp, 1.0f, 0, 0, "", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_NoInput);
+            ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, { 0.f,0.f });
+            ImGui::DragInt("##FrameNumberDisplay", &buffertmp, 1.0f, 0, 0, "%d", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_NoInput);
+            ImGui::PopStyleVar();
         }
-        ImVec2 itemPos = ImGui::GetItemRectMin(); // Bottom-left position of the item
-        ImVec2 itemSize = ImGui::GetItemRectSize(); // Size of the item
 
-        // Calculate the position to draw the text (adjust the offset as needed)
-        ImVec2 textPos = ImVec2(itemPos.x, itemPos.y);
-
-        // Draw custom text on top of the widget using ImDrawList
-        if (ImGui::IsItemHovered())
-        {
-            // Change text color on hover
-            drawList->AddText(textPos, IM_COL32(82, 168, 255, 255), std::to_string(mFrameNumber).c_str());
-        }
-        else
-        {
-            drawList->AddText(textPos, IM_COL32(45, 139, 235, 255), std::to_string(mFrameNumber).c_str());
-        }
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
@@ -210,23 +224,28 @@ namespace FrameExtractor
         ImGui::SetNextItemWidth(contentRegion.x);
         if(mVideo)
         {
-            if (ImGui::SliderInt("##FrameNumber", &mFrameNumber, 0, mVideo->GetMaxFrames(), ""))
+            if (ImGui::SliderInt("##FrameNumber", &mFrameNumber, 0, mVideo->GetMaxFrames()-1, ""))
             {
                 if (!initialIn)
                 {
                     wasPlaying = mIsPlaying;
                 }
                 initialIn = true;
-                mVideo->Decode(mFrameNumber);
+                mVideo->Decode((uint32_t)mFrameNumber);
                 mIsPlaying = false;
             }
             else
             {
                 if (mIsPlaying)
                 {
+                    // measure time here
+                    auto currentTime = std::chrono::high_resolution_clock::now();
                     if (mFrameNumber < mVideo->GetMaxFrames())
                     {
-                        mVideo->Decode(mFrameNumber);
+                        if (mSpeedMultiplier < 50 && mSpeedMultiplier > 0)
+                            mVideo->DecodeTime(dt, mSpeedMultiplier);
+                        else
+                            mVideo->Decode(mFrameNumber);
                         DTTrack += dt * mSpeedMultiplier;
                         mFrameNumber = (int)(DTTrack * mVideo->GetFPS());
                         if (mFrameNumber >= mVideo->GetMaxFrames())
@@ -238,7 +257,11 @@ namespace FrameExtractor
                             mFrameNumber = 0;
                         }
                     }
+                    auto endTime = std::chrono::high_resolution_clock::now();
+                    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - currentTime).count();
+                    timer += elapsedTime;
                 }
+              
             }
         }
         else
@@ -641,7 +664,7 @@ namespace FrameExtractor
         if (mVideo)
             delete mVideo;
         mVideo = new Video(path);
-        mVideo->Decode();
+        mVideo->DecodeTime(1.0f/60, mSpeedMultiplier);
         DTTrack = 0.f;
         mFrameNumber = 0;
     }

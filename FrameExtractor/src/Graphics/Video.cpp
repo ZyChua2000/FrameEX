@@ -122,25 +122,47 @@ namespace FrameExtractor
 	{
 		return mTexture;
 	}
-	void Video::Decode()
+	void Video::DecodeTime(float dt, float speedFactor)
 	{
-		time_per_frame = 1.0 / mFPS;
-		double currentTime = glfwGetTime(); // or your engine's time function
-		if ((currentTime - last_frame_time) >= time_per_frame) {
-			while (av_read_frame(formatContext, packet) >= 0) {
-				if (packet->stream_index == videoStream->index) {
+		time_per_frame = 1.0f / mFPS;  // Standard time per frame based on FPS
+
+		// Adjust the time per frame based on the speed factor (this reduces the time interval between frames)
+		time_per_frame /= speedFactor; // If speedFactor = 2, then time_per_frame is halved, i.e., 2x speed
+
+		// Increment last frame time by dt (with speed factor applied)
+		last_frame_time += dt;
+
+		// Skip frames and only process frames when enough time has passed
+		while (last_frame_time >= time_per_frame)
+		{
+			// Read frames from the stream
+			while (av_read_frame(formatContext, packet) >= 0)
+			{
+				if (packet->stream_index == videoStream->index)
+				{
 					avcodec_send_packet(codecContext, packet);
-					if (avcodec_receive_frame(codecContext, frame) == 0) {
+
+					// Process only the first frame (skip subsequent frames within the same time slot)
+					if (avcodec_receive_frame(codecContext, frame) == 0)
+					{
+						// Convert frame to the desired format
 						sws_scale(swsContext, frame->data, frame->linesize, 0, mHeight, RGBframe->data, RGBframe->linesize);
-						last_frame_time = currentTime;
+
+						// Update the texture with the new frame data
 						mTexture->Update(RGBframe->data[0]);
+
+						// Break to stop after processing just one frame (to skip others)
 						break;
 					}
 				}
 				av_packet_unref(packet);
 			}
+
+			// Reduce last_frame_time by time_per_frame for the next frame's calculation
+			last_frame_time -= time_per_frame;
 		}
 	}
+
 	bool Video::Decode(uint32_t frameIndex)
 	{
 		int fps = av_q2d(formatContext->streams[videoStream->index]->r_frame_rate);

@@ -29,7 +29,7 @@ namespace FrameExtractor
 		Video(const std::filesystem::path& path);
 		~Video();
 		Ref<Texture> GetFrame();
-		void Decode();
+		void DecodeTime(float dt, float speedFactor);
 		bool Decode(uint32_t frameIndex);
 
 		inline uint8_t GetFPS() const { return mFPS; }
