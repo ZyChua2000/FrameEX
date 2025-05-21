@@ -50,6 +50,7 @@ namespace FrameExtractor
 		bool errorCodeBool = false;
 
 		void CountingTab();
+		void AggregateTab();
 
 	};
 

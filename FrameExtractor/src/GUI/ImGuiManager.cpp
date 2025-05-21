@@ -292,7 +292,7 @@ namespace FrameExtractor
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 			ImGui::Begin("DockSpace", &p_open, window_flags);
 			float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
-
+			
 			if (ImGui::BeginMenuBar())
 			{
 				if (ImGui::BeginMenu("File"))
@@ -362,18 +362,18 @@ namespace FrameExtractor
 
 		
 
-			ImGuiIO& io = ImGui::GetIO();
-			ImVec2 center = { io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f };
-
+			
 			if (open_quit_popup)
 			{
 				ImGui::OpenPopup("Quit##Modal");
 				open_quit_popup = false;
 			}
 
-
+			ImVec2 center = ImGui::GetWindowPos();
+			center.x += ImGui::GetWindowSize().x * 0.5f;
+			center.y += ImGui::GetWindowSize().y * 0.5f;
 			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-			ImGui::SetNextWindowSize({ lineHeight * 9 ,lineHeight * 4 }, ImGuiCond_Appearing);
+			ImGui::SetNextWindowSize({ 0 ,lineHeight * 4}, ImGuiCond_Appearing);
 			if (ImGui::BeginPopupModal("Quit##Modal", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 			{
 				ImGui::Text("Are you sure you want to quit?");
@@ -406,14 +406,10 @@ namespace FrameExtractor
 
 			
 			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-			ImGui::SetNextWindowSize({ 900 * styleMultiplier , 600 * styleMultiplier }, ImGuiCond_Appearing);
-			if (ImGui::BeginPopupModal("No Project Loaded##Modal", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+			bool projectLoadedModal = true;
+			if (ImGui::BeginPopupModal("No Project Loaded##Modal", &projectLoadedModal, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 			{
 				ImGui::Text("No Project Loaded!\nPlease load a project to save.");
-				if (ImGui::Button("X##NoProjectLoadedModal", { lineHeight, lineHeight }))
-				{
-					ImGui::CloseCurrentPopup();
-				}
 				ImGui::EndPopup();
 			}
 
@@ -422,18 +418,12 @@ namespace FrameExtractor
 				ImGui::OpenPopup("Preferences##Menu");
 				open_preferences_popup = false;
 			}
-			
+			bool preferencesModal = true;
 			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 			ImGui::SetNextWindowSize({ 900 * styleMultiplier , 600 * styleMultiplier }, ImGuiCond_Appearing);
-			if (ImGui::BeginPopupModal("Preferences##Menu", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+			if (ImGui::BeginPopupModal("Preferences##Menu", &preferencesModal, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 			{
 				dt = 0;
-
-				if (ImGui::Button("X##PreferencesClosing", { lineHeight, lineHeight }))
-				{
-					ImGui::CloseCurrentPopup();
-				}
-				ImGui::Separator();
 				if (ImGui::BeginTabBar("PreferencesTabs"))
 				{
 					if (ImGui::BeginTabItem("General"))
@@ -551,8 +541,8 @@ namespace FrameExtractor
 
 			if (opt_fullscreen)
 				ImGui::PopStyleVar(2);
-
-			if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+			
+			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
 			{
 				ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
 				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
@@ -572,7 +562,6 @@ namespace FrameExtractor
 		{
 			throw ("Exception!");
 		}
-		
 	}
 
 	void ImGuiManager::Render()

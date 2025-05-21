@@ -40,6 +40,12 @@
     <Filter Include="lib\OpenXLSX\inc\headers">
       <UniqueIdentifier>{40E8DB2D-2C0D-2BAE-5558-103E41DC29CC}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\OpenXLSX\sources">
+      <UniqueIdentifier>{FF4589DE-EBD4-12A8-94F3-26A38061234E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\OpenXLSX\sources\utilities">
+      <UniqueIdentifier>{4A55DED0-367B-A837-1FC1-2D030B86CD03}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib\glm">
       <UniqueIdentifier>{8BD44779-F7B3-C614-00CC-51EB6C2A2D76}</UniqueIdentifier>
     </Filter>
@@ -296,6 +302,9 @@
     </ClInclude>
     <ClInclude Include="lib\OpenXLSX\inc\headers\XLZipArchive.hpp">
       <Filter>lib\OpenXLSX\inc\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OpenXLSX\sources\utilities\XLUtilities.hpp">
+      <Filter>lib\OpenXLSX\sources\utilities</Filter>
     </ClInclude>
     <ClInclude Include="lib\glm\glm\common.hpp">
       <Filter>lib\glm\glm</Filter>

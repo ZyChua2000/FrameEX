@@ -26,15 +26,12 @@ workspace "FrameEX"
 
 	LibraryDir = {}
 	LibraryDir["FFMPEG"] = "lib/ffmpeg/lib"
-	LibraryDir["OpenXLSX"] = "lib/OpenXLSX/lib"
 
 	Library = {}
 	Library["AVUtil"] = "%{LibraryDir.FFMPEG}/avutil.lib"
 	Library["AVCodec"] = "%{LibraryDir.FFMPEG}/avcodec.lib"
 	Library["AVFormat"] = "%{LibraryDir.FFMPEG}/avformat.lib"
 	Library["SWScale"] = "%{LibraryDir.FFMPEG}/swscale.lib"
-	Library["OpenXLSX_Release"] = "%{LibraryDir.OpenXLSX}/OpenXLSX.lib"
-	Library["OpenXLSX_Debug"] = "%{LibraryDir.OpenXLSX}/OpenXLSXd.lib"
 
 	group "Dependencies"
 		include "FrameExtractor/lib/GLAD/premake5.lua"
@@ -42,6 +39,7 @@ workspace "FrameEX"
 		include "FrameExtractor/lib/GLFW/premake5.lua"
 		include "FrameExtractor/lib/IMGUI/premake5.lua"
 		include "FrameExtractor/lib/rttr/premake5.lua"
+		include "FrameExtractor/lib/OpenXLSX/premake5.lua"
 
 	group ""
 
@@ -93,7 +91,8 @@ workspace "FrameEX"
 			"YAML",
 			"GLFW",
 			"ImGui",
-			"RTTR"
+			"RTTR",
+			"OpenXLSX"
 		}
 
 
@@ -129,26 +128,13 @@ workspace "FrameEX"
 			defines "_DEB"
 			symbols "On"
 			runtime "Debug"
-			links
-			{
-				"%{Library.OpenXLSX_Debug}",
-			}
-
 
 		filter "configurations:Release"
 			defines "_REL"
 			optimize "On"
 			runtime "Release"
-			links
-			{
-				"%{Library.OpenXLSX_Release}",
-			}
 
 		filter "configurations:Distribution"
 			defines "_DIST"
 			optimize "On"
 			runtime "Release"
-			links
-			{
-				"%{Library.OpenXLSX_Release}",
-			}
