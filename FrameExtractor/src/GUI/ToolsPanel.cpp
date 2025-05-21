@@ -1192,7 +1192,7 @@ namespace FrameExtractor
                 else
                 {
                     auto text = ExportAggregateStoreDataAsString();
-                    APP_CORE_INFO(text.c_str());
+                    APP_CORE_INFO("{}", text.c_str());
                     CopyToClipboard(text);
                 }
 

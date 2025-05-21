@@ -149,9 +149,9 @@ namespace FrameExtractor
        
         if (mVideo)
         {
-            ImGui::SetNextItemWidth(ImGui::CalcTextSize(std::to_string(mVideo->GetMaxFrames()).c_str()).x);
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(std::to_string(mVideo->GetMaxFrames()).c_str()).x));
-            ImGui::Text("%d", mVideo->GetMaxFrames());
+            ImGui::SetNextItemWidth(ImGui::CalcTextSize(std::to_string(mVideo->GetMaxFrames()).c_str() - 1).x);
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(std::to_string(mVideo->GetMaxFrames() - 1).c_str()).x));
+            ImGui::Text("%d", mVideo->GetMaxFrames() - 1);
         }
         else
         {

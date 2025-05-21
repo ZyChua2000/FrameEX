@@ -14,6 +14,9 @@
 #include <string>
 #include <imgui.h>
 #include <GUI/IPanel.hpp>
+#include <spdlog/spdlog.h>
+#include <chrono>
+
 namespace FrameExtractor
 {
 	class ConsolePanel : public IPanel
@@ -23,11 +26,94 @@ namespace FrameExtractor
 		~ConsolePanel() override;
 		void ClearLog();
 
-		void AddLog(const char* fmt, ...) IM_FMTARGS(2);
-		void AddLogInfo(const char* fmt, ...) IM_FMTARGS(2);
-		void AddLogTrace(const char* fmt, ...) IM_FMTARGS(2);
-		void AddLogWarn(const char* fmt, ...) IM_FMTARGS(2);
-		void AddLogError(const char* fmt, ...) IM_FMTARGS(2);
+		template<typename... Args>
+		std::string Log(spdlog::format_string_t<Args...> fmt, Args &&...args)
+		{
+			std::string formattedMessage = fmt::format(fmt, std::forward<Args>(args)...);
+			auto now = std::chrono::system_clock::now();
+			std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+			std::tm* tmPtr = std::localtime(&currentTime);
+			char timestampBuffer[11];
+			std::strftime(timestampBuffer, sizeof(timestampBuffer), "[%H:%M:%S]", tmPtr);
+			return std::string(timestampBuffer) + " " + formattedMessage;
+		}
+
+		template <typename T>
+		std::string Log(const T& value)
+		{
+			auto now = std::chrono::system_clock::now();
+			std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+			std::tm* tmPtr = std::localtime(&currentTime);
+			char timestampBuffer[11];
+			std::strftime(timestampBuffer, sizeof(timestampBuffer), "[%H:%M:%S]", tmPtr);
+			return std::string(timestampBuffer) + " " + fmt::to_string(value);
+		}
+
+		template<typename... Args>
+		void AddLog(spdlog::format_string_t<Args...> fmt, Args &&...args)
+		{
+			
+			Items.push_back({ Strdup(Log(fmt, std::forward<Args>(args)...).c_str()), 0});
+		}
+
+		template <typename T>
+		void AddLog(const T& value)
+		{
+			Items.push_back({ Strdup(Log(value).c_str()), 0});
+		}
+
+		template<typename... Args>
+		void AddLogInfo(spdlog::format_string_t<Args...> fmt, Args &&...args)
+		{
+			Items.push_back({ Strdup(Log(fmt, std::forward<Args>(args)...).c_str()), 1 });
+
+		}
+
+		template <typename T>
+		void AddLogInfo(const T& value)
+		{
+			Items.push_back({ Strdup(Log(value).c_str()), 1 });
+		}
+
+
+		template<typename... Args>
+		void AddLogTrace(spdlog::format_string_t<Args...> fmt, Args &&...args)
+		{
+			Items.push_back({ Strdup(Log(fmt, std::forward<Args>(args)...).c_str()), 2 });
+
+		}
+
+		template <typename T>
+		void AddLogTrace(const T& value)
+		{
+			Items.push_back({ Strdup(Log(value).c_str()), 2 });
+		}
+
+		template<typename... Args>
+		void AddLogWarn(spdlog::format_string_t<Args...> fmt, Args &&...args)
+		{
+			Items.push_back({ Strdup(Log(fmt, std::forward<Args>(args)...).c_str()), 3 });
+
+		}
+
+		template <typename T>
+		void AddLogWarn(const T& value)
+		{
+			Items.push_back({ Strdup(Log(value).c_str()), 3 });
+		}
+
+		template<typename... Args>
+		void AddLogError(spdlog::format_string_t<Args...> fmt, Args &&...args)
+		{
+			Items.push_back({ Strdup(Log(fmt, std::forward<Args>(args)...).c_str()), 4 });
+		}
+
+		template <typename T>
+		void AddLogError(const T& value)
+		{
+			Items.push_back({ Strdup(Log(value).c_str()), 4 });
+		}
+
 
 		void ExecCommand(const char* command_line);
 

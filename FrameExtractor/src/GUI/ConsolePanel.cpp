@@ -10,7 +10,7 @@
  /******************************************************************************/
 #include "FrameExtractorPCH.hpp"
 #include "GUI/ConsolePanel.hpp"
-
+#include <format>
 namespace FrameExtractor
 {
 	ConsolePanel::ConsolePanel()
@@ -287,105 +287,5 @@ namespace FrameExtractor
         ImGui::End();
     }
  
-    void ConsolePanel::AddLog(const char* fmt, ...) IM_FMTARGS(2)
-    {
-        // FIXME-OPT
-        char buf[1024];
-        va_list args;
-        va_start(args, fmt);
-        vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
-        buf[IM_ARRAYSIZE(buf) - 1] = 0;
-        va_end(args);
-        auto now = std::chrono::system_clock::now();
-        std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-        std::tm* tmPtr = std::localtime(&currentTime);
-        char timestampBuffer[11]; // hh:mm:ss requires 8 chars + null-terminator
-        std::strftime(timestampBuffer, sizeof(timestampBuffer), "[%H:%M:%S]", tmPtr);
-        char* fullLog = new char[std::strlen(timestampBuffer) + std::strlen(buf) + 2]; // 1 for space, 1 for null terminator
-        std::sprintf(fullLog, "%s %s", timestampBuffer, buf); // Format: hh:mm:ss message
-        Items.push_back({ Strdup(fullLog), 0 });
-        delete[] fullLog;
-    }
 
-    void ConsolePanel::AddLogInfo(const char* fmt, ...) IM_FMTARGS(2)
-    {
-        // FIXME-OPT
-        char buf[1024];
-        va_list args;
-        va_start(args, fmt);
-        vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
-        buf[IM_ARRAYSIZE(buf) - 1] = 0;
-        va_end(args);
-        auto now = std::chrono::system_clock::now();
-        std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-        std::tm* tmPtr = std::localtime(&currentTime);
-        char timestampBuffer[11]; // hh:mm:ss requires 8 chars + null-terminator
-        std::strftime(timestampBuffer, sizeof(timestampBuffer), "[%H:%M:%S]", tmPtr);
-        char* fullLog = new char[std::strlen(timestampBuffer) + std::strlen(buf) + 2]; // 1 for space, 1 for null terminator
-        std::sprintf(fullLog, "%s %s", timestampBuffer, buf); // Format: hh:mm:ss message
-        Items.push_back({ Strdup(fullLog), 1 });
-        delete[] fullLog;
-    }
-
-    void ConsolePanel::AddLogTrace(const char* fmt, ...) IM_FMTARGS(2)
-    {
-        // FIXME-OPT
-        char buf[1024];
-        va_list args;
-        va_start(args, fmt);
-        vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
-        buf[IM_ARRAYSIZE(buf) - 1] = 0;
-        va_end(args);
-        auto now = std::chrono::system_clock::now();
-        std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-        std::tm* tmPtr = std::localtime(&currentTime);
-        char timestampBuffer[11]; // hh:mm:ss requires 8 chars + null-terminator
-        std::strftime(timestampBuffer, sizeof(timestampBuffer), "[%H:%M:%S]", tmPtr);
-        char* fullLog = new char[std::strlen(timestampBuffer) + std::strlen(buf) + 2]; // 1 for space, 1 for null terminator
-        std::sprintf(fullLog, "%s %s", timestampBuffer, buf); // Format: hh:mm:ss message
-        Items.push_back({ Strdup(fullLog), 2 });
-        delete[] fullLog;
-    }
-
-    void ConsolePanel::AddLogWarn(const char* fmt, ...) IM_FMTARGS(2)
-    {
-        // FIXME-OPT
-        char buf[1024];
-        va_list args;
-        va_start(args, fmt);
-        vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
-        buf[IM_ARRAYSIZE(buf) - 1] = 0;
-        va_end(args);
-        auto now = std::chrono::system_clock::now();
-        std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-        std::tm* tmPtr = std::localtime(&currentTime);
-        char timestampBuffer[11]; // hh:mm:ss requires 8 chars + null-terminator
-        std::strftime(timestampBuffer, sizeof(timestampBuffer), "[%H:%M:%S]", tmPtr);
-        char* fullLog = new char[std::strlen(timestampBuffer) + std::strlen(buf) + 2]; // 1 for space, 1 for null terminator
-        std::sprintf(fullLog, "%s %s", timestampBuffer, buf); // Format: hh:mm:ss message
-        Items.push_back({ Strdup(fullLog), 3 });
-        delete[] fullLog;
-    }
-
-   
-    void ConsolePanel::AddLogError(const char* fmt, ...) IM_FMTARGS(2)
-    {
-        // FIXME-OPT
-        char buf[1024];
-        va_list args;
-        va_start(args, fmt);
-        vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
-        buf[IM_ARRAYSIZE(buf) - 1] = 0;
-        va_end(args);
-        auto now = std::chrono::system_clock::now();
-        std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-        std::tm* tmPtr = std::localtime(&currentTime);
-        char timestampBuffer[11]; // hh:mm:ss requires 8 chars + null-terminator
-        std::strftime(timestampBuffer, sizeof(timestampBuffer), "[%H:%M:%S]", tmPtr);
-        char* fullLog = new char[std::strlen(timestampBuffer) + std::strlen(buf) + 2]; // 1 for space, 1 for null terminator
-        std::sprintf(fullLog, "%s %s", timestampBuffer, buf); // Format: hh:mm:ss message
-        Items.push_back({ Strdup(fullLog), 4 });
-        delete[] fullLog;
-
-    }
 }

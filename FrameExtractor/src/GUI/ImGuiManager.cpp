@@ -256,7 +256,6 @@ namespace FrameExtractor
 
 	void ImGuiManager::Update(float dt)
 	{
-
 		try {
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
@@ -300,7 +299,7 @@ namespace FrameExtractor
 				{
 					mProject.CreateProject(projectFile.filename().string(), projectFile.parent_path());
 					mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
-					APP_CORE_INFO(("Created New Project " + projectFile.filename().string()).c_str());
+					APP_CORE_INFO("Created New Project {}", projectFile.filename().string());
 				}
 			}
 			if ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_S)))
@@ -323,7 +322,7 @@ namespace FrameExtractor
 					mProject.LoadProject(projectFile);
 					mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
 					mProjectPanel->OnLoad();
-					APP_CORE_INFO(("Opened Project " + projectFile.filename().string()).c_str());
+					APP_CORE_INFO("Opened Project {}", projectFile.filename().string());
 				}
 				else
 				{
@@ -350,7 +349,7 @@ namespace FrameExtractor
 							mProject.LoadProject(projectFile);
 							mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
 							mProjectPanel->OnLoad();
-							APP_CORE_INFO(("Opened Project " + projectFile.filename().string()).c_str());
+							APP_CORE_INFO("Opened Project {}", projectFile.filename().string());
 						}
 						else
 						{
@@ -377,7 +376,7 @@ namespace FrameExtractor
 						{
 							mProject.CreateProject(projectFile.filename().string(), projectFile.parent_path());
 							mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
-							APP_CORE_INFO(("Created New Project " + projectFile.filename().string()).c_str());
+							APP_CORE_INFO("Created New Project {}", projectFile.filename().string());
 						}
 					}
 
