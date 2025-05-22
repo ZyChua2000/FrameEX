@@ -478,6 +478,11 @@ namespace FrameExtractor
 			ImGui::SetNextWindowSize({ 0 ,lineHeight * 4 }, ImGuiCond_Appearing);
 			if (ImGui::BeginPopupModal("Save##Modal", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 			{
+				if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+				{
+					turnOnQuitModal = true;
+					ImGui::CloseCurrentPopup();
+				}
 				ImGui::Text("You have not saved yet. Do you want to save?");
 
 				float spacing = ImGui::GetStyle().ItemSpacing.x;
@@ -512,6 +517,10 @@ namespace FrameExtractor
 			ImGui::SetNextWindowSize({ 0 ,lineHeight * 4}, ImGuiCond_Appearing);
 			if (ImGui::BeginPopupModal("Quit##Modal", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 			{
+				if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+				{
+					ImGui::CloseCurrentPopup();
+				}
 				ImGui::Text("Are you sure you want to quit?");
 
 				float spacing = ImGui::GetStyle().ItemSpacing.x;
@@ -547,6 +556,10 @@ namespace FrameExtractor
 			bool projectLoadedModal = true;
 			if (ImGui::BeginPopupModal("No Project Loaded##Modal", &projectLoadedModal, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 			{
+				if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+				{
+					ImGui::CloseCurrentPopup();
+				}
 				ImGui::Text("No Project Loaded!\nPlease load a project to save.");
 				ImGui::EndPopup();
 			}
@@ -561,6 +574,10 @@ namespace FrameExtractor
 			ImGui::SetNextWindowSize({ 900 * styleMultiplier , 600 * styleMultiplier }, ImGuiCond_Appearing);
 			if (ImGui::BeginPopupModal("Preferences##Menu", &preferencesModal, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 			{
+				if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+				{
+					ImGui::CloseCurrentPopup();
+				}
 				dt = 0;
 				if (ImGui::BeginTabBar("PreferencesTabs"))
 				{

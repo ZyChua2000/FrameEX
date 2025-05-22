@@ -44,13 +44,16 @@ namespace FrameExtractor
 		int32_t mEntranceBuffer = 1;
 		int32_t mEnterBuffer = 0;
 		int32_t mExitBuffer = 0;
+		int32_t mDayBuffer = 1;
+		int32_t mMonthBuffer = 1;
+		int32_t mYearBuffer = 2000;
 		char mStoreCodeBuffer[16] = {};
 		char shopperIDBuffer[16] = {};
 		char dateBuffer[9] = {};
 		bool errorCodeBool = false;
 
-		void CountingTab();
-		void AggregateTab();
+		void CountingTab(float lineHeight);
+		void AggregateTab(float lineHeight);
 
 	};
 

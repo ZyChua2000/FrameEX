@@ -172,19 +172,6 @@ namespace YAML
         }
     };
 
-    //struct AggregateData
-    //{
-    //    // Pre-existing Data
-    //    std::string ShopperTrack_ID = "DIOR224";
-    //    int8_t Enters = 3;
-    //    int8_t Exit = 0;
-
-    //    // New Data
-    //    int32_t mCustomer = 0;
-    //    std::vector<AggregateEntrance> Entrance;
-    //    // Entrance Num, Data(time to time)
-
-    //};
 
     template<>
     struct convert<FrameExtractor::AggregateEntrance>
@@ -199,10 +186,15 @@ namespace YAML
                 data.mCorruptedVideos = node["CorruptedVideos"].as<std::vector<std::string>>();
             }
 
+
             // Decode mBlankedVideos (as a sequence of strings)
             if (node["BlankedVideos"])
             {
-                data.mBlankedVideos = node["BlankedVideos"].as<std::vector<std::string>>();
+                for (const auto& blankNode : node["BlankedVideos"])
+                {
+                    // Each item is a pair with two strings
+                    data.mBlankedVideos.push_back(blankNode.as<std::pair<bool, std::string>>());
+                }
             }
 
             // Decode mFrameSkips (as a sequence of pairs)
@@ -225,8 +217,15 @@ namespace YAML
             // Encode mCorruptedVideos as a sequence of strings
             node["CorruptedVideos"] = data.mCorruptedVideos;
 
-            // Encode mBlankedVideos as a sequence of strings
-            node["BlankedVideos"] = data.mBlankedVideos;
+            Node blankNode;
+            for (const auto& pair : data.mBlankedVideos)
+            {
+                Node pairNode;
+                pairNode.push_back(pair.first);  // first string (time)
+                pairNode.push_back(pair.second); // second string (time)
+                blankNode.push_back(pairNode);
+            }
+            node["FrameSkips"] = blankNode;
 
             // Encode mFrameSkips as a sequence of pairs (time -> time)
             Node frameSkipsNode;

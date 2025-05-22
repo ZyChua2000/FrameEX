@@ -37,16 +37,17 @@ namespace FrameExtractor
     {
         ImGui::Begin("Tools");
         bool open_error_popup = false;
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 4.f,4.f });
+        float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 
         if (ImGui::BeginTabBar("##ToolsBar", ImGuiTabBarFlags_Reorderable))
         {
             {
-                CountingTab();
-               
+                CountingTab(lineHeight);
             }
 
             {
-                AggregateTab();
+                AggregateTab(lineHeight);
 
             }
 
@@ -96,14 +97,18 @@ namespace FrameExtractor
         }
         if (ImGui::BeginPopupModal("No Project Loaded##Modal", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
         {
+            if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+            {
+                ImGui::CloseCurrentPopup();
+            }
             ImGui::Text("No Project Loaded!\nPlease create or load a project first.");
-            float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
             if (ImGui::Button("X##NoProjectLoadedModal", { lineHeight, 0 }))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
+        ImGui::PopStyleVar();
         ImGui::End();
     }
 
@@ -173,20 +178,20 @@ namespace FrameExtractor
     {
         std::stringstream ss;
         ss << "Hi all, Mailers and additional checks done:" << std::endl << "Anu Selma Jose" << std::endl << std::endl;
+        ss << DateIntToStr(date) << ":" << std::endl << std::endl;
+        int dayInt = date / 1000000;
+        int monthInt = (date / 10000) % 100;
+        int yearInt = date % 10000;
+        std::stringstream bss;
+        // add leading zeroes in YYYYMMDD format
+        bss << std::setw(4) << std::setfill('0') << yearInt
+			<< std::setw(2) << std::setfill('0') << monthInt
+			<< std::setw(2) << std::setfill('0') << dayInt;
         for (auto& [store, timeNData] : mProject->mAggregateStoreData)
         {
-            ss << DateIntToStr(date) << ":" << std::endl << std::endl;
- 
             for (auto& [time, data] : timeNData)
             {
-
-                std::string reformattedDate = std::to_string(date);
-                // change date from DDMMYYYY to YYYYMMDD
-                std::string year = reformattedDate.substr(4, 4);
-                std::string month = reformattedDate.substr(2, 2);
-                std::string day = reformattedDate.substr(0, 2);
-                reformattedDate = year + month + day;
-                ss << store << ", " << data.StoreID << ", " << reformattedDate << ", "  << time << ", " << (int)data.Enters << ", " << (int)data.Exit << " -> " <<
+                ss << store << ", " << data.StoreID << ", " << bss.str() << ", "  << time << ", " << (int)data.Enters << ", " << (int)data.Exit << " -> " <<
                     data.mCustomer << " Customers";
                 int idx = 1;
                 for (auto& entrance : data.Entrance)
@@ -222,15 +227,15 @@ namespace FrameExtractor
             }
             ss << std::endl;
             
-            ss << 
-                "Spike dip for " << IntDayToSuffix(date / 1000000) << " " << 
-                MonthToString((date / 10000) % 100) << " counted" << std::endl;
         }
 
+        ss <<
+            "Spike dip for " << IntDayToSuffix(date / 1000000) << " " <<
+            MonthToString((date / 10000) % 100) << " counted" << std::endl;
         return ss.str();
     }
 
-    void ToolsPanel::CountingTab()
+    void ToolsPanel::CountingTab(float lineHeight)
     {
         bool open_clear_popup = false;
         bool open_error_popup = false;
@@ -238,7 +243,6 @@ namespace FrameExtractor
         auto& mCountingData = mProject->mCountingData;
         auto open = ImGui::BeginTabItem("Counting##ToolsBar");
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
-        float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
@@ -248,7 +252,7 @@ namespace FrameExtractor
         }
         if (open)
         {
-            if (ImGui::ImageButton("Add Entry##Counting", Resource(Icon::ADDFILE_ICON)->GetTextureID(), { lineHeight, lineHeight }))
+            if (ImGui::ImageButton("Add Entry##Counting", Resource(Icon::ADDFILE_ICON)->GetTextureID(), { lineHeight * 1.5f, lineHeight * 1.5f }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -266,7 +270,7 @@ namespace FrameExtractor
 
             ImGui::SameLine();
 
-            if (ImGui::ImageButton("Clear##Counting", Resource(Icon::CLEAR_ICON)->GetTextureID(), { lineHeight, lineHeight }))
+            if (ImGui::ImageButton("Clear##Counting", Resource(Icon::CLEAR_ICON)->GetTextureID(), { lineHeight * 1.5f, lineHeight * 1.5f }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -284,7 +288,7 @@ namespace FrameExtractor
 
             ImGui::SameLine();
 
-            if (ImGui::ImageButton("Import Data##Counting", Resource(Icon::IMPORT_ICON)->GetTextureID(), { lineHeight ,lineHeight  }))
+            if (ImGui::ImageButton("Import Data##Counting", Resource(Icon::IMPORT_ICON)->GetTextureID(), { lineHeight * 1.5f ,lineHeight * 1.5f }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -297,6 +301,7 @@ namespace FrameExtractor
                     {
                         ExcelSerialiser serialiser(spikeDipFile);
                         CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::map<Project::StoreCode, std::map<Project::Hour, CountData>>>>(&mProject->mCountingData, mProject->mCountingData, serialiser.ImportSpikeDipReport()));
+                        APP_CORE_INFO("load counting_data {}", spikeDipFile);
                     }
                     else
                     {
@@ -312,7 +317,7 @@ namespace FrameExtractor
             }
             ImGui::SameLine();
 
-            if (ImGui::ImageButton("Export Data##Counting", Resource(Icon::EXPORT_ICON)->GetTextureID(), { lineHeight, lineHeight }))
+            if (ImGui::ImageButton("Export Data##Counting", Resource(Icon::EXPORT_ICON)->GetTextureID(), { lineHeight * 1.5f, lineHeight * 1.5f }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -320,9 +325,12 @@ namespace FrameExtractor
                 }
                 else {
                     auto projectFile = SaveFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
-                    projectFile.replace_extension(".xlsx");
-                    ExcelSerialiser serialiser(projectFile);
-                    serialiser.ExportSpikeDipReport(mProject->mCountingData);
+                    if (!projectFile.empty())
+                    {
+                        projectFile.replace_extension(".xlsx");
+                        ExcelSerialiser serialiser(projectFile);
+                        serialiser.ExportSpikeDipReport(mProject->mCountingData);
+                    }
                 }
 
             }
@@ -334,27 +342,27 @@ namespace FrameExtractor
             }
 
 
-            ImGui::SetNextWindowSize({ 270 * ImGuiManager::styleMultiplier, 120 * ImGuiManager::styleMultiplier + 40 }, ImGuiCond_Always);
+            ImGui::SetNextWindowSize({ lineHeight * 9.75f, lineHeight * 5.25f }, ImGuiCond_Always);
             if (ImGui::BeginPopup("AddEntryPopup##Counting", ImGuiWindowFlags_NoMove))
             {
 
                 ImGui::Columns(2);
-                ImGui::SetColumnWidth(0, 120 * ImGuiManager::styleMultiplier);
+                ImGui::SetColumnWidth(0, lineHeight * 4);
                 ImGui::Text("Store Code: ");
                 ImGui::NextColumn();
-                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
+                ImGui::SetNextItemWidth(lineHeight * 5);
                 ImGui::InputText("##Store Code##Counting: ", mStoreCodeBuffer, 16);
                 ImGui::NextColumn();
 
                 ImGui::Text("Hour: ");
                 ImGui::NextColumn();
-                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
+                ImGui::SetNextItemWidth(lineHeight * 5);
                 ImGui::InputInt("##Hour:##Counting ", &mTimeBuffer, 1, 1);
                 ImGui::NextColumn();
 
                 ImGui::Text("Entrances: ");
                 ImGui::NextColumn();
-                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
+                ImGui::SetNextItemWidth(lineHeight * 5);
                 ImGui::InputInt("##Entrances##Counting: ", &mEntranceBuffer, 1, 1);
                 ImGui::Columns(1);
                 ImGui::Separator();
@@ -376,7 +384,7 @@ namespace FrameExtractor
                             }
                         }
                         CommandHistory::execute(std::make_unique<AddStoreEntryCounting>(&mCountingData, storeID, mEntranceBuffer, mTimeBuffer));
-
+                        APP_CORE_INFO("add counting_data {} {} {}", storeID, mEntranceBuffer, mTimeBuffer);
                         mEntranceBuffer = 1;
                         mTimeBuffer = 0;
                     }
@@ -405,7 +413,7 @@ namespace FrameExtractor
                 {
 
                     CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mCountingPage.mStorePage, mCountingPage.mStorePage, mCountingPage.mStorePage - 1));
-
+                    APP_CORE_INFO("counting_data -page -minus 1");
                 }
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 {
@@ -463,7 +471,10 @@ namespace FrameExtractor
                 {
                     bool is_selected = mCountingPage.mStorePage == i;
                     if (ImGui::Selectable(keys[i].c_str(), &is_selected))
+                    {
                         CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mCountingPage.mStorePage, mCountingPage.mStorePage, i));
+                    	APP_CORE_INFO("counting_data -page -set {}", i);
+                    }
 
                     if (is_selected)
                         ImGui::SetItemDefaultFocus();
@@ -524,6 +535,7 @@ namespace FrameExtractor
                 {
 
                     CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mCountingPage.mStorePage, mCountingPage.mStorePage, mCountingPage.mStorePage + 1));
+                    APP_CORE_INFO("counting_data -page -add 1");
                 }
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 {
@@ -646,6 +658,10 @@ namespace FrameExtractor
                         }
                         if (ImGui::BeginPopupModal("Remove Store##Counting", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
                         {
+                            if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+                            {
+                                ImGui::CloseCurrentPopup();
+                            }
                             ImGui::Text("Are you sure you want to remove this store?");
 
                             float spacing = ImGui::GetStyle().ItemSpacing.x;
@@ -661,6 +677,7 @@ namespace FrameExtractor
                             ImGui::SameLine();
                             if (ImGui::Button("Yes##RemoveStoreModal", { lineHeight * 2, lineHeight }))
                             {
+                                APP_CORE_INFO("counting_data -erase \"{}\"", StorePageIT->first);
                                 CommandHistory::execute(std::make_unique<EraseKeyCommand<std::map<Project::StoreCode,std::map<Project::Hour,CountData>>>>(&mCountingData, mCountingPage.mStorePage));
                                 if (mCountingPage.mStorePage != 0)
                                 {
@@ -736,6 +753,7 @@ namespace FrameExtractor
                                         if (ImGui::InputInt("##Customer##Counting", &buffer, 0, 0, ImGuiInputTextFlags_CharsDecimal))
                                         {
                                             CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, buffer));
+                                            APP_CORE_INFO("counting_data \"customer\" -set {}", buffer);
                                         }
                                         
                                         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
@@ -743,10 +761,12 @@ namespace FrameExtractor
                                         if (ImGui::Button("-##Customer##Counting", { lineHeight, 0 }))
                                         {
                                             CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, Data.mCustomer - 1));
+                                            APP_CORE_INFO("counting_data \"customer\" -minus 1");
                                         }
                                         ImGui::SameLine();
                                         if (ImGui::Button("+##Customer##Counting", { lineHeight, 0 }))
                                         {
+                                            APP_CORE_INFO("counting_data \"customer\" -add 1");
                                             CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, Data.mCustomer + 1));
                                         }
                                         ImGui::PopStyleVar();
@@ -1016,7 +1036,7 @@ namespace FrameExtractor
                                                     }
                                                     ImGui::SameLine();
 
-                                                    Widget::Time(("##timestamp##Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(hour) + StoreCode + std::to_string(entry)).c_str(), data.timeStamp, 80 * ImGuiManager::styleMultiplier);
+                                                    Widget::Time(("##timestamp##Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(hour) + StoreCode + std::to_string(entry)).c_str(), data.timeStamp, lineHeight * 4);
                                                    
                                                     ImGui::SameLine();
                                                     {
@@ -1209,6 +1229,10 @@ namespace FrameExtractor
                             }
                             if (ImGui::BeginPopupModal(("Remove Hour##Modal" + std::to_string(hour)).c_str(), NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
                             {
+                                if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+                                {
+                                    ImGui::CloseCurrentPopup();
+                                }
                                 ImGui::Text("Are you sure you want to remove this hour?");
 
                                 float spacing = ImGui::GetStyle().ItemSpacing.x;
@@ -1260,6 +1284,10 @@ namespace FrameExtractor
             bool projectLoadedModal = true;
             if (ImGui::BeginPopupModal("No Project Loaded##Modal", &projectLoadedModal, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
             {
+                if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
                 ImGui::Text("No Project Loaded!\nPlease create or load a project first.");
                 ImGui::EndPopup();
             }
@@ -1276,6 +1304,10 @@ namespace FrameExtractor
             }
             if (ImGui::BeginPopupModal("Clear Data##Modal", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
             {
+                if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
                 ImGui::Text("Are you sure you want to clear the data?");
 
                 float spacing = ImGui::GetStyle().ItemSpacing.x;
@@ -1292,7 +1324,6 @@ namespace FrameExtractor
                 if (ImGui::Button("Yes##ClearDataModal", { lineHeight * 2, lineHeight }))
                 {
                     CommandHistory::execute(std::make_unique<ClearContainerCommand<std::map<Project::StoreCode, std::map<Project::Hour, CountData>>>>(&mCountingData));
-                    mCountingData.clear();
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
@@ -1302,14 +1333,14 @@ namespace FrameExtractor
 
     }
 
-    void ToolsPanel::AggregateTab()
+    void ToolsPanel::AggregateTab(float lineHeight)
     {
         bool open_clear_popup = false;
         bool open_error_popup = false;
         bool delete_store_popup = false;
+        bool export_date_popup = false;
         auto& mAggregateStoreData = mProject->mAggregateStoreData;
         auto open = ImGui::BeginTabItem("Aggregate##Toolsbar");
-        float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
             ImGui::BeginTooltip();
@@ -1318,7 +1349,7 @@ namespace FrameExtractor
         }
         if (open)
         {
-            if (ImGui::ImageButton("Add Entry##Aggregate", Resource(Icon::ADDFILE_ICON)->GetTextureID(), { lineHeight, lineHeight }))
+            if (ImGui::ImageButton("Add Entry##Aggregate", Resource(Icon::ADDFILE_ICON)->GetTextureID(), { lineHeight * 1.5f, lineHeight * 1.5f }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -1336,7 +1367,7 @@ namespace FrameExtractor
 
             ImGui::SameLine();
 
-            if (ImGui::ImageButton("Clear##Aggregate", Resource(Icon::CLEAR_ICON)->GetTextureID(), { lineHeight, lineHeight }))
+            if (ImGui::ImageButton("Clear##Aggregate", Resource(Icon::CLEAR_ICON)->GetTextureID(), { lineHeight * 1.5f, lineHeight * 1.5f }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -1354,7 +1385,7 @@ namespace FrameExtractor
 
             ImGui::SameLine();
 
-            if (ImGui::ImageButton("Import Data##Aggregate", Resource(Icon::IMPORT_ICON)->GetTextureID(), { lineHeight ,lineHeight }))
+            if (ImGui::ImageButton("Import Data##Aggregate", Resource(Icon::IMPORT_ICON)->GetTextureID(), { lineHeight * 1.5f ,lineHeight * 1.5f }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -1382,68 +1413,211 @@ namespace FrameExtractor
             }
             ImGui::SameLine();
 
-            if (ImGui::ImageButton("Export Data##Aggregate", Resource(Icon::EXPORT_ICON)->GetTextureID(), { lineHeight, lineHeight }))
+            if (ImGui::ImageButton("Export Data##Aggregate", Resource(Icon::EXPORT_ICON)->GetTextureID(), { lineHeight * 1.5f, lineHeight * 1.5f }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
                     open_error_popup = true;
                 }
                 else {
-                    ExportAggregateStoreDataAsString(12082025);
+                    export_date_popup = true;
                 }
 
             }
+
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
             {
                 ImGui::BeginTooltip();
-                ImGui::Text("Export Data (.xlsx)");
+                ImGui::Text("Export Data (Clipboard)");
                 ImGui::EndTooltip();
             }
-            ImGui::SetNextWindowSize({ 270 * ImGuiManager::styleMultiplier, 120 * ImGuiManager::styleMultiplier + 40 }, ImGuiCond_Always);
+
+            if (export_date_popup)
+            {
+                ImGui::OpenPopup("##Export Date Aggregate");
+            }
+
+            if (ImGui::BeginPopup("##Export Date Aggregate", ImGuiWindowFlags_AlwaysAutoResize))
+            {   
+                int bufferDay = mDayBuffer;
+                int bufferMonth = mMonthBuffer;
+                int bufferYear = mYearBuffer;
+                ImGui::SetNextItemWidth(lineHeight * 4);
+                if (ImGui::InputInt("Day", &bufferDay, 1, 1))
+                {
+                    if (bufferMonth == 4)
+                    {
+                        if ((bufferYear % 4 == 0) && ((bufferYear % 100 != 0) || (bufferYear % 400 == 0)))
+                        {
+                            if (bufferDay > 29)
+                            {
+                                bufferDay = 29;
+                            }
+                        }
+                        else if (bufferDay > 28)
+                        {
+							bufferDay = 28;
+						}
+					}
+                    else if (bufferMonth == 4 || bufferMonth == 6 || bufferMonth == 9 || bufferMonth == 11)
+                    {
+                        if (bufferDay > 30)
+                        {
+							bufferDay = 30;
+						}
+					}
+                    else if (bufferDay > 31)
+                    {
+						bufferDay = 31;
+					}
+
+                    if (bufferDay >= 1)
+                    {
+						mDayBuffer = bufferDay;
+					}
+                }
+                ImGui::SetNextItemWidth(lineHeight * 4);
+                if (ImGui::InputInt("Month", &bufferMonth, 1, 1))
+                {
+                    if (bufferMonth >= 1 && bufferMonth <= 12)
+                    {
+                        mMonthBuffer = bufferMonth;
+                    }
+
+                    if (bufferMonth == 4)
+                    {
+                        if ((bufferYear % 4 == 0) && ((bufferYear % 100 != 0) || (bufferYear % 400 == 0)))
+                        {
+                            if (mDayBuffer > 29)
+                            {
+                                mDayBuffer = 29;
+							}
+						}
+                        else if (bufferDay > 28)
+                        {
+                            mDayBuffer = 28;
+                        }
+                    }
+
+                    else if (bufferMonth == 4 || bufferMonth == 6 || bufferMonth == 9 || bufferMonth == 11)
+                    {
+                        if (mDayBuffer > 30)
+                        {
+                            mDayBuffer = 30;
+                        }
+                    }
+
+                }
+                ImGui::SetNextItemWidth(lineHeight * 4);
+                if (ImGui::InputInt("Year", &bufferYear, 1, 1))
+                {
+                    if (bufferYear >= 0 && bufferYear < 10000)
+                    {
+                        mYearBuffer = bufferYear;
+                    }
+
+                    if ((bufferYear % 4 == 0) && ((bufferYear % 100 != 0) || (bufferYear % 400 == 0)))
+                    {
+                        if (bufferMonth == 2)
+                        {
+                            if (mDayBuffer > 29)
+                            {
+								mDayBuffer = 29;
+							}
+                        }
+                    }
+                }
+                if (ImGui::Button("Export##ExportDateAgg"))
+                {
+                    std::stringstream ss;
+                    mDayBuffer *= 1000000;
+                    mMonthBuffer *= 10000;
+                    auto output = ExportAggregateStoreDataAsString(mDayBuffer + mMonthBuffer + mYearBuffer);
+                    APP_CORE_INFO(output);
+                    CopyToClipboard(output);
+
+                    mMonthBuffer = 1;
+                    mDayBuffer = 1;
+                    mYearBuffer = 2000;
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Cancel"))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+
+            ImGui::SetNextWindowSize({ lineHeight * 11, lineHeight * 8.5f }, ImGuiCond_Always);
             if (ImGui::BeginPopup("AddEntryPopup##Aggregate", ImGuiWindowFlags_NoMove))
             {
 
                 ImGui::Columns(2);
-                ImGui::SetColumnWidth(0, 120 * ImGuiManager::styleMultiplier);
+                ImGui::SetColumnWidth(0, lineHeight * 5.5f);
+                ImGui::Text("Shopper Track ID: ");
+                ImGui::NextColumn();
+                ImGui::SetNextItemWidth(lineHeight * 5);
+                ImGui::InputText("##Shopper Track ID##Aggregate: ", shopperIDBuffer, 16);
+                ImGui::NextColumn();
+
                 ImGui::Text("Store Code: ");
                 ImGui::NextColumn();
-                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
+                ImGui::SetNextItemWidth(lineHeight * 5);
                 ImGui::InputText("##Store Code##Aggregate: ", mStoreCodeBuffer, 16);
                 ImGui::NextColumn();
 
                 ImGui::Text("Hour: ");
                 ImGui::NextColumn();
-                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
-                ImGui::InputInt("##Hour:##Aggregate ", &mTimeBuffer, 1, 1);
+                ImGui::SetNextItemWidth(lineHeight * 5);
+                ImGui::InputInt("##Time:##Aggregate ", &mTimeBuffer, 1, 1);
+                ImGui::NextColumn();
+
+                ImGui::Text("Entry: ");
+                ImGui::NextColumn();
+                ImGui::SetNextItemWidth(lineHeight * 5);
+                ImGui::InputInt("##Entry:##Aggregate ", &mEnterBuffer, 1, 1);
+                ImGui::NextColumn();
+
+                ImGui::Text("Exit: ");
+                ImGui::NextColumn();
+                ImGui::SetNextItemWidth(lineHeight * 5);
+                ImGui::InputInt("##Exit:##Aggregate ", &mExitBuffer, 1, 1);
                 ImGui::NextColumn();
 
                 ImGui::Text("Entrances: ");
                 ImGui::NextColumn();
-                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
+                ImGui::SetNextItemWidth(lineHeight * 5);
                 ImGui::InputInt("##Entrances##Aggregate: ", &mEntranceBuffer, 1, 1);
                 ImGui::Columns(1);
                 ImGui::Separator();
                 if (ImGui::Button("Confirm"))
                 {
-                    std::string storeID(mStoreCodeBuffer);
-                    if (storeID != "")
+                    std::string shopperID(shopperIDBuffer);
+                    if (shopperID != "")
                     {
-                        std::memset(mStoreCodeBuffer, 0, 16);
-                        if (!mAggregateStoreData.contains(storeID))
+                        if (!mAggregateStoreData.contains(shopperID))
                         {
                             if (!mAggregateStoreData.empty()) {
                                 auto currentIT = mAggregateStoreData.begin();
                                 std::advance(currentIT, mAggregatePage.mStorePage);
-                                if (currentIT->first > storeID)
+                                if (currentIT->first > shopperID)
                                 {
                                     mAggregatePage.mStorePage++;
                                 }
                             }
                         }
-                        CommandHistory::execute(std::make_unique<AddStoreAggregateEntry>(&mAggregateStoreData, storeID, mEntranceBuffer, mTimeBuffer));
+                        CommandHistory::execute(std::make_unique<AddStoreAggregateEntry>(&mAggregateStoreData, shopperIDBuffer, mEntranceBuffer, mTimeBuffer));
+                        mAggregateStoreData[shopperID][mTimeBuffer].Enters = mEnterBuffer;
+                        mAggregateStoreData[shopperID][mTimeBuffer].Exit = mExitBuffer;
+                        mAggregateStoreData[shopperID][mTimeBuffer].StoreID = mStoreCodeBuffer;
 
                         mEntranceBuffer = 1;
+                        mEnterBuffer = 0;
+                        mExitBuffer = 0;
                         mTimeBuffer = 0;
+                        std::memset(shopperIDBuffer, 0, 16);
+                        std::memset(mStoreCodeBuffer, 0, 16);
                     }
                     ImGui::CloseCurrentPopup();
                 }
@@ -1615,6 +1789,9 @@ namespace FrameExtractor
                 }
             }
 
+            ImGui::Separator();
+            ImGui::Spacing();
+
             if (!mAggregateStoreData.empty())
             {
                 auto StorePageIT = mAggregateStoreData.begin();
@@ -1705,6 +1882,10 @@ namespace FrameExtractor
                         }
                         if (ImGui::BeginPopupModal("Remove Store##Aggregate", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
                         {
+                            if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+                            {
+                                ImGui::CloseCurrentPopup();
+                            }
                             ImGui::Text("Are you sure you want to remove this store?");
 
                             float spacing = ImGui::GetStyle().ItemSpacing.x;
@@ -1750,6 +1931,7 @@ namespace FrameExtractor
 
 
 
+        
 
                 if (!mAggregateStoreData.empty())
                 {
@@ -1783,6 +1965,55 @@ namespace FrameExtractor
                                 if (ImGui::CollapsingHeader("Statistics##Aggregate", ImGuiTreeNodeFlags_DefaultOpen))
                                 {
                                     ImGui::Indent(lineHeight);
+
+                                    
+                                    {
+                                        ImGui::PushFont(ImGuiManager::BoldFont);
+                                        ImGui::Text("Store ID: ");
+                                        ImGui::PopFont();
+                                        ImGui::SameLine();
+                                        char buffer[16] = {};
+                                        std::memcpy(buffer, Data.StoreID.data(), Data.StoreID.size());
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                        if (ImGui::InputText("##StoreID##Aggregate", buffer, IM_ARRAYSIZE(buffer)))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&Data.StoreID, Data.StoreID, std::string(buffer)));
+                                        }
+                                    }
+                                    ImGui::SameLine();
+
+                                    {
+                                        ImGui::PushFont(ImGuiManager::BoldFont);
+                                        ImGui::Text("Entry: ");
+                                        ImGui::PopFont();
+                                        ImGui::SameLine();
+                                        int buffer = Data.Enters;
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                        if (ImGui::InputInt("##Enters##Aggregate", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int8_t>>(&Data.Enters, Data.Enters,(int8_t)buffer));
+                                        }
+                                    }
+
+                                    ImGui::SameLine();
+                                    {
+                                        ImGui::PushFont(ImGuiManager::BoldFont);
+                                        ImGui::Text("Exits: ");
+                                        ImGui::PopFont();
+                                        ImGui::SameLine();
+                                        int buffer = Data.Exit;
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                        if (ImGui::InputInt("##Exits##Aggregate", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int8_t>>(&Data.Exit, Data.Exit, (int8_t)buffer));
+                                        }
+
+                                    }
+
+
                                     ImGui::Columns(2);
                                     {
                                         ImGui::PushFont(ImGuiManager::BoldFont);
@@ -2006,6 +2237,10 @@ namespace FrameExtractor
                             }
                             if (ImGui::BeginPopupModal(("Remove Hour##Modal" + std::to_string(hour)).c_str(), NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
                             {
+                                if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+                                {
+                                    ImGui::CloseCurrentPopup();
+                                }
                                 ImGui::Text("Are you sure you want to remove this hour?");
 
                                 float spacing = ImGui::GetStyle().ItemSpacing.x;
@@ -2023,10 +2258,10 @@ namespace FrameExtractor
                                 {
                                     if (mAggregateStoreData[StoreCode].size() == 1)
                                     {
-                                        CommandHistory::execute(std::make_unique<EraseKeyCommand<std::map<Project::StoreCode, std::map<Project::Hour, CountData>>>>(&mAggregateStoreData, mAggregatePage.mStorePage));
+                                        CommandHistory::execute(std::make_unique<EraseKeyCommand<std::map<Project::StoreCode, std::map<Project::Hour, AggregateData>>>>(&mAggregateStoreData, mAggregatePage.mStorePage));
                                     }
                                     else
-                                        CommandHistory::execute(std::make_unique<EraseKeyCommand<std::map<Project::Hour, CountData>>>(&mAggregateStoreData[StoreCode], houridx));
+                                        CommandHistory::execute(std::make_unique<EraseKeyCommand<std::map<Project::Hour, AggregateData>>>(&mAggregateStoreData[StoreCode], houridx));
                                     ImGui::CloseCurrentPopup();
                                     ImGui::EndPopup();
                                     break;
@@ -2041,13 +2276,68 @@ namespace FrameExtractor
                 }
             }
 
-
-
-            ImGui::Separator();
-            ImGui::Spacing();
-
             ImGui::EndChild();
 
+
+            if (open_error_popup)
+            {
+                ImGui::OpenPopup("No Project Loaded##Modal");
+            }
+            {
+                ImVec2 center = ImGui::GetWindowViewport()->Pos;
+                center.x += ImGui::GetWindowViewport()->Size.x * 0.5f;
+                center.y += ImGui::GetWindowViewport()->Size.y * 0.5f;
+                ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+            }
+            bool projectLoadedModal = true;
+            if (ImGui::BeginPopupModal("No Project Loaded##Modal", &projectLoadedModal, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+            {
+
+                if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::Text("No Project Loaded!\nPlease create or load a project first.");
+                ImGui::EndPopup();
+            }
+
+            if (open_clear_popup)
+            {
+                ImGui::OpenPopup("Clear Data##Aggregate");
+            }
+            {
+                ImVec2 center = ImGui::GetWindowViewport()->Pos;
+                center.x += ImGui::GetWindowViewport()->Size.x * 0.5f;
+                center.y += ImGui::GetWindowViewport()->Size.y * 0.5f;
+                ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+            }
+            if (ImGui::BeginPopupModal("Clear Data##Aggregate", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+            {
+                if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::Text("Are you sure you want to clear the data?");
+
+                float spacing = ImGui::GetStyle().ItemSpacing.x;
+                float totalWidth = lineHeight * 4 + spacing;
+                float windowWidth = ImGui::GetWindowSize().x;
+                float startX = (windowWidth - totalWidth) * 0.5f;
+                ImGui::Spacing();
+                ImGui::SetCursorPosX(startX);
+                if (ImGui::Button("No##ClearDataModal", { lineHeight * 2, lineHeight }))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Yes##ClearDataModal", { lineHeight * 2, lineHeight }))
+                {
+                    CommandHistory::execute(std::make_unique<ClearContainerCommand<std::map<Project::StoreCode, std::map<Project::Hour, AggregateData>>>>(&mAggregateStoreData));
+                    APP_CORE_INFO("Cleared Aggregate Data");
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
 
             ImGui::EndTabItem();
         }

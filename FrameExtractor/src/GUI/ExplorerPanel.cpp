@@ -30,8 +30,7 @@ namespace FrameExtractor
 	{
 		ImGui::Begin("Content Browser");
 		ImVec2 windowSize = ImGui::GetContentRegionAvail();
-		float scrollableHeight = windowSize.y - 100; // Adjust for the fixed bottom row
-		ImGui::BeginChild("ScrollableRegion", ImVec2(windowSize.x, scrollableHeight), true);
+		ImGui::BeginChild("ScrollableRegion", ImVec2(windowSize.x, windowSize.y), true);
 	
 		float panelWidth = ImGui::GetContentRegionAvail().x;
 		float cellSize = 128 * ImGuiManager::styleMultiplier + 10 * ImGuiManager::styleMultiplier;
