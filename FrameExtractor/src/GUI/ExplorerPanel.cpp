@@ -12,6 +12,7 @@
 #include <FrameExtractorPCH.hpp>
 #include <GUI/ExplorerPanel.hpp>
 #include <GUI/ImGuiManager.hpp>
+#include <GUI/GuiResourcesManager.hpp>
 #include <Core/LoggerManager.hpp>
 #include <imgui.h>
 #include <Graphics/Video.hpp>
@@ -19,8 +20,7 @@ namespace FrameExtractor
 {
 	ExplorerPanel::ExplorerPanel(Project* project) : mProject(project)
 	{
-		mFolderIcon = MakeRef<Texture>("resources/icons/folder.png");
-		mFileIcon = MakeRef<Texture>("resources/icons/document.png");
+
 
 	}
 	ExplorerPanel::~ExplorerPanel()
@@ -65,7 +65,7 @@ namespace FrameExtractor
 		if (mCurrentPath != mProject->GetAssetsDir())
 		{
 			
-			if (ImGui::ImageButton(("##ExplorerSelected" + mCurrentPath.string()).c_str(), (ImTextureID)mFolderIcon->GetTextureID(), {printedThumbnailSize, printedThumbnailSize}, {0,0}, {1,1}, {0,0,0,0}, {1,1,1,1}))
+			if (ImGui::ImageButton(("##ExplorerSelected" + mCurrentPath.string()).c_str(), (ImTextureID)Resource(Icon::FOLDER_ICON)->GetTextureID(), {printedThumbnailSize, printedThumbnailSize}, {0,0}, {1,1}, {0,0,0,0}, {1,1,1,1}))
 			{
 				mSelectedPath = mCurrentPath.parent_path();
 			}
@@ -95,7 +95,7 @@ namespace FrameExtractor
 			uint64_t screenID = 0;
 			if (entry.is_directory())
 			{
-				screenID = static_cast<uint64_t>(mFolderIcon->GetTextureID());
+				screenID = static_cast<uint64_t>(Resource(Icon::FOLDER_ICON)->GetTextureID());
 			}
 			else if (extension == ".mp4")
 			{
@@ -110,7 +110,7 @@ namespace FrameExtractor
 			}
 			else
 			{
-				screenID = static_cast<uint64_t>(mFileIcon->GetTextureID());
+				screenID = static_cast<uint64_t>(Resource(Icon::FILE_ICON)->GetTextureID());
 			}
 
 			if (ImGui::ImageButton(("##ExplorerEntry" + filenameStr).c_str(), (ImTextureID)screenID, {printedThumbnailSize, printedThumbnailSize}, {0,0}, {1,1}, {0,0,0,0}, {1,1,1,1}))

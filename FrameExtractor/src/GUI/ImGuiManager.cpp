@@ -31,6 +31,40 @@
 #include <GUI/ConsolePanel.hpp>
 #include <GUI/ExplorerPanel.hpp>
 #include <GLFW/glfw3.h>
+#define YAML_CPP_STATIC_DEFINE
+#include <yaml-cpp/yaml.h>
+
+namespace YAML {
+	template<>
+	struct convert<FrameExtractor::EditorPreferences> {
+		static Node encode(const FrameExtractor::EditorPreferences& rhs) {
+			Node node;
+			node["UseAutosave"] = rhs.mGeneral.UseAutosave;
+			node["AutosaveInterval"] = rhs.mGeneral.AutosaveInterval;
+			node["BackGroundColor"] = rhs.mAppearance.BackGroundColor;
+			node["TextColor"] = rhs.mAppearance.TextColor;
+			node["MainColor"] = rhs.mAppearance.MainColor;
+			node["MainAccentColor"] = rhs.mAppearance.MainAccentColor;
+			node["HighlightColor"] = rhs.mAppearance.HighlightColor;
+			node["FontSize"] = rhs.mAppearance.FontSize;
+			return node;
+		}
+
+		static bool decode(const Node& node, FrameExtractor::EditorPreferences& rhs) {
+			if (!node.IsMap()) return false;
+
+			rhs.mGeneral.UseAutosave = node["UseAutosave"].as<bool>();
+			rhs.mGeneral.AutosaveInterval = node["AutosaveInterval"].as<int>();
+			rhs.mAppearance.BackGroundColor = node["BackGroundColor"].as<uint32_t>();
+			rhs.mAppearance.TextColor = node["TextColor"].as<uint32_t>();
+			rhs.mAppearance.MainColor = node["MainColor"].as<uint32_t>();
+			rhs.mAppearance.MainAccentColor = node["MainAccentColor"].as<uint32_t>();
+			rhs.mAppearance.HighlightColor = node["HighlightColor"].as<uint32_t>();
+			rhs.mAppearance.FontSize = node["FontSize"].as<float>();
+			return true;
+		}
+	};
+}
 
 
 namespace FrameExtractor
@@ -159,11 +193,12 @@ namespace FrameExtractor
 
 			ImGui::GetStyle().WindowMenuButtonPosition = ImGuiDir_Right;
 
+			ImGui::GetStyle().FrameRounding = 2.f;
+
 		}
 	};
 
 	float ImGuiManager::styleMultiplier = 1.f;
-	float ImGuiManager::mFontSize = 1.f;
 	ImFont* ImGuiManager::BoldFont = nullptr;
 	ImFont* ImGuiManager::LightFont = nullptr;
 	ImFont* ImGuiManager::RegularFont = nullptr;
@@ -217,6 +252,8 @@ namespace FrameExtractor
 		delete mConsolePanel;
 		delete mViewportPanel;
 		Shutdown();
+
+		SavePreferences();
 	}
 
 	void ImGuiManager::Init()
@@ -244,6 +281,8 @@ namespace FrameExtractor
 		RegularFont = io.Fonts->AddFontFromFileTTF("resources/fonts/OpenSans-Regular.ttf", 24.f);
 		FrameRateFont = io.Fonts->AddFontFromFileTTF("resources/fonts/OpenSans-Bold.ttf", 32.f);
 		io.FontDefault = RegularFont;
+
+		LoadPreferences();
 	}
 
 	void ImGuiManager::Shutdown()
@@ -306,11 +345,13 @@ namespace FrameExtractor
 			{
 				if (!mProject.IsProjectLoaded())
 				{
+					CommandHistory::markSaved();
 					open_error_popup = true;
 				}
 				else
 				{
 					mProject.SaveProject();
+					mTimer = 0;
 				}
 
 			}
@@ -319,6 +360,7 @@ namespace FrameExtractor
 				auto projectFile = OpenFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
 				if (std::filesystem::exists(projectFile))
 				{
+					CommandHistory::markSaved();
 					mProject.LoadProject(projectFile);
 					mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
 					mProjectPanel->OnLoad();
@@ -349,6 +391,7 @@ namespace FrameExtractor
 							mProject.LoadProject(projectFile);
 							mExplorerPanel->SetCurrentPath(mProject.GetAssetsDir());
 							mProjectPanel->OnLoad();
+							CommandHistory::markSaved();
 							APP_CORE_INFO("Opened Project {}", projectFile.filename().string());
 						}
 						else
@@ -365,7 +408,9 @@ namespace FrameExtractor
 						}
 						else
 						{
+							CommandHistory::markSaved();
 							mProject.SaveProject();
+							mTimer = 0;
 						}
 					}
 
@@ -395,7 +440,15 @@ namespace FrameExtractor
 
 				if (ImGui::BeginMenu("Edit"))
 				{
-					if (ImGui::MenuItem("Undo")) { /* do something */ }
+					if (ImGui::MenuItem("Undo##EditTab", "(CTRL + Z)", nullptr, CommandHistory::CanUndo()))
+					{
+						CommandHistory::undo();
+					}
+
+					if (ImGui::MenuItem("Redo##EditTab", "(CTRL + Y)", nullptr, CommandHistory::CanRedo())) 
+					{
+						CommandHistory::redo();
+					}
 					ImGui::EndMenu();
 				}
 
@@ -410,13 +463,51 @@ namespace FrameExtractor
 			
 			if (open_quit_popup)
 			{
-				ImGui::OpenPopup("Quit##Modal");
+				if (!CommandHistory::isDirty())
+					ImGui::OpenPopup("Quit##Modal");
+				else
+					ImGui::OpenPopup("Save##Modal");
 				open_quit_popup = false;
 			}
 
 			ImVec2 center = ImGui::GetWindowPos();
 			center.x += ImGui::GetWindowSize().x * 0.5f;
 			center.y += ImGui::GetWindowSize().y * 0.5f;
+			static bool turnOnQuitModal = false;
+			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+			ImGui::SetNextWindowSize({ 0 ,lineHeight * 4 }, ImGuiCond_Appearing);
+			if (ImGui::BeginPopupModal("Save##Modal", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+			{
+				ImGui::Text("You have not saved yet. Do you want to save?");
+
+				float spacing = ImGui::GetStyle().ItemSpacing.x;
+				float totalWidth = lineHeight * 4 + spacing;
+				float windowWidth = ImGui::GetWindowSize().x;
+				float startX = (windowWidth - totalWidth) * 0.5f;
+				ImGui::Spacing();
+				ImGui::SetCursorPosX(startX);
+				if (ImGui::Button("No##QuitModal", { lineHeight * 2, lineHeight }))
+				{
+					turnOnQuitModal = true;
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Yes##QuitModal", { lineHeight * 2, lineHeight }))
+				{
+					CommandHistory::markSaved();
+					mProject.SaveProject();
+					mTimer = 0;
+					QuitCallback();
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
+			}
+			if (turnOnQuitModal)
+			{
+				ImGui::OpenPopup("Quit##Modal");
+				turnOnQuitModal = false;
+			}
+
 			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 			ImGui::SetNextWindowSize({ 0 ,lineHeight * 4}, ImGuiCond_Appearing);
 			if (ImGui::BeginPopupModal("Quit##Modal", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
@@ -441,6 +532,8 @@ namespace FrameExtractor
 				}
 				ImGui::EndPopup();
 			}
+
+			
 
 			
 			if (open_error_popup)
@@ -474,7 +567,39 @@ namespace FrameExtractor
 					if (ImGui::BeginTabItem("General"))
 					{
 						bool dark_mode = false;
-						ImGui::Checkbox("Enable Dark Mode", &dark_mode);
+						ImGui::Columns(2);
+
+						ImGui::Text("Autosave: ");
+						ImGui::NextColumn();
+						if (ImGui::Checkbox("##Autosave", &mPreferences.mGeneral.UseAutosave))
+						{
+							if (!mPreferences.mGeneral.UseAutosave)
+								mTimer = 0;
+						}
+						ImGui::NextColumn();
+
+					
+						if (mPreferences.mGeneral.UseAutosave)
+						{
+							ImGui::Text("Autosave Time: ");
+							ImGui::NextColumn();
+							static int autosaveChoices[]{ 1,2,5,10,15,30,60 };
+
+							if (ImGui::BeginCombo("##AutosaveChoices", std::to_string(mPreferences.mGeneral.AutosaveInterval).c_str()))
+							{
+								for (int i = 0; i < sizeof(autosaveChoices) / sizeof(autosaveChoices[0]); i++)
+								{
+									bool is_selected = mPreferences.mGeneral.AutosaveInterval == autosaveChoices[i];
+									if (ImGui::Selectable((std::to_string(autosaveChoices[i])+ "##AutosavePreference").c_str(), &is_selected))
+										mPreferences.mGeneral.AutosaveInterval = autosaveChoices[i];
+
+									if (is_selected)
+										ImGui::SetItemDefaultFocus();
+								}
+								ImGui::EndCombo();
+							}
+						}
+						ImGui::Columns(1);
 						ImGui::EndTabItem();
 					}
 					if (ImGui::BeginTabItem("Apperances"))
@@ -486,9 +611,14 @@ namespace FrameExtractor
 						auto vec4HighlightColor = EditorColorScheme::GetColor(EditorColorScheme::HighlightColor);
 						if (ImGui::Button("Reset to Default## Appearances"))
 						{
-							EditorColorScheme::SetColors(0x25213100, 0xF4F1DE00, 0xDA115E00, 0x79235900, 0xC7EF0000);
+							mPreferences.mAppearance = {};
+					
+							EditorColorScheme::SetColors(mPreferences.mAppearance.BackGroundColor, 
+								mPreferences.mAppearance.TextColor, 
+								mPreferences.mAppearance.MainColor,
+								mPreferences.mAppearance.MainAccentColor, 
+								mPreferences.mAppearance.HighlightColor);
 							EditorColorScheme::ApplyTheme();
-							mFontSize = 1;
 						}
 						auto contentRegionAvail = ImGui::GetContentRegionAvail();
 						ImGui::BeginChild("AppearancesChild", contentRegionAvail, true);
@@ -500,6 +630,7 @@ namespace FrameExtractor
 						if (ImGui::ColorEdit4("##Background Colour", &vec4BGColor.x, ImGuiColorEditFlags_NoAlpha))
 						{
 							EditorColorScheme::BackGroundColor = EditorColorScheme::GetColor(vec4BGColor);
+							mPreferences.mAppearance.BackGroundColor = EditorColorScheme::BackGroundColor;
 							EditorColorScheme::ApplyTheme();
 						}
 						ImGui::NextColumn();
@@ -509,6 +640,7 @@ namespace FrameExtractor
 						if (ImGui::ColorEdit4("##Text Colour", &vec4TextColor.x, ImGuiColorEditFlags_NoAlpha))
 						{
 							EditorColorScheme::TextColor = EditorColorScheme::GetColor(vec4TextColor);
+							mPreferences.mAppearance.TextColor = EditorColorScheme::TextColor;
 							EditorColorScheme::ApplyTheme();
 						}
 						ImGui::NextColumn();
@@ -518,6 +650,8 @@ namespace FrameExtractor
 						if (ImGui::ColorEdit4("##Main Colour", &vec4MainColor.x, ImGuiColorEditFlags_NoAlpha))
 						{
 							EditorColorScheme::MainColor = EditorColorScheme::GetColor(vec4MainColor);
+							mPreferences.mAppearance.MainColor = EditorColorScheme::MainColor;
+
 							EditorColorScheme::ApplyTheme();
 						}
 						ImGui::NextColumn();
@@ -527,6 +661,8 @@ namespace FrameExtractor
 						if (ImGui::ColorEdit4("##Highlight Colour", &vec4HighlightColor.x, ImGuiColorEditFlags_NoAlpha))
 						{
 							EditorColorScheme::HighlightColor = EditorColorScheme::GetColor(vec4HighlightColor);
+							mPreferences.mAppearance.HighlightColor = EditorColorScheme::HighlightColor;
+
 							EditorColorScheme::ApplyTheme();
 						}
 						ImGui::NextColumn();
@@ -536,18 +672,20 @@ namespace FrameExtractor
 						if (ImGui::ColorEdit4("##Main Accent Colour", &vec4AccentColor.x, ImGuiColorEditFlags_NoAlpha))
 						{
 							EditorColorScheme::MainAccentColor = EditorColorScheme::GetColor(vec4AccentColor);
+							mPreferences.mAppearance.MainAccentColor = EditorColorScheme::MainAccentColor;
+
 							EditorColorScheme::ApplyTheme();
 						}
 						ImGui::NextColumn();
 						ImGui::Text("Font Size: ");
 						ImGui::NextColumn();
-						float displayFontSize = 32 * mFontSize;
+						float displayFontSize = 32 * mPreferences.mAppearance.FontSize;
 						ImGui::SetNextItemWidth(contentRegionAvail.x - ImGui::GetFontSize() * 8 - ImGui::GetStyle().FramePadding.x * 4.f);
 						if (ImGui::DragFloat("##FontSize", &displayFontSize, 0.3f, 20, 64, "%.1f"))
 						{
 							if (displayFontSize < 20) displayFontSize = 20;
 							if (displayFontSize > 64) displayFontSize = 64;
-							mFontSize = displayFontSize / 32;
+							mPreferences.mAppearance.FontSize = displayFontSize / 32;
 						}
 						ImGui::Columns(1);
 
@@ -582,7 +720,7 @@ namespace FrameExtractor
 
 			auto windowSize = ImGui::GetWindowSize();
 			styleMultiplier = windowSize.x / 1920;
-			ImGui::GetIO().FontGlobalScale = styleMultiplier * mFontSize;
+			ImGui::GetIO().FontGlobalScale = styleMultiplier * mPreferences.mAppearance.FontSize;
 
 			if (opt_fullscreen)
 				ImGui::PopStyleVar(2);
@@ -605,7 +743,19 @@ namespace FrameExtractor
 		}
 		catch (...)
 		{
+			mProject.SaveBackup();
 			throw ("Exception!");
+		}
+
+		if (mPreferences.mGeneral.UseAutosave && mProject.IsProjectLoaded())
+		{
+			mTimer += dt;
+			if (mTimer > mPreferences.mGeneral.AutosaveInterval * 60)
+			{
+				CommandHistory::markSaved();
+				mProject.SaveProject();
+				mTimer = 0;
+			}
 		}
 	}
 
@@ -630,5 +780,31 @@ namespace FrameExtractor
 	void ImGuiManager::QuitCallback()
 	{
 		open_quit_popup = true;
+	}
+	void ImGuiManager::SavePreferences()
+	{
+		YAML::Node node = YAML::convert<EditorPreferences>::encode(mPreferences);
+		std::ofstream fout("FrExt.pref");
+		fout << node;		
+		fout.close();
+	}
+	void ImGuiManager::LoadPreferences()
+	{
+		try {
+			YAML::Node node = YAML::LoadFile("FrExt.pref");
+			mPreferences = node.as<EditorPreferences>();
+
+
+			EditorColorScheme::SetColors(mPreferences.mAppearance.BackGroundColor,
+				mPreferences.mAppearance.TextColor,
+				mPreferences.mAppearance.MainColor,
+				mPreferences.mAppearance.MainAccentColor,
+				mPreferences.mAppearance.HighlightColor);
+			EditorColorScheme::ApplyTheme();
+		}
+		catch (...)
+		{
+			// dont need to do anything
+		}
 	}
 }

@@ -17,11 +17,34 @@ struct ImFont;
 
 namespace FrameExtractor
 {
+	// Forward Declarations
 	class ViewportPanel;
 	class ToolsPanel;
 	class ProjectPanel;
 	class ConsolePanel;
 	class ExplorerPanel;
+
+	struct EditorPreferences
+	{
+		
+		struct AppearancePreferences
+		{
+			uint32_t BackGroundColor = 0x25213100;
+			uint32_t TextColor = 0xF4F1DE00;
+			uint32_t MainColor = 0xDA115E00;
+			uint32_t MainAccentColor = 0x79235900;
+			uint32_t HighlightColor = 0xC7EF0000;
+			float FontSize = 1.f;
+		};
+		struct GeneralPreferences
+		{
+			uint32_t AutosaveInterval = 5; // in minutes
+			bool UseAutosave = true;
+		};
+		GeneralPreferences mGeneral;
+		AppearancePreferences mAppearance;
+	};
+
 	class ImGuiManager
 	{
 	public:
@@ -46,6 +69,9 @@ namespace FrameExtractor
 
 		static void QuitCallback();
 	private:
+
+		void SavePreferences();
+		void LoadPreferences();
 		// panels
 		ViewportPanel* mViewportPanel;
 		ProjectPanel* mProjectPanel;
@@ -54,8 +80,8 @@ namespace FrameExtractor
 		ToolsPanel* mToolsPanel;
 
 		Project mProject;
-
-		static float mFontSize;
+		EditorPreferences mPreferences;
+		float mTimer = 0.f;
 	};
 }
 

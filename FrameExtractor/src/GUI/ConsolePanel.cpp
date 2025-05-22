@@ -42,7 +42,7 @@ namespace FrameExtractor
 
     void ConsolePanel::ExecCommand(const char* command_line)
     {
-        AddLog("# %s\n", command_line);
+        AddLog("{}\n", command_line);
 
         // Insert into history. First find match and delete it so it can be pushed to the back.
         // This isn't trying to be smart or optimal.
@@ -65,17 +65,17 @@ namespace FrameExtractor
         {
             AddLog("Commands:");
             for (int i = 0; i < Commands.Size; i++)
-                AddLog("- %s", Commands[i]);
+                AddLog("- {}", Commands[i]);
         }
         else if (Stricmp(command_line, "HISTORY") == 0)
         {
             int first = History.Size - 10;
             for (int i = first > 0 ? first : 0; i < History.Size; i++)
-                AddLog("%3d: %s\n", i, History[i]);
+                AddLog("%3d: {}\n", i, History[i]);
         }
         else
         {
-            AddLog("Unknown command: '%s'\n", command_line);
+            AddLog("Unknown command: '{}'\n", command_line);
         }
 
         // On command input, we scroll to bottom even if AutoScroll==false

@@ -12,31 +12,17 @@
 #include <Core/Command.hpp>
 #include "GUI/ViewportPanel.hpp"
 #include <GUI/ImGuiManager.hpp>
+#include <GUI/GuiResourcesManager.hpp>
 #include <Graphics/Video.hpp>
 namespace FrameExtractor
 {
-    static long long timer = 0;
+
+    long long timer = 0;
     ViewportPanel::ViewportPanel(const std::string& name, ImVec2& size, ImVec2& pos) : 
         mName(name),
 		mViewportSize(size),
 		mViewportPos(pos)
     {
-        mIcons[Icons::PLAY_ICON] = MakeRef<Texture>("resources/icons/Play.png");
-        mIcons[Icons::STOP_ICON] = MakeRef<Texture>("resources/icons/Stop.png");
-        mIcons[Icons::FORWARD_ICON] = MakeRef<Texture>("resources/icons/MoveFrameRight.png");
-        mIcons[Icons::BACKWARD_ICON] = MakeRef<Texture>("resources/icons/MoveFrameLeft.png");
-        mIcons[Icons::SPEED_UP_ICON] = MakeRef<Texture>("resources/icons/FastForward.png");
-        mIcons[Icons::SLOW_DOWN_ICON] = MakeRef<Texture>("resources/icons/FastBackward.png");
-        mIcons[Icons::SKIP_TO_END_ICON] = MakeRef<Texture>("resources/icons/CutToEnd.png");
-        mIcons[Icons::SKIP_TO_START_ICON] = MakeRef<Texture>("resources/icons/CutToFront.png");
-        mKeyIcons[KeyIcons::CTRL_ICON] = MakeRef<Texture>("resources/icons/Ctrl.png");
-        mKeyIcons[KeyIcons::SHIFT_ICON] = MakeRef<Texture>("resources/icons/Shift.png");
-        mKeyIcons[KeyIcons::LEFTARROW_ICON] = MakeRef<Texture>("resources/icons/leftArrow.png");
-        mKeyIcons[KeyIcons::RIGHTARROW_ICON] = MakeRef<Texture>("resources/icons/rightArrow.png");
-        mKeyIcons[KeyIcons::UPARROW_ICON] = MakeRef<Texture>("resources/icons/upArrow.png");
-        mKeyIcons[KeyIcons::DOWNARROW_ICON] = MakeRef<Texture>("resources/icons/downArrow.png");
-        mKeyIcons[KeyIcons::SPACE_ICON] = MakeRef<Texture>("resources/icons/Space.png");
-        mKeyIcons[KeyIcons::PLUS_LOGO] = MakeRef<Texture>("resources/icons/PlusLogo.png");
 
 
 
@@ -53,14 +39,20 @@ namespace FrameExtractor
 		//ImGui::SetNextWindowSize(mViewportSize);
 		//ImGui::SetNextWindowPos(mViewportPos);
 
-		ImGui::Begin(mName.c_str());
+        if (mVideo)
+            ImGui::Begin((mVideo->GetPath().filename().string() + "###ViewportID").c_str());
+        else
+            ImGui::Begin("Viewport Window###ViewportID");
 
+        ImGui::DockSpace(ImGui::GetID("ViewportDockspace"));
+        bool isWindowFocused = 0| ImGui::IsWindowFocused();
+        ImGui::End();
         // Get window size
 
-
+        ImGui::Begin(mName.c_str());
+        isWindowFocused |= ImGui::IsWindowFocused();
 		// Render the viewport here
-
-       
+        float lineHeight = (ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f);
         auto contentRegion = ImGui::GetContentRegionAvail();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (contentRegion.x - contentRegion.x * 0.85f) * 0.5f);
         auto cursor = ImGui::GetCursorScreenPos();
@@ -68,7 +60,7 @@ namespace FrameExtractor
         auto regionY = contentRegion.y;
         if (mVideo)
         {
-            ImGui::Image((ImTextureID)mVideo->GetFrame()->GetTextureID(), ImVec2(contentRegion.x * 0.85f, contentRegion.y * 0.8f));
+            ImGui::Image((ImTextureID)mVideo->GetFrame()->GetTextureID(), ImVec2(contentRegion.x * 0.85f, contentRegion.y - lineHeight * 2.5f));
             if (ImGui::BeginDragDropTarget()) {
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_NAME")) {
                     const char* droppedItem = static_cast<const char*>(payload->Data);
@@ -79,7 +71,7 @@ namespace FrameExtractor
         else
         {
             
-            ImGui::Image(0, ImVec2(contentRegion.x * 0.85f, contentRegion.y * 0.8f));
+            ImGui::Image(0, ImVec2(contentRegion.x * 0.85f, contentRegion.y - lineHeight * 2.5f));
             if (ImGui::BeginDragDropTarget()) {
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_NAME")) {
                     const char* droppedItem = static_cast<const char*>(payload->Data);
@@ -101,7 +93,7 @@ namespace FrameExtractor
         if (mVideo)
         {
 
-            float lineHeight = (ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f);
+           
 
             ImVec2 widgetSize(ImGui::CalcTextSize(std::to_string(mFrameNumber).c_str()).x, lineHeight); // Size of the widget
             ImVec2 p = ImGui::GetCursorScreenPos();            
@@ -188,8 +180,8 @@ namespace FrameExtractor
         {
             if(mVideo)
             {
-                int totalSeconds = mVideo->GetMaxFrames() / mVideo->GetFPS();
-                int frames = mVideo->GetMaxFrames() % mVideo->GetFPS();
+                int totalSeconds = (mVideo->GetMaxFrames() - 1) / mVideo->GetFPS();
+                int frames = (mVideo->GetMaxFrames() - 1) % mVideo->GetFPS();
                 int seconds = totalSeconds % 60;
                 int minutes = (totalSeconds / 60) % 60;
                 int hours = totalSeconds / 3600;
@@ -217,9 +209,10 @@ namespace FrameExtractor
 
 
         ImGui::PopFont();
-        ImGui::Spacing();
+        ImGui::End();
 
-
+        ImGui::Begin("Viewport Controls");
+        isWindowFocused |= ImGui::IsWindowFocused();
         contentRegion = ImGui::GetContentRegionAvail();
         ImGui::SetNextItemWidth(contentRegion.x);
         if(mVideo)
@@ -269,7 +262,6 @@ namespace FrameExtractor
             int bufferTmp = 0;
             ImGui::SliderInt("##FrameNumber", &bufferTmp, 0, 0, "", ImGuiSliderFlags_NoInput | ImGuiSliderFlags_AlwaysClamp);
         }
-
         // Get ImGui's draw list for custom rendering
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         ImVec2 slider_pos = ImGui::GetItemRectMin();
@@ -297,19 +289,17 @@ namespace FrameExtractor
         }
 
         ImGui::Spacing();
-        float lineHeight = (ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f) * 1.5f;
-        const int buttonCount = 7;
+        const int buttonCount = 8;
         const float buttonSize = 36.f * ImGuiManager::styleMultiplier;  // Width and height of each button
         const float spacing = ImGui::GetStyle().ItemSpacing.x;
-        float totalWidth = buttonCount * buttonSize + (buttonCount - 1) * spacing;
+        float totalWidth = buttonCount * buttonSize + (buttonCount - 1) * spacing + ImGui::GetStyle().FramePadding.x;
         float startX = (ImGui::GetContentRegionAvail().x - totalWidth) * 0.5f;
         ImGuiIO& io = ImGui::GetIO();
        
         auto ctrlHeld = ImGui::IsKeyDown(ImGuiKey_RightCtrl) || ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
         auto shiftHeld = ImGui::IsKeyDown(ImGuiKey_RightShift) || ImGui::IsKeyDown(ImGuiKey_LeftShift);
-        bool isWindowFocused = ImGui::IsWindowFocused();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + startX);
-        if (ImGui::ImageButton("#IconSkipToStart", (ImTextureID)mIcons[SKIP_TO_START_ICON]->GetTextureID(), {buttonSize, buttonSize}) ||
+        if (ImGui::ImageButton("#IconSkipToStart", (ImTextureID)Resource(SKIP_TO_START_ICON)->GetTextureID(), {buttonSize, buttonSize}) ||
             (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_Home)))
         {
             if (mVideo)
@@ -318,40 +308,36 @@ namespace FrameExtractor
                 mIsPlaying = false;
             }
         }
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
             ImGui::BeginTooltip();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::SHIFT_ICON]->GetTextureID(), { lineHeight ,lineHeight });
-            ImGui::SameLine();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::PLUS_LOGO]->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
-            ImGui::SameLine();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::LEFTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::Image((ImTextureID)Resource(HOME_ICON)->GetTextureID(), { lineHeight ,lineHeight });
             ImGui::EndTooltip();
 
         }
 
         ImGui::SameLine();
       
-        if (ImGui::ImageButton("#IconSpeedUp", (ImTextureID)mIcons[SLOW_DOWN_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
-            (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
+        if (ImGui::ImageButton("#IconSlowDown", (ImTextureID)Resource(SLOW_DOWN_ICON)->GetTextureID(), { buttonSize,buttonSize }) ||
+            (isWindowFocused && ctrlHeld && ImGui::IsKeyPressed(ImGuiKey_DownArrow)))
         {
             if (mVideo)
                 CommandHistory::execute(std::make_unique<CallFunctionCommand>(std::bind(&ViewportPanel::SlowDown, this), std::bind(&ViewportPanel::SpeedUp, this)));
         }
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
             ImGui::BeginTooltip();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::CTRL_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::Image((ImTextureID)Resource(CTRL_ICON)->GetTextureID(), { lineHeight ,lineHeight });
             ImGui::SameLine();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::PLUS_LOGO]->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
+            ImGui::Image((ImTextureID)Resource(PLUS_LOGO)->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
             ImGui::SameLine();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::LEFTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::Image((ImTextureID)Resource(DOWNARROW_ICON)->GetTextureID(), { lineHeight ,lineHeight });
             ImGui::EndTooltip();
         }
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton("#IconBackward", (ImTextureID)mIcons[BACKWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+        if (ImGui::ImageButton("#IconBackward", (ImTextureID)Resource(BACKWARD_ICON)->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_LeftArrow)))
         {
             if(mVideo)
@@ -369,10 +355,15 @@ namespace FrameExtractor
                 mIsPlaying = false;
             }
         }
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
             ImGui::BeginTooltip();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::LEFTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::Image((ImTextureID)Resource(LEFTARROW_ICON)->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::Image((ImTextureID)Resource(CTRL_ICON)->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)Resource(PLUS_LOGO)->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)Resource(LEFTARROW_ICON)->GetTextureID(), { lineHeight ,lineHeight });
             ImGui::EndTooltip();
         }
 
@@ -380,7 +371,7 @@ namespace FrameExtractor
 
         if (!mIsPlaying)
         {
-            if (ImGui::ImageButton("#IconPlay", (ImTextureID)mIcons[PLAY_ICON]->GetTextureID(), { buttonSize,buttonSize })
+            if (ImGui::ImageButton("#IconPlay", (ImTextureID)Resource(PLAY_ICON)->GetTextureID(), { buttonSize,buttonSize })
                 || (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_Space)))
             {
                 if(mVideo)
@@ -392,7 +383,7 @@ namespace FrameExtractor
         }
         else
         {
-            if (ImGui::ImageButton("#IconStop", (ImTextureID)mIcons[STOP_ICON]->GetTextureID(), { buttonSize,buttonSize })
+            if (ImGui::ImageButton("#IconStop", (ImTextureID)Resource((STOP_ICON))->GetTextureID(), { buttonSize,buttonSize })
                 || (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_Space)))
             {
                 if(mVideo)
@@ -401,16 +392,16 @@ namespace FrameExtractor
                 }
             }
         }
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
             ImGui::BeginTooltip();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::SPACE_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::Image((ImTextureID)Resource(SPACE_ICON)->GetTextureID(), { lineHeight ,lineHeight });
             ImGui::EndTooltip();
         }
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton("#IconForward", (ImTextureID)mIcons[FORWARD_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+        if (ImGui::ImageButton("#IconForward", (ImTextureID)Resource((FORWARD_ICON))->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && !shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
         {
             if(mVideo)
@@ -433,17 +424,22 @@ namespace FrameExtractor
                 mIsPlaying = false;
             }
         }
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
             ImGui::BeginTooltip();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::RIGHTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::Image((ImTextureID)Resource(RIGHTARROW_ICON)->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::Image((ImTextureID)Resource(CTRL_ICON)->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)Resource(PLUS_LOGO)->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
+            ImGui::SameLine();
+            ImGui::Image((ImTextureID)Resource(RIGHTARROW_ICON)->GetTextureID(), { lineHeight ,lineHeight });
             ImGui::EndTooltip();
         }
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton("#IconSlowDown", (ImTextureID)mIcons[SPEED_UP_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
-            (isWindowFocused && shiftHeld && ImGui::IsKeyPressed(ImGuiKey_RightArrow)))
+        if (ImGui::ImageButton("##IconSpeedUp", (ImTextureID)Resource(SPEED_UP_ICON)->GetTextureID(), { buttonSize,buttonSize }) ||
+            (isWindowFocused && ctrlHeld && ImGui::IsKeyPressed(ImGuiKey_UpArrow)))
         {
             if(mVideo)
             {
@@ -451,20 +447,20 @@ namespace FrameExtractor
             }
         }
 
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
             ImGui::BeginTooltip();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::CTRL_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::Image((ImTextureID)Resource(CTRL_ICON)->GetTextureID(), { lineHeight ,lineHeight });
             ImGui::SameLine();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::PLUS_LOGO]->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
+            ImGui::Image((ImTextureID)Resource(PLUS_LOGO)->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
             ImGui::SameLine();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::RIGHTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::Image((ImTextureID)Resource(UPARROW_ICON)->GetTextureID(), { lineHeight ,lineHeight });
             ImGui::EndTooltip();
         }
 
         ImGui::SameLine();
 
-        if (ImGui::ImageButton("#IconSkipToEnd", (ImTextureID)mIcons[SKIP_TO_END_ICON]->GetTextureID(), { buttonSize,buttonSize }) ||
+        if (ImGui::ImageButton("#IconSkipToEnd", (ImTextureID)Resource(SKIP_TO_END_ICON)->GetTextureID(), { buttonSize,buttonSize }) ||
             (isWindowFocused && ImGui::IsKeyPressed(ImGuiKey_End)))
         {
             if(mVideo)
@@ -473,48 +469,44 @@ namespace FrameExtractor
                 CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, mVideo->GetMaxFrames() - 1, mVideo));
             }
         }
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
             ImGui::BeginTooltip();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::SHIFT_ICON]->GetTextureID(), { lineHeight ,lineHeight });
-            ImGui::SameLine();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::PLUS_LOGO]->GetTextureID(), { lineHeight / 1.5f ,lineHeight / 1.5f });
-            ImGui::SameLine();
-            ImGui::Image((ImTextureID)mKeyIcons[KeyIcons::RIGHTARROW_ICON]->GetTextureID(), { lineHeight ,lineHeight });
+            ImGui::Image((ImTextureID)Resource(END_ICON)->GetTextureID(), { lineHeight ,lineHeight });
             ImGui::EndTooltip();
         }
 
         std::string statusText;
-        if (mIsPlaying == false && initialIn == false)
+
+
+        if (mSpeedMultiplier > 0)
         {
-			statusText = "Paused";
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(2) << mSpeedMultiplier;
+			statusText = "  " + oss.str() + " x >>" + "##ViewportControl";
 		}
-        else
+        else if (mSpeedMultiplier < 0)
         {
-            if (mSpeedMultiplier > 0)
-            {
-                std::ostringstream oss;
-                oss << std::fixed << std::setprecision(2) << mSpeedMultiplier;
-				statusText = "  " + oss.str() + " x >>";
-			}
-            else if (mSpeedMultiplier < 0)
-            {
-                std::ostringstream oss;
-                oss << std::fixed << std::setprecision(2) << -mSpeedMultiplier;
-                statusText = "<<" + oss.str() + " x   ";
-            }
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(2) << -mSpeedMultiplier;
+            statusText = "<<" + oss.str() + " x   " + "##ViewportControl";
         }
+        
 
         // Move text to middle
-        {
+        {   
+            ImGui::PushStyleColor(ImGuiCol_Button, {});
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, {});
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {});
+
             ImGui::PushFont(ImGuiManager::BoldFont);
-            ImVec2 textSize = ImGui::CalcTextSize(statusText.c_str());
-            ImVec2 textPos2 = ImGui::GetCursorScreenPos();
-            textPos2.x += (contentRegion.x - textSize.x) * 0.5f;
-            // y is next line
-            textPos2.y += ImGui::GetTextLineHeightWithSpacing() * 0.5f;
-            drawList->AddText(textPos2, IM_COL32(255, 255, 255, 255), statusText.c_str());
+            ImGui::Button(statusText.c_str(), { ImGui::GetContentRegionAvail().x , 0});
+            if (mIsPlaying == false && initialIn == false)
+            {
+                ImGui::Button("Paused##ViewportControl", {ImGui::GetContentRegionAvail().x , 0});
+            }
             ImGui::PopFont();
+            ImGui::PopStyleColor(3);
         }
 
 

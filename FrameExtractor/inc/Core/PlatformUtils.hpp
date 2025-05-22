@@ -18,6 +18,8 @@ namespace FrameExtractor
 	std::filesystem::path SaveFileDialog(const char* filter);
 
 	void CopyToClipboard(std::string text);
+
+	void HideTerminal();
 }
 
 #endif

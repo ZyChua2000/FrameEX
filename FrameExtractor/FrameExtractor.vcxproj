@@ -178,6 +178,7 @@ copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
     <ClInclude Include="inc\FrameExtractorPCH.hpp" />
     <ClInclude Include="inc\GUI\ConsolePanel.hpp" />
     <ClInclude Include="inc\GUI\ExplorerPanel.hpp" />
+    <ClInclude Include="inc\GUI\GuiResourcesManager.hpp" />
     <ClInclude Include="inc\GUI\GUIUtils.hpp" />
     <ClInclude Include="inc\GUI\IPanel.hpp" />
     <ClInclude Include="inc\GUI\ImGuiManager.hpp" />

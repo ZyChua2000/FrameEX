@@ -17,30 +17,7 @@
 #include <Graphics/BoundingBox.hpp>
 namespace FrameExtractor
 {
-	enum KeyIcons
-	{
-		CTRL_ICON,
-		SHIFT_ICON,
-		RIGHTARROW_ICON,
-		DOWNARROW_ICON,
-		LEFTARROW_ICON,
-		UPARROW_ICON,
-		SPACE_ICON,
-		PLUS_LOGO
-	};
-	enum Icons
-	{
-		PLAY_ICON,
-		STOP_ICON,
-		FORWARD_ICON,
-		BACKWARD_ICON,
-		SPEED_UP_ICON,
-		SLOW_DOWN_ICON,
-		SKIP_TO_END_ICON,
-		SKIP_TO_START_ICON,
 
-		TOTAL_ICONS
-	};
 	class ViewportPanel : public IPanel
 	{
 	public:
@@ -56,11 +33,15 @@ namespace FrameExtractor
 		inline int32_t GetFrameNumber() const { return mFrameNumber; }
 		inline float GetSpeedMultiplier() const { return mSpeedMultiplier; }
 		void SetVideo(std::filesystem::path path);
-		std::filesystem::path GetVideoPath() { return mVideo->GetPath(); }
+		void ClearVideo() { if (mVideo) delete mVideo; mVideo = nullptr; }
+		std::filesystem::path GetVideoPath() { 
+			if (mVideo) 
+				return mVideo->GetPath(); 
+			else 
+				return {};
+		}
 	private:
 		std::string mName;
-		std::map<Icons, Ref<Texture>> mIcons;
-		std::map<KeyIcons, Ref<Texture>> mKeyIcons;
 		std::map<std::filesystem::path, std::map<int32_t, std::vector<BoundingBox>>> mBBCache;
 		Video* mVideo = nullptr;
 		ImVec2 mViewportSize = ImVec2(0, 0);

@@ -15,6 +15,7 @@
 #include <map>
 #include <array>
 #include <vector>
+#include <unordered_set>
 
 //#include <rttr/variant.h>
 namespace FrameExtractor
@@ -104,6 +105,7 @@ namespace FrameExtractor
 		void CreateProject(std::string name, std::filesystem::path dir);
 		void LoadProject(std::filesystem::path path);
 		void SaveProject();
+		void SaveBackup();
 		inline std::filesystem::path GetAssetsDir() const { return mAssetDir; }
 
 
@@ -113,7 +115,7 @@ namespace FrameExtractor
 
 		std::map<StoreCode, std::map<Hour, CountData>> mCountingData;
 		std::map<Date, std::map<StoreCode, std::map<Hour, AggregateData>>> mAggregateStoreData;
-		std::vector<std::filesystem::path> mVideosInProject;
+		std::unordered_set<std::filesystem::path> mVideosInProject;
 
 	private:
 

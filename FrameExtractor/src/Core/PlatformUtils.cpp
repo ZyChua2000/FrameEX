@@ -83,6 +83,10 @@ namespace FrameExtractor
 		// Close the clipboard
 		CloseClipboard();
 	}
+	void HideTerminal()
+	{
+		::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+	}
 }
 
 

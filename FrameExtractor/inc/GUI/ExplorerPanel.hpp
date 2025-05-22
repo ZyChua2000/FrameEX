@@ -37,8 +37,6 @@ namespace FrameExtractor
 	private:
 		std::filesystem::path mCurrentPath;
 		std::filesystem::path mSelectedPath;
-		Ref<Texture> mFileIcon;
-		Ref<Texture> mFolderIcon;
 		std::map<std::filesystem::path, Cache> mCache;
 		Project* mProject;
 	};

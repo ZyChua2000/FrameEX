@@ -1554,6 +1554,9 @@
     <ClInclude Include="lib\glm\glm\vector_relational.hpp">
       <Filter>lib\glm\glm</Filter>
     </ClInclude>
+    <ClInclude Include="inc\GUI\GuiResourcesManager.hpp">
+      <Filter>inc\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\ApplicationManager.cpp">

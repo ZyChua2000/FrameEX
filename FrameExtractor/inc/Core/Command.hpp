@@ -44,14 +44,19 @@ namespace FrameExtractor
 	class CommandHistory
 	{
 	public:
-		static void execute(std::unique_ptr<ICommand> command);
+		static void execute(std::shared_ptr<ICommand> command);
 		static void undo();
 		static void redo();
+		static void markSaved();
+		static bool isDirty();
+		static bool CanRedo();
+		static bool CanUndo();
 	private:
 		static constexpr size_t MAX_HISTORY = 150;
-		static void TrimStack(std::stack<std::unique_ptr<ICommand>>& stack);
-		static std::stack<std::unique_ptr<ICommand>> undoStack;
-		static std::stack<std::unique_ptr<ICommand>> redoStack;
+		static void TrimStack(std::deque<std::shared_ptr<ICommand>>& stack);
+		static std::deque<std::shared_ptr<ICommand>> undoStack;
+		static std::deque<std::shared_ptr<ICommand>> redoStack;
+		static std::weak_ptr<ICommand> savedCommand;
 	};
 
 	template <typename PropVal>
@@ -71,6 +76,29 @@ namespace FrameExtractor
 
 		void undo() override {
 			*originalData = oldValue;
+		}
+	};
+
+	template <typename PropVal>
+	class ModifyPropertyPairCommand : public ICommand {
+	private:
+		PropVal* originalData1, *originalData2;
+		PropVal oldValue1, newValue1, oldValue2, newValue2;
+	public:
+		ModifyPropertyPairCommand(PropVal* instance1, PropVal oldVal1, PropVal newVal1, PropVal* instance2, PropVal oldVal2, PropVal newVal2)
+			: originalData1(instance1), oldValue1(oldVal1), newValue1(newVal1), originalData2(instance2), oldValue2(oldVal2), newValue2(newVal2) {
+		}
+
+		void execute() override {
+			*originalData1 = newValue1;
+			*originalData2 = newValue2;
+
+		}
+
+		void undo() override {
+			*originalData1 = oldValue1;
+			*originalData2 = oldValue2;
+
 		}
 	};
 

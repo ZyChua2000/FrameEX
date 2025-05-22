@@ -82,7 +82,23 @@ namespace YAML
                        
                     }
                     entranceTypes.mCorruptedVideos = typeMap["FrameDetails"]["CorruptedVideos"].as<std::vector<std::string>>();
-                    entranceTypes.mBlankedVideos = typeMap["FrameDetails"]["BlankedVideos"].as<std::vector<std::pair<bool,std::string>>>();
+                    const Node& blankVideoNode = typeMap["FrameDetails"]["BlankedVideos"];
+
+                    if (blankVideoNode.IsSequence()) // Ensure it's a sequence of pairs
+                    {
+                        for (const auto& blankVideo : blankVideoNode)
+                        {
+                            if (blankVideo.IsSequence() && blankVideo.size() == 2)
+                            {
+                                std::pair<bool, std::string> blankVideoPair;
+                                blankVideoPair.first = blankVideo[0].as<bool>();
+                                blankVideoPair.second = blankVideo[1].as<std::string>();
+                                entranceTypes.mBlankedVideos.push_back(blankVideoPair);
+                            }
+                        }
+                    }
+
+                    
                     const Node& frameSkipsNode = typeMap["FrameDetails"]["FrameSkips"];
                     if (frameSkipsNode.IsSequence()) // Ensure it's a sequence of pairs
                     {
@@ -472,6 +488,64 @@ namespace FrameExtractor
 
 
 
+    }
+
+    void Project::SaveBackup()
+    {
+        auto now = std::chrono::system_clock::now();
+        auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(
+            now.time_since_epoch()).count();
+        YAML::Emitter emitter;
+
+        emitter << YAML::BeginMap;
+
+        emitter << YAML::Key << "Project Name" << YAML::Value << mName;
+        emitter << YAML::Key << "Project Directory" << YAML::Value << mProjectDir.string();
+        emitter << YAML::Key << "Asset Directory" << YAML::Value << mAssetDir.string();
+
+        emitter << YAML::Key << "Counting Data" << YAML::Value << YAML::BeginMap;
+        //std::map<StoreCode, std::map<Hour, CountData>> mCountingData;
+        for (const auto& [storeCode, hourData] : mCountingData)
+        {
+            emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
+            for (const auto& [hour, data] : hourData)
+            {
+                emitter << YAML::Key << hour;
+                emitter << YAML::Value << YAML::convert<CountData>::encode(data);
+            }
+            emitter << YAML::EndMap;
+        }
+
+        emitter << YAML::EndMap;
+
+        emitter << YAML::Key << "Aggregate Data" << YAML::Value << YAML::BeginMap;
+
+        for (const auto& [date, storeData] : mAggregateStoreData)
+        {
+            emitter << YAML::Key << date << YAML::Value << YAML::BeginMap;
+
+            for (const auto& [storeCode, hourData] : storeData)
+            {
+                emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
+
+                for (const auto& [hour, data] : hourData)
+                {
+                    emitter << YAML::Key << hour;
+                    emitter << YAML::Value << YAML::convert<AggregateData>::encode(data);
+                }
+                emitter << YAML::EndMap;
+            }
+            emitter << YAML::EndMap;
+        }
+
+        emitter << YAML::EndMap;
+        emitter << YAML::EndMap;
+        std::filesystem::create_directories(mProjectFilePath.parent_path()/"Backup");
+        auto newPath = mProjectFilePath.parent_path() / "Backup" / std::to_string(timestamp);
+        newPath.replace_extension(".FrEX");
+        std::ofstream file(newPath);
+        file << emitter.c_str();
+        file.close();
     }
 
 }

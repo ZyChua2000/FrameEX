@@ -15,6 +15,7 @@
 #include <GUI/ExplorerPanel.hpp>
 #include <GUI/ImGuiManager.hpp>
 #include <GUI/GUIUtils.hpp>
+#include <GUI/GuiResourcesManager.hpp>
 #include <Core/ExcelSerialiser.hpp>
 #define ERROR_DATEFMT 1
 #define ERROR_MISSINGFIELD 2
@@ -51,7 +52,7 @@ namespace FrameExtractor
 
             {
                 auto open = ImGui::BeginTabItem("Frame Extraction##Toolsbar");
-                if (ImGui::IsItemHovered())
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 {
                     ImGui::BeginTooltip();
                     ImGui::Text("Frame Extraction Tasks");
@@ -66,7 +67,7 @@ namespace FrameExtractor
 
             {
                 auto open = ImGui::BeginTabItem("Labelling##Toolsbar");
-                if (ImGui::IsItemHovered())
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 {
                     ImGui::BeginTooltip();
                     ImGui::Text("Labelling Tasks");
@@ -233,7 +234,7 @@ namespace FrameExtractor
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
         float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
             ImGui::BeginTooltip();
             ImGui::Text("Counting Tasks (e.g. Spike Dip)");
@@ -241,9 +242,9 @@ namespace FrameExtractor
         }
         if (open)
         {
-
-            ImGui::Columns(4);
-            if (ImGui::Button("Add Entry##Counting", {ImGui::GetColumnWidth(), 0}))
+            float totalSpace = ImGui::GetContentRegionAvail().x;
+            totalSpace -= (2 * lineHeight + ImGui::GetStyle().ItemSpacing.x * 4 + ImGui::GetStyle().FramePadding.x * 3);
+            if (ImGui::ImageButton("Add Entry##Counting", Resource(Icon::ADDFILE_ICON)->GetTextureID(), { lineHeight, lineHeight }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -252,10 +253,16 @@ namespace FrameExtractor
                 else
                     ImGui::OpenPopup("AddEntryPopup##Counting");
             }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("Add Entry");
+                ImGui::EndTooltip();
+            }
 
-            ImGui::NextColumn();
+            ImGui::SameLine();
 
-            if (ImGui::Button("Clear##Counting", { ImGui::GetColumnWidth(), 0 }))
+            if (ImGui::ImageButton("Clear##Counting", Resource(Icon::CLEAR_ICON)->GetTextureID(), { lineHeight, lineHeight }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -264,10 +271,16 @@ namespace FrameExtractor
 				else
 					open_clear_popup = true;
             }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("Clear All Entries");
+                ImGui::EndTooltip();
+            }
 
-            ImGui::NextColumn();
+            ImGui::SameLine();
 
-            if (ImGui::Button("Import Data##Counting", { ImGui::GetColumnWidth(), 0 }))
+            if (ImGui::ImageButton("Import Data##Counting", Resource(Icon::IMPORT_ICON)->GetTextureID(), { lineHeight ,lineHeight  }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -287,9 +300,15 @@ namespace FrameExtractor
                     }
                 }
             }
-            ImGui::NextColumn();
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("Import Data (.xlsx)");
+                ImGui::EndTooltip();
+            }
+            ImGui::SameLine();
 
-            if (ImGui::Button("Export Data##Counting", { ImGui::GetColumnWidth(), 0 }))
+            if (ImGui::ImageButton("Export Data##Counting", Resource(Icon::EXPORT_ICON)->GetTextureID(), { lineHeight, lineHeight }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -303,8 +322,13 @@ namespace FrameExtractor
                 }
 
             }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("Export Data (.xlsx)");
+                ImGui::EndTooltip();
+            }
 
-            ImGui::Columns(1);
 
             ImGui::SetNextWindowSize({ 270 * ImGuiManager::styleMultiplier, 120 * ImGuiManager::styleMultiplier + 40 }, ImGuiCond_Always);
             if (ImGui::BeginPopup("AddEntryPopup##Counting", ImGuiWindowFlags_NoMove))
@@ -371,14 +395,26 @@ namespace FrameExtractor
 
             ImVec2 windowSize = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("ScrollableRegion##Counting", ImVec2(windowSize.x, windowSize.y), true);
-
-            if (ImGui::ArrowButton("##CountingPageBack", ImGuiDir_Left))
+            if (mCountingPage.mStorePage > 0)
             {
-                if (mCountingPage.mStorePage > 0)
+                if (ImGui::ArrowButton("##CountingPageBack", ImGuiDir_Left))
                 {
+
                     CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mCountingPage.mStorePage, mCountingPage.mStorePage, mCountingPage.mStorePage - 1));
+
                 }
-           }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("Previous Store");
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                ImGui::InvisibleButton("##DummyArrow1", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
+            }
+           
             ImGui::SameLine();
 
             float spacing = ImGui::GetStyle().ItemSpacing.x;
@@ -477,17 +513,41 @@ namespace FrameExtractor
             // Ensure SameLine aligns the arrow correctly
             ImGui::SameLine();  // This forces the next item to be on the same line
 
-            if (ImGui::ArrowButton("##CountingPageNext", ImGuiDir_Right))
+
+            if (mCountingPage.mStorePage + 1< mCountingData.size())
             {
-                if (mCountingPage.mStorePage < mCountingData.size() - 1)
+                if (ImGui::ArrowButton("##CountingPageNext", ImGuiDir_Right))
+                {
+
                     CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mCountingPage.mStorePage, mCountingPage.mStorePage, mCountingPage.mStorePage + 1));
+                }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("Next Store");
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                ImGui::InvisibleButton("##DummyArrow2", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
             }
 
-            ImGui::SameLine();
-            if (ImGui::Button("...##CountingSettings", { lineHeight, 0 }))
+            if (!mCountingData.empty())
             {
-                ImGui::OpenPopup("StoreSettings##Counting");
+                ImGui::SameLine();
+                if (ImGui::ImageButton("##CountingPageSettings", Resource(Icon::SETTINGS_ICON)->GetTextureID(), {ImGui::GetFontSize(), ImGui::GetFontSize() }))
+                {
+                    ImGui::OpenPopup("StoreSettings##Counting");
+                }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("Store Settings");
+                    ImGui::EndTooltip();
+                }
             }
+
  
             ImGui::Separator();
             ImGui::Spacing();
@@ -667,12 +727,26 @@ namespace FrameExtractor
                                         ImGui::PopFont();
                                         ImGui::NextColumn();
                                         auto buffer = Data.mCustomer;
-                                        if (ImGui::InputInt("##Customer##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                        if (ImGui::InputInt("##Customer##Counting", &buffer, 0, 0, ImGuiInputTextFlags_CharsDecimal))
                                         {
                                             CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, buffer));
                                         }
+                                        
+                                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("-##Customer##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, Data.mCustomer - 1));
+                                        }
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("+##Customer##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, Data.mCustomer + 1));
+                                        }
+                                        ImGui::PopStyleVar();
                                         ImGui::NextColumn();
-
                                     }
 
 
@@ -682,10 +756,24 @@ namespace FrameExtractor
                                         ImGui::PopFont();
                                         ImGui::NextColumn();
                                         auto buffer = Data.mReCustomer;
-                                        if (ImGui::InputInt("##ReCustomer##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                        if (ImGui::InputInt("##ReCustomer##Counting", &buffer, 0, 0, ImGuiInputTextFlags_CharsDecimal))
                                         {
                                             CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mReCustomer, Data.mReCustomer, buffer));
                                         }
+                                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("-##ReCustomer##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyPairCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, Data.mCustomer - 1, &Data.mReCustomer, Data.mReCustomer, Data.mReCustomer - 1));
+                                        }
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("+##ReCustomer##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyPairCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, Data.mCustomer + 1, &Data.mReCustomer, Data.mReCustomer, Data.mReCustomer + 1));
+                                        }
+                                        ImGui::PopStyleVar();
                                         ImGui::NextColumn();
 
                                     }
@@ -696,10 +784,24 @@ namespace FrameExtractor
                                         ImGui::PopFont();
                                         ImGui::NextColumn();
                                         auto buffer = Data.mSuspectedStaff;
-                                        if (ImGui::InputInt("##SusStaff##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                        if (ImGui::InputInt("##SusStaff##Counting", &buffer, 0, 0, ImGuiInputTextFlags_CharsDecimal))
                                         {
                                             CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mSuspectedStaff, Data.mSuspectedStaff, buffer));
                                         }
+                                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("-##mSuspectedStaff##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mSuspectedStaff, Data.mSuspectedStaff, Data.mSuspectedStaff - 1));
+                                        }
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("+##mSuspectedStaff##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mSuspectedStaff, Data.mSuspectedStaff, Data.mSuspectedStaff + 1));
+                                        }
+                                        ImGui::PopStyleVar();
                                         ImGui::NextColumn();
 
                                     }
@@ -710,10 +812,24 @@ namespace FrameExtractor
                                         ImGui::PopFont();
                                         ImGui::NextColumn();
                                         auto buffer = Data.mReSuspectedStaff;
-                                        if (ImGui::InputInt("##ReSusStaff##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                        if (ImGui::InputInt("##ReSusStaff##Counting", &buffer, 0, 0, ImGuiInputTextFlags_CharsDecimal))
                                         {
                                             CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mReSuspectedStaff, Data.mReSuspectedStaff, buffer));
                                         }
+                                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("-##ReSusStaff##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyPairCommand<int32_t>>(&Data.mSuspectedStaff, Data.mSuspectedStaff, Data.mSuspectedStaff - 1, &Data.mReSuspectedStaff, Data.mReSuspectedStaff, Data.mReSuspectedStaff - 1));
+                                        }
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("+##ReSusStaff##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyPairCommand<int32_t>>(&Data.mSuspectedStaff, Data.mSuspectedStaff, Data.mSuspectedStaff + 1, &Data.mReSuspectedStaff, Data.mReSuspectedStaff, Data.mReSuspectedStaff + 1));
+                                        }
+                                        ImGui::PopStyleVar();
                                         ImGui::NextColumn();
 
                                     }
@@ -724,10 +840,24 @@ namespace FrameExtractor
                                         ImGui::PopFont();
                                         ImGui::NextColumn();
                                         auto buffer = Data.mChildren;
-                                        if (ImGui::InputInt("##Children##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                        if (ImGui::InputInt("##Children##Counting", &buffer, 0, 0, ImGuiInputTextFlags_CharsDecimal))
                                         {
                                             CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mChildren, Data.mChildren, buffer));
                                         }
+                                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("-##Children##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mChildren, Data.mChildren, Data.mChildren - 1));
+                                        }
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("+##Children##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mChildren, Data.mChildren, Data.mChildren + 1));
+                                        }
+                                        ImGui::PopStyleVar();
                                         ImGui::NextColumn();
 
                                     }
@@ -738,10 +868,24 @@ namespace FrameExtractor
                                         ImGui::PopFont();
                                         ImGui::NextColumn();
                                         auto buffer = Data.mReChildren;
-                                        if (ImGui::InputInt("##ReChildren##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                        if (ImGui::InputInt("##ReChildren##Counting", &buffer, 0, 0, ImGuiInputTextFlags_CharsDecimal))
                                         {
                                             CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mReChildren, Data.mReChildren, buffer));
                                         }
+                                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("-##ReChildren##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyPairCommand<int32_t>>(&Data.mChildren, Data.mChildren, Data.mChildren - 1, &Data.mReChildren, Data.mReChildren, Data.mReChildren - 1));
+                                        }
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("+##ReChildren##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyPairCommand<int32_t>>(&Data.mChildren, Data.mChildren, Data.mChildren + 1, &Data.mReChildren, Data.mReChildren, Data.mReChildren + 1));
+                                        }
+                                        ImGui::PopStyleVar();
                                         ImGui::NextColumn();
 
                                     }
@@ -751,10 +895,24 @@ namespace FrameExtractor
                                         ImGui::PopFont();
                                         ImGui::NextColumn();
                                         auto buffer = Data.mOthers;
-                                        if (ImGui::InputInt("##Others##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                        if (ImGui::InputInt("##Others##Counting", &buffer, 0, 0, ImGuiInputTextFlags_CharsDecimal))
                                         {
                                             CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mOthers, Data.mOthers, buffer));
                                         }
+                                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("-##Others##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mOthers, Data.mOthers, Data.mOthers - 1));
+                                        }
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("+##Others##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mOthers, Data.mOthers, Data.mOthers + 1));
+                                        }
+                                        ImGui::PopStyleVar();
                                         ImGui::NextColumn();
 
                                     }
@@ -765,10 +923,23 @@ namespace FrameExtractor
                                         ImGui::PopFont();
                                         ImGui::NextColumn();
                                         auto buffer = Data.mReOthers;
-                                        if (ImGui::InputInt("##ReOthers##Counting", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+                                        if (ImGui::InputInt("##ReOthers##Counting", &buffer, 0, 0, ImGuiInputTextFlags_CharsDecimal))
                                         {
                                             CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mReOthers, Data.mReOthers, buffer));
                                         }
+                                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("-##ReOthers##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyPairCommand<int32_t>>(&Data.mOthers, Data.mOthers, Data.mOthers - 1, &Data.mReOthers, Data.mReOthers, Data.mReOthers - 1));
+                                        }
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("+##ReOthers##Counting", { lineHeight, 0 }))
+                                        {
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyPairCommand<int32_t>>(&Data.mOthers, Data.mOthers, Data.mOthers + 1, &Data.mReOthers, Data.mReOthers, Data.mReOthers + 1));
+                                        }
+                                        ImGui::PopStyleVar();
                                         ImGui::NextColumn();
 
                                     }
@@ -1132,7 +1303,7 @@ namespace FrameExtractor
         bool open_error_popup = false;
         auto& mAggregateStoreData = mProject->mAggregateStoreData;
         auto open = ImGui::BeginTabItem("Aggregate##Toolsbar");
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
             ImGui::BeginTooltip();
             ImGui::Text("Aggregate Tasks");
@@ -1471,7 +1642,7 @@ namespace FrameExtractor
                                     mAggregateStoreData[date][store].erase(time);
                                     break;
                                 }
-                                if (ImGui::IsItemHovered())
+                                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                                 {
                                     ImGui::BeginTooltip();
                                     ImGui::Text("Remove this timing");
@@ -1524,7 +1695,7 @@ namespace FrameExtractor
                                                 break;
                                             }
                                         }
-                                        if (ImGui::IsItemHovered())
+                                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                                         {
                                             ImGui::BeginTooltip();
                                             ImGui::Text("Remove this entrance");

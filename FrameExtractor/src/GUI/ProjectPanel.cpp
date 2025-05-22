@@ -14,6 +14,7 @@
 #include <GUI/ExplorerPanel.hpp>
 #include <GUI/ViewportPanel.hpp>
 #include <GUI/ImGuiManager.hpp>
+#include <Core/Command.hpp>
 namespace FrameExtractor
 {
     ProjectPanel::ProjectPanel(ExplorerPanel* ex, ViewportPanel* vp, Project* project) : ExPanel(ex), VpPanel(vp), mProject(project)
@@ -28,7 +29,14 @@ namespace FrameExtractor
         //ImGui::SetNextWindowSize(mViewportSize);
         //ImGui::SetNextWindowPos(mViewportPos);
         auto& videosInProject = mProject->mVideosInProject;
-        ImGui::Begin("Project");
+        if (CommandHistory::isDirty())
+        {
+            ImGui::Begin("Project*###ProjectWindow");
+        }
+        else
+        {
+            ImGui::Begin("Project###ProjectWindow");
+        }
 
         ImVec2 windowSize = ImGui::GetContentRegionAvail();
         ImGui::BeginChild("ScrollableRegion", {}, ImGuiChildFlags_Border);
@@ -51,7 +59,9 @@ namespace FrameExtractor
             // Accept the dragged payload
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("IMPORTVIDEO")) {
                 const char* droppedItem = static_cast<const char*>(payload->Data);
-                videosInProject.push_back(droppedItem);
+
+                videosInProject.insert(droppedItem);
+                
             }
             ImGui::EndDragDropTarget();
         }
@@ -68,6 +78,7 @@ namespace FrameExtractor
             if (ImGui::MenuItem("Clear Project Files##ProjectPanel"))
             {
                 videosInProject.clear();
+                VpPanel->ClearVideo();
             }
             // Close the popup
             ImGui::EndPopup();
@@ -77,7 +88,8 @@ namespace FrameExtractor
         auto regionAvail = ImGui::GetContentRegionAvail();
         float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
         int deletionTrack = 0;
-        int deletionMark = -1;
+        int distance = 0;
+        std::filesystem::path deletionMark{};
         for (const auto& entry : videosInProject)
         {
             std::string fileName = entry.filename().string();
@@ -85,17 +97,22 @@ namespace FrameExtractor
 
             if (ImGui::Button(("-##ProjectList" + filePath).c_str(), {lineHeight, lineHeight}))
             {
-                deletionMark = deletionTrack;
+                deletionMark = entry;
+                distance = deletionTrack;
             }
 
             ImGui::SameLine();
-
+            auto vpPath = VpPanel->GetVideoPath();
+            if (VpPanel->GetVideoPath() == entry)
+                ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_Header));
+            else
+                ImGui::PushStyleColor(ImGuiCol_Button, {});
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive));
+            ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, { 0,0, });
             ImGui::Button((fileName + " [" + std::to_string(ExPanel->GetCache(entry).mMaxFrames) + "]").c_str(), {regionAvail.x - lineHeight - ImGui::GetStyle().FramePadding.y * 2.0f, lineHeight});
-            if (ImGui::BeginDragDropSource())
-            {
-                ImGui::SetDragDropPayload("ITEM_NAME", filePath.c_str(), filePath.size() + 1);
-                ImGui::EndDragDropSource();
-            }
+            ImGui::PopStyleVar();
+            ImGui::PopStyleColor(3);
 
             if (ImGui::IsItemHovered() )  // 0 = left mouse button
             {
@@ -109,24 +126,35 @@ namespace FrameExtractor
                 ImGui::Image((ImTextureID)ExPanel->GetCache(entry).mTexture->GetTextureID(), { printedThumbnailSize ,printedThumbnailSize });
                 ImGui::EndTooltip();
             }
+            if (ImGui::BeginDragDropSource())
+            {
+                ImGui::SetDragDropPayload("ITEM_NAME", filePath.c_str(), filePath.size() + 1);
+                ImGui::EndDragDropSource();
+            }
             deletionTrack++;
         }
-        if (deletionMark != -1)
+        if (!deletionMark.empty())
         {
-            if (std::filesystem::absolute(VpPanel->GetVideoPath()) == std::filesystem::absolute(videosInProject[deletionMark]))
+            if (std::filesystem::absolute(VpPanel->GetVideoPath()) == std::filesystem::absolute(deletionMark))
             {
-                if (deletionMark == 0)
+                if (distance == 0)
                 {
                     if (videosInProject.size() > 1)
-                        VpPanel->SetVideo(videosInProject[1]);
+                        VpPanel->SetVideo(*(++videosInProject.begin()));
 
                 }
                 else
                 {
-                    VpPanel->SetVideo(videosInProject[deletionMark - 1]);
+                    auto it = videosInProject.begin();
+                    std::advance(it, distance - 1);
+                    VpPanel->SetVideo(*it);
                 }
             }
-            videosInProject.erase(videosInProject.begin() + deletionMark);
+            videosInProject.erase(deletionMark);
+            if (videosInProject.empty())
+            {
+                VpPanel->ClearVideo();
+            }
         }
         ImGui::EndChild();
         ImGui::End();
@@ -137,7 +165,7 @@ namespace FrameExtractor
         return "Project";
     }
     
-    static void AddDirectoryRecursive(const std::filesystem::directory_entry& currEntry, std::vector<std::filesystem::path>& videosInProject)
+    static void AddDirectoryRecursive(const std::filesystem::directory_entry& currEntry, std::unordered_set<std::filesystem::path>& videosInProject)
     {
         if (currEntry.is_directory())
         {
@@ -148,7 +176,7 @@ namespace FrameExtractor
         }
         else if (currEntry.path().filename().extension() == ".mp4")
         {
-            videosInProject.push_back(currEntry.path());
+            videosInProject.insert(currEntry.path());
         }
         
     }
