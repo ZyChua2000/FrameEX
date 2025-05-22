@@ -169,53 +169,59 @@ namespace FrameExtractor
         return IntDayToSuffix(day) + " " + MonthToString(month) + " " + std::to_string(year);
     }
 
-    std::string ToolsPanel::ExportAggregateStoreDataAsString()
+    std::string ToolsPanel::ExportAggregateStoreDataAsString(int date)
     {
         std::stringstream ss;
         ss << "Hi all, Mailers and additional checks done:" << std::endl << "Anu Selma Jose" << std::endl << std::endl;
-        for (auto& [date, storetimedata] : mProject->mAggregateStoreData)
+        for (auto& [store, timeNData] : mProject->mAggregateStoreData)
         {
             ss << DateIntToStr(date) << ":" << std::endl << std::endl;
-            for (auto& [store, timeNData] : storetimedata)
+ 
+            for (auto& [time, data] : timeNData)
             {
-                for (auto& [time, data] : timeNData)
+
+                std::string reformattedDate = std::to_string(date);
+                // change date from DDMMYYYY to YYYYMMDD
+                std::string year = reformattedDate.substr(4, 4);
+                std::string month = reformattedDate.substr(2, 2);
+                std::string day = reformattedDate.substr(0, 2);
+                reformattedDate = year + month + day;
+                ss << store << ", " << data.StoreID << ", " << reformattedDate << ", "  << time << ", " << (int)data.Enters << ", " << (int)data.Exit << " -> " <<
+                    data.mCustomer << " Customers";
+                int idx = 1;
+                for (auto& entrance : data.Entrance)
                 {
-
-                    std::string reformattedDate = std::to_string(date);
-                    // change date from DDMMYYYY to YYYYMMDD
-                    std::string year = reformattedDate.substr(4, 4);
-                    std::string month = reformattedDate.substr(2, 2);
-                    std::string day = reformattedDate.substr(0, 2);
-                    reformattedDate = year + month + day;
-                    ss << store << ", " << data.StoreID << ", " << reformattedDate << ", "  << time << ", " << (int)data.Enters << ", " << (int)data.Exit << " -> " <<
-                        data.mCustomer << " Customers";
-                    int idx = 1;
-                    for (auto& entrance : data.Entrance)
+                    if (data.Entrance.size() > 1)
                     {
-                        if (data.Entrance.size() > 1)
-                        {
-                            ss << std::endl << "E" << idx;
-                        }
-                        for (auto& frameSkip : entrance.mFrameSkips)
-                        {
-                            ss << ", Video Skips from: " << frameSkip.first << " to " << frameSkip.second;              
-                        }
-
-                        for (auto& blankVideo : entrance.mBlankedVideos)
-                        {
-                            ss << ", Video blanks after " << blankVideo;
-                        }
-
-                        for (auto& corruptedVideo : entrance.mCorruptedVideos)
-                        {
-                            ss << ", Video " << corruptedVideo << " is corrupted";
-                        }
-                        idx++;
+                        ss << std::endl << "E" << idx;
                     }
-                    ss << "\n";
+                    for (auto& frameSkip : entrance.mFrameSkips)
+                    {
+                        ss << ", Video Skips from: " << frameSkip.first << " to " << frameSkip.second;              
+                    }
+
+                    for (auto& blankVideo : entrance.mBlankedVideos)
+                    {
+                        if (blankVideo.first)
+                        {
+                            ss << ", Video starts after " << blankVideo.second;
+                        }
+                        else
+                        {
+                            ss << ", Video blanks after " << blankVideo.second;
+                        }
+                    }
+
+                    for (auto& corruptedVideo : entrance.mCorruptedVideos)
+                    {
+                        ss << ", Video " << corruptedVideo << " is corrupted";
+                    }
+                    idx++;
                 }
-                ss << std::endl;
+                ss << "\n";
             }
+            ss << std::endl;
+            
             ss << 
                 "Spike dip for " << IntDayToSuffix(date / 1000000) << " " << 
                 MonthToString((date / 10000) % 100) << " counted" << std::endl;
@@ -242,8 +248,6 @@ namespace FrameExtractor
         }
         if (open)
         {
-            float totalSpace = ImGui::GetContentRegionAvail().x;
-            totalSpace -= (2 * lineHeight + ImGui::GetStyle().ItemSpacing.x * 4 + ImGui::GetStyle().FramePadding.x * 3);
             if (ImGui::ImageButton("Add Entry##Counting", Resource(Icon::ADDFILE_ICON)->GetTextureID(), { lineHeight, lineHeight }))
             {
                 if (!mProject->IsProjectLoaded())
@@ -371,7 +375,7 @@ namespace FrameExtractor
                                 }
                             }
                         }
-                        CommandHistory::execute(std::make_unique<AddStoreEntry>(&mCountingData, storeID, mEntranceBuffer, mTimeBuffer));
+                        CommandHistory::execute(std::make_unique<AddStoreEntryCounting>(&mCountingData, storeID, mEntranceBuffer, mTimeBuffer));
 
                         mEntranceBuffer = 1;
                         mTimeBuffer = 0;
@@ -433,7 +437,7 @@ namespace FrameExtractor
                 {
                     if (mCountingPage.mStorePage >= mCountingData.size())
                     {
-                        mCountingPage.mStorePage = mCountingData.size() - 1;
+                        mCountingPage.mStorePage = (int)mCountingData.size() - 1;
                     }
 
                     auto StorePageIT = mCountingData.begin();
@@ -1300,9 +1304,12 @@ namespace FrameExtractor
 
     void ToolsPanel::AggregateTab()
     {
+        bool open_clear_popup = false;
         bool open_error_popup = false;
+        bool delete_store_popup = false;
         auto& mAggregateStoreData = mProject->mAggregateStoreData;
         auto open = ImGui::BeginTabItem("Aggregate##Toolsbar");
+        float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
         {
             ImGui::BeginTooltip();
@@ -1311,8 +1318,7 @@ namespace FrameExtractor
         }
         if (open)
         {
-            ImGui::Columns(4);
-            if (ImGui::Button("Add Entry##Aggregate", {ImGui::GetColumnWidth(), 0}))
+            if (ImGui::ImageButton("Add Entry##Aggregate", Resource(Icon::ADDFILE_ICON)->GetTextureID(), { lineHeight, lineHeight }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -1321,17 +1327,34 @@ namespace FrameExtractor
                 else
                     ImGui::OpenPopup("AddEntryPopup##Aggregate");
             }
-
-            ImGui::NextColumn();
-
-            if (ImGui::Button("Clear##Aggregate", { ImGui::GetColumnWidth(), 0 }))
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
             {
-                mAggregateStoreData.clear();
+                ImGui::BeginTooltip();
+                ImGui::Text("Add Entry");
+                ImGui::EndTooltip();
             }
 
-            ImGui::NextColumn();
+            ImGui::SameLine();
 
-            if (ImGui::Button("Import Data##Aggregate", { ImGui::GetColumnWidth(), 0 }))
+            if (ImGui::ImageButton("Clear##Aggregate", Resource(Icon::CLEAR_ICON)->GetTextureID(), { lineHeight, lineHeight }))
+            {
+                if (!mProject->IsProjectLoaded())
+                {
+                    open_error_popup = true;
+                }
+                else
+                    open_clear_popup = true;
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("Clear All Entries");
+                ImGui::EndTooltip();
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::ImageButton("Import Data##Aggregate", Resource(Icon::IMPORT_ICON)->GetTextureID(), { lineHeight ,lineHeight }))
             {
                 if (!mProject->IsProjectLoaded())
                 {
@@ -1343,7 +1366,7 @@ namespace FrameExtractor
                     if (std::filesystem::exists(spikeDipFile))
                     {
                         ExcelSerialiser serialiser(spikeDipFile);
-                        mProject->mAggregateStoreData = serialiser.ImportAggregatorReport();
+                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::map<Project::StoreCode, std::map<Project::Hour, AggregateData>>>>(&mProject->mAggregateStoreData, mProject->mAggregateStoreData, serialiser.ImportAggregatorReport()));
                     }
                     else
                     {
@@ -1351,51 +1374,41 @@ namespace FrameExtractor
                     }
                 }
             }
-            ImGui::NextColumn();
-
-            if (ImGui::Button("Export Data##Aggregate", { ImGui::GetColumnWidth(), 0 }))
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
             {
+                ImGui::BeginTooltip();
+                ImGui::Text("Import Data (.xlsx)");
+                ImGui::EndTooltip();
+            }
+            ImGui::SameLine();
 
+            if (ImGui::ImageButton("Export Data##Aggregate", Resource(Icon::EXPORT_ICON)->GetTextureID(), { lineHeight, lineHeight }))
+            {
                 if (!mProject->IsProjectLoaded())
                 {
                     open_error_popup = true;
                 }
-                else
-                {
-                    auto text = ExportAggregateStoreDataAsString();
-                    APP_CORE_INFO("{}", text.c_str());
-                    CopyToClipboard(text);
+                else {
+                    ExportAggregateStoreDataAsString(12082025);
                 }
 
             }
-
-            ImGui::Columns(1);
-            if (errorCodeBool)
-                ImGui::SetNextWindowSize({ 284 * ImGuiManager::styleMultiplier, 310 * ImGuiManager::styleMultiplier + 40 }, ImGuiCond_Always);
-            else
-                ImGui::SetNextWindowSize({ 270 * ImGuiManager::styleMultiplier, 260 * ImGuiManager::styleMultiplier + 40 }, ImGuiCond_Always);
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("Export Data (.xlsx)");
+                ImGui::EndTooltip();
+            }
+            ImGui::SetNextWindowSize({ 270 * ImGuiManager::styleMultiplier, 120 * ImGuiManager::styleMultiplier + 40 }, ImGuiCond_Always);
             if (ImGui::BeginPopup("AddEntryPopup##Aggregate", ImGuiWindowFlags_NoMove))
             {
-                ImGui::Columns(2);
-                ImGui::SetColumnWidth(0, 120 * ImGuiManager::styleMultiplier);
-                ImGui::Text("Shopper ID: ");
-                ImGui::NextColumn();
-                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
-                ImGui::InputText("##Store Code##Aggregate: ", mStoreCodeBuffer, 16);
-                ImGui::NextColumn();
 
+                ImGui::Columns(2);
                 ImGui::SetColumnWidth(0, 120 * ImGuiManager::styleMultiplier);
                 ImGui::Text("Store Code: ");
                 ImGui::NextColumn();
                 ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
-                ImGui::InputText("##ShopperID##Aggregate: ", shopperIDBuffer, IM_ARRAYSIZE(shopperIDBuffer));
-                ImGui::NextColumn();
-
-                ImGui::SetColumnWidth(0, 120 * ImGuiManager::styleMultiplier);
-                ImGui::Text("Date: ");
-                ImGui::NextColumn();
-                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
-                ImGui::InputText("##Date##Aggregate: ", dateBuffer, IM_ARRAYSIZE(dateBuffer), ImGuiInputTextFlags_CharsDecimal);
+                ImGui::InputText("##Store Code##Aggregate: ", mStoreCodeBuffer, 16);
                 ImGui::NextColumn();
 
                 ImGui::Text("Hour: ");
@@ -1404,104 +1417,35 @@ namespace FrameExtractor
                 ImGui::InputInt("##Hour:##Aggregate ", &mTimeBuffer, 1, 1);
                 ImGui::NextColumn();
 
-                ImGui::Text("Enters: ");
-                ImGui::NextColumn();
-                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
-                ImGui::InputInt("##Enters:##Aggregate ", &mEnterBuffer, 1, 1);
-                ImGui::NextColumn();
-
-                ImGui::Text("Exit: ");
-                ImGui::NextColumn();
-                ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
-                ImGui::InputInt("##Exit:##Aggregate ", &mExitBuffer, 1, 1);
-                ImGui::NextColumn();
-
                 ImGui::Text("Entrances: ");
                 ImGui::NextColumn();
                 ImGui::SetNextItemWidth(130 * ImGuiManager::styleMultiplier);
                 ImGui::InputInt("##Entrances##Aggregate: ", &mEntranceBuffer, 1, 1);
                 ImGui::Columns(1);
                 ImGui::Separator();
-                int Error = ERROR_NONE;
                 if (ImGui::Button("Confirm"))
                 {
                     std::string storeID(mStoreCodeBuffer);
-                    if (std::string(dateBuffer) == "" || storeID == "" || std::string(shopperIDBuffer) == "")
+                    if (storeID != "")
                     {
-                        errorCodeBool = true;
-                        Error = ERROR_MISSINGFIELD;
-
-                    }
-                    else if (std::string(dateBuffer).length() < 8)
-                    {
-                        Error = ERROR_DATEFMT;
-                        errorCodeBool = true;
-                    }
-                    else {
-                        int date = std::stoi(dateBuffer);
-                        if (storeID != "")
+                        std::memset(mStoreCodeBuffer, 0, 16);
+                        if (!mAggregateStoreData.contains(storeID))
                         {
-                            std::string DD = std::string(dateBuffer).substr(0, 2);
-                            std::string MM = std::string(dateBuffer).substr(2, 2);
-
-                            int DDInt = std::stoi(DD);
-                            int MMInt = std::stoi(MM);
-
-                            if (DDInt > 31 || MMInt > 12)
-                            {
-                                Error = ERROR_DATEFMT;
-                                errorCodeBool = true;
-                            }
-
-                            else
-                            {
-                                std::memset(mStoreCodeBuffer, 0, 16);
-                                if (!mAggregateStoreData.contains(date))
+                            if (!mAggregateStoreData.empty()) {
+                                auto currentIT = mAggregateStoreData.begin();
+                                std::advance(currentIT, mAggregatePage.mStorePage);
+                                if (currentIT->first > storeID)
                                 {
-                                    mAggregateStoreData[date] = {};
+                                    mAggregatePage.mStorePage++;
                                 }
-
-                                if (!mAggregateStoreData[date].contains(storeID))
-                                {
-                                    mAggregateStoreData[date][storeID] = {};
-                                }
-
-                                if (!mAggregateStoreData[date][storeID].empty())
-                                {
-                                    if (mEntranceBuffer > mAggregateStoreData[date][storeID].begin()->second.Entrance.size())
-                                    {
-                                        for (auto& [time, counter] : mAggregateStoreData[date][storeID])
-                                        {
-                                            counter.Entrance.resize(mEntranceBuffer, {});
-                                        }
-                                    }
-                                    else
-                                    {
-                                        mEntranceBuffer = mAggregateStoreData[date][storeID].begin()->second.Entrance.size();
-                                    }
-                                }
-
-                                if (!mAggregateStoreData[date][storeID].contains(mTimeBuffer))
-                                {
-                                    mAggregateStoreData[date][storeID][mTimeBuffer] = {};
-                                    mAggregateStoreData[date][storeID][mTimeBuffer].StoreID = shopperIDBuffer;
-                                    mAggregateStoreData[date][storeID][mTimeBuffer].Enters = mEnterBuffer;
-                                    mAggregateStoreData[date][storeID][mTimeBuffer].Exit = mExitBuffer;
-
-                                    std::memset(dateBuffer, 0, 9);
-                                    std::memset(shopperIDBuffer, 0, 16);
-                                    mEnterBuffer = 0;
-                                    mExitBuffer = 0;
-                                }
-                                for (int i = 0; i < mEntranceBuffer; i++)
-                                    mAggregateStoreData[date][storeID][mTimeBuffer].Entrance.push_back({});
-                                mEntranceBuffer = 1;
-                                mTimeBuffer = 0;
-                                errorCodeBool = false;
-                                ImGui::CloseCurrentPopup();
                             }
                         }
+                        CommandHistory::execute(std::make_unique<AddStoreAggregateEntry>(&mAggregateStoreData, storeID, mEntranceBuffer, mTimeBuffer));
+
+                        mEntranceBuffer = 1;
+                        mTimeBuffer = 0;
                     }
+                    ImGui::CloseCurrentPopup();
                 }
 
                 ImGui::SameLine();
@@ -1511,359 +1455,599 @@ namespace FrameExtractor
                     std::memset(mStoreCodeBuffer, 0, 16);
                     mEntranceBuffer = 1;
                     mTimeBuffer = 0;
-                    std::memset(dateBuffer, 0, 9);
-                    std::memset(shopperIDBuffer, 0, 16);
-                    mEnterBuffer = 0;
-                    mExitBuffer = 0;
                     ImGui::CloseCurrentPopup();
-                    errorCodeBool = false;
                 }
 
-                if (errorCodeBool == true)
-                {
-                    if (Error == ERROR_DATEFMT)
-                    {
-                        errorLine1 = "Invalid Date Format!";
-                        errorLine2 = "Please enter date in DDMMYYYY.";
-                    }
-                    else if (Error == ERROR_MISSINGFIELD)
-                    {
-                        errorLine1 = "Please fill all fields!";
-                        errorLine2 = "";
-                    }
-                    ImGui::Separator();
-                    ImGui::TextColored({ 1,0.2f,0.2f,1 }, errorLine1.c_str());
-                    ImGui::TextColored({ 1,0.2f,0.2f,1 }, errorLine2.c_str());
-                }
                 ImGui::EndPopup();
             }
 
-
-
             ImVec2 windowSize = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("ScrollableRegion##Aggregate", ImVec2(windowSize.x, windowSize.y), true);
-            for (auto& [date, storetimedata] : mAggregateStoreData)
+            if (mAggregatePage.mStorePage > 0)
             {
-                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
-                std::string dateFmt = std::to_string(date);
-                if (dateFmt.length() < 8)
+                if (ImGui::ArrowButton("##AggregatePageBack", ImGuiDir_Left))
                 {
-                    dateFmt = "0" + dateFmt;
+
+                    CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mAggregatePage.mStorePage, mAggregatePage.mStorePage, mAggregatePage.mStorePage - 1));
+
                 }
-                dateFmt.insert(2, "/");
-                dateFmt.insert(5, "/");
-
-
-                if (ImGui::CollapsingHeader((dateFmt + "##Aggregate").c_str(), ImGuiTreeNodeFlags_AllowItemOverlap))
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 {
-                    float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+                    ImGui::BeginTooltip();
+                    ImGui::Text("Previous Store");
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                ImGui::InvisibleButton("##DummyArrow1", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
+            }
 
-                    ImGui::Indent(lineHeight);
-                    for (auto& [store, timeNData] : storetimedata)
+            ImGui::SameLine();
+
+            float spacing = ImGui::GetStyle().ItemSpacing.x;
+            float arrow_button_width = ImGui::GetFrameHeight(); // Arrow buttons are square
+            float total_spacing = spacing * 3; // space between 3 items
+
+            // Calculate remaining width
+            float remaining_width = ImGui::GetContentRegionAvail().x;
+            float middle_button_width = remaining_width - (arrow_button_width * 2 + total_spacing);
+
+            std::string PageNumStr = "NIL";
+
+            if (!mProject->IsProjectLoaded()) PageNumStr = "No Project Loaded";
+            else
+                if (!mAggregateStoreData.empty())
+                {
+                    if (mAggregatePage.mStorePage >= mAggregateStoreData.size())
                     {
-                        auto ContentRegionAvailable = ImGui::GetContentRegionAvail();
+                        mAggregatePage.mStorePage = (int)mAggregateStoreData.size() - 1;
+                    }
 
-                        bool open = ImGui::CollapsingHeader(store.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
-                        ImGui::SameLine(ContentRegionAvailable.x + lineHeight * 0.5f); // Align to right (Button)
-                        if (ImGui::Button(("+##AddOptions##Aggregate" + store).c_str(), ImVec2{ lineHeight,lineHeight }))
+                    auto StorePageIT = mAggregateStoreData.begin();
+                    std::advance(StorePageIT, mAggregatePage.mStorePage);
+                    PageNumStr = (StorePageIT->first);
+                }
+
+            std::vector<std::string> keys;
+
+            // Iterate over the map and push the keys into the vector
+            for (const auto& pair : mAggregateStoreData) {
+                keys.push_back(pair.first);  // pair.first is the key
+            }
+
+            ImGui::SetNextItemWidth(middle_button_width);
+
+            // Save cursor before drawing label so we can restore it later
+            ImVec2 cursor_before_label = ImGui::GetCursorScreenPos();
+
+            if (ImGui::BeginCombo("##AggregateStoreList", "", ImGuiComboFlags_None))
+            {
+                for (int i = 0; i < keys.size(); i++)
+                {
+                    bool is_selected = mAggregatePage.mStorePage == i;
+                    if (ImGui::Selectable(keys[i].c_str(), &is_selected))
+                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mAggregatePage.mStorePage, mAggregatePage.mStorePage, i));
+
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::PushFont(ImGuiManager::BoldFont);
+            if (!keys.empty())
+            {
+                // Center the label manually
+                ImVec2 combo_pos = ImGui::GetItemRectMin(); // Position of combo box
+                ImVec2 combo_size = ImGui::GetItemRectSize();
+                const char* label = keys[mAggregatePage.mStorePage].c_str();
+                ImVec2 text_size = ImGui::CalcTextSize(label);
+
+                ImVec2 text_pos = ImVec2(
+                    combo_pos.x + (combo_size.x - text_size.x) * 0.5f,
+                    combo_pos.y + (combo_size.y - text_size.y) * 0.5f
+                );
+
+                ImGui::SetCursorScreenPos(text_pos);
+                ImGui::TextUnformatted(label);
+
+                // Restore cursor after drawing the centered text
+                ImGui::SetCursorScreenPos(cursor_before_label);
+                ImGui::Dummy(combo_size);  // Reserve the space for the combo box
+            }
+            else
+            {
+                ImVec2 combo_pos = ImGui::GetItemRectMin(); // Position of combo box
+                ImVec2 combo_size = ImGui::GetItemRectSize();
+                const char* label = PageNumStr.c_str();
+                ImVec2 text_size = ImGui::CalcTextSize(label);
+
+                ImVec2 text_pos = ImVec2(
+                    combo_pos.x + (combo_size.x - text_size.x) * 0.5f,
+                    combo_pos.y + (combo_size.y - text_size.y) * 0.5f
+                );
+
+                ImGui::SetCursorScreenPos(text_pos);
+                ImGui::TextUnformatted(label);
+
+                // Restore cursor after drawing the centered text
+                ImGui::SetCursorScreenPos(cursor_before_label);
+                ImGui::Dummy(combo_size);  // Reserve the space for the combo box
+            }
+            ImGui::PopFont();
+
+
+            // Ensure SameLine aligns the arrow correctly
+            ImGui::SameLine();  // This forces the next item to be on the same line
+
+
+            if (mAggregatePage.mStorePage + 1 < mAggregateStoreData.size())
+            {
+                if (ImGui::ArrowButton("##AggregatePageNext", ImGuiDir_Right))
+                {
+
+                    CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mAggregatePage.mStorePage, mAggregatePage.mStorePage, mAggregatePage.mStorePage + 1));
+                }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("Next Store");
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                ImGui::InvisibleButton("##DummyArrow2", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
+            }
+
+            if (!mAggregateStoreData.empty())
+            {
+                ImGui::SameLine();
+                if (ImGui::ImageButton("##AggregatePageSettings", Resource(Icon::SETTINGS_ICON)->GetTextureID(), { ImGui::GetFontSize(), ImGui::GetFontSize() }))
+                {
+                    ImGui::OpenPopup("StoreSettings##Aggregate");
+                }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("Store Settings");
+                    ImGui::EndTooltip();
+                }
+            }
+
+            if (!mAggregateStoreData.empty())
+            {
+                auto StorePageIT = mAggregateStoreData.begin();
+                std::advance(StorePageIT, mAggregatePage.mStorePage);
+                auto& StorePageITData = *StorePageIT;
+                auto StoreCodeFromIT = StorePageITData.first;
+                auto& TimeDataFromIT = StorePageITData.second;
+
+
+
+                if (ImGui::BeginPopup("StoreSettings##Aggregate", ImGuiWindowFlags_NoMove))
+                {
+                    if (ImGui::MenuItem("Add New Entrance##AggregateStoreSettings"))
+                    {
+                        for (auto& [time, data] : mAggregateStoreData[StoreCodeFromIT])
                         {
-                            ImGui::OpenPopup(("AddOptionsPopup##Aggregate" + store).c_str(), ImGuiPopupFlags_NoOpenOverExistingPopup);
+                            data.Entrance.push_back({});
                         }
+                    }
+                    ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
+                    if (ImGui::MenuItem("Add New Time##AggregateStoreSettings"))
+                    {
+                        ImGui::OpenPopup("AddTimePopUp##Aggregate");
+                    }
+                    ImGui::PopItemFlag();
 
-                        if (ImGui::BeginPopup(("AddOptionsPopup##Aggregate" + store).c_str(), ImGuiWindowFlags_NoMove))
+                    ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
+                    if (ImGui::MenuItem("Remove This Store##AggregateStoreSettings"))
+                    {
+                        ImGui::OpenPopup("Remove Store##Aggregate");
+                    }
+                    ImGui::PopItemFlag();
+
+                    ImGui::Separator();
+
+                    if (ImGui::MenuItem("Close##Aggregate"))
+                        ImGui::CloseCurrentPopup();
+
+                    {
+                        bool closePopup = false;
+                        if (ImGui::BeginPopup("AddTimePopUp##Aggregate", ImGuiWindowFlags_NoMove))
                         {
-                            if (ImGui::Button("Add New Time##Aggregate"))
+                            ImGui::Text("Hour: ");
+                            ImGui::SameLine();
+                            ImGui::InputInt("##Hour:##AggregateTimePopup ", &mTimeBuffer, 1, 1, ImGuiInputTextFlags_CharsDecimal);
+                            if (ImGui::Button("Confirm##AddTimePopup##Aggregate"))
                             {
-                                ImGui::OpenPopup(("AddTimePopUp##Aggregate" + store).c_str());
-                            }
-
-                            if (ImGui::Button("Add New Entrance##Aggregate"))
-                            {
-                                for (auto& [time, data] : timeNData)
+                                if (mTimeBuffer >= 0 && mTimeBuffer < 24)
                                 {
-                                    data.Entrance.push_back({});
-                                }
-                                ImGui::CloseCurrentPopup();
-                            }
-
-                            bool closePopup = false;
-                            if (ImGui::BeginPopup(("AddTimePopUp##Aggregate" + store).c_str(), ImGuiWindowFlags_NoMove))
-                            {
-                                ImGui::InputInt("##Hour:##AggregateTimePopup ", &mTimeBuffer, 1, 1, ImGuiInputTextFlags_CharsDecimal);
-                                if (ImGui::Button("Confirm##AddTimePopup##Counting"))
-                                {
-                                    if (mTimeBuffer >= 0 && mTimeBuffer < 24)
+                                    if (!mAggregateStoreData[StoreCodeFromIT].contains(mTimeBuffer))
                                     {
-                                        if (!mAggregateStoreData[date][store].contains(mTimeBuffer))
+                                        auto entranceNum = mAggregateStoreData[StoreCodeFromIT].begin()->second.Entrance.size();
+
+                                        mAggregateStoreData[StoreCodeFromIT][mTimeBuffer] = {};
+                                        for (int i = 0; i < entranceNum; i++)
                                         {
-                                            auto entranceNum = mAggregateStoreData[date][store].begin()->second.Entrance.size();
-
-                                            mAggregateStoreData[date][store][mTimeBuffer] = {};
-                                            for (int i = 0; i < entranceNum; i++)
-                                            {
-                                                mAggregateStoreData[date][store][mTimeBuffer].Entrance.push_back({});
-                                            }
+                                            mAggregateStoreData[StoreCodeFromIT][mTimeBuffer].Entrance.push_back({});
                                         }
-                                        mTimeBuffer = 0;
                                     }
-                                    closePopup = true;
-                                    ImGui::CloseCurrentPopup();
-                                }
-
-                                if (ImGui::Button("Cancel##AddTimePopup##Aggregate"))
-                                {
-                                    ImGui::CloseCurrentPopup();
                                     mTimeBuffer = 0;
                                 }
-                                ImGui::EndPopup();
-                            }
-
-                            ImGui::Separator();
-
-                            if (ImGui::Button("X", { lineHeight, 0 }))
-                            {
+                                closePopup = true;
                                 ImGui::CloseCurrentPopup();
                             }
 
-                            if (closePopup)
+                            if (ImGui::Button("Cancel##AddTimePopup##Aggregate"))
                             {
+                                ImGui::CloseCurrentPopup();
+                                mTimeBuffer = 0;
+                            }
+
+                            ImGui::EndPopup();
+                        }
+
+                        if (closePopup)
+                        {
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+
+                    {
+                        bool closePopup = false;
+                        {
+                            ImVec2 center = ImGui::GetWindowViewport()->Pos;
+                            center.x += ImGui::GetWindowViewport()->Size.x * 0.5f;
+                            center.y += ImGui::GetWindowViewport()->Size.y * 0.5f;
+                            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+                        }
+                        if (ImGui::BeginPopupModal("Remove Store##Aggregate", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
+                        {
+                            ImGui::Text("Are you sure you want to remove this store?");
+
+                            float spacing = ImGui::GetStyle().ItemSpacing.x;
+                            float totalWidth = lineHeight * 4 + spacing;
+                            float windowWidth = ImGui::GetWindowSize().x;
+                            float startX = (windowWidth - totalWidth) * 0.5f;
+                            ImGui::Spacing();
+                            ImGui::SetCursorPosX(startX);
+                            if (ImGui::Button("No##RemoveStoreModal", { lineHeight * 2, lineHeight }))
+                            {
+                                ImGui::CloseCurrentPopup();
+                            }
+                            ImGui::SameLine();
+                            if (ImGui::Button("Yes##RemoveStoreModal", { lineHeight * 2, lineHeight }))
+                            {
+                                CommandHistory::execute(std::make_unique<EraseKeyCommand<std::map<Project::StoreCode, std::map<Project::Hour, AggregateData>>>>(&mAggregateStoreData, mAggregatePage.mStorePage));
+                                if (mAggregatePage.mStorePage != 0)
+                                {
+                                    mAggregatePage.mStorePage--;
+                                }
+                                //CommandHistory::execute(std::make_unique<EraseKeyIteratorCommand<std::map<Project::StoreCode, std::map<Project::Hour, AggregateData>>>>(&mAggregateStoreData, &StorePageIT));
+                               // if (StorePageIT != mAggregateStoreData.begin())
+                                {
+                                    //    std::advance(StorePageIT, -1);
+                                    //    mAggregatePage.mStorePage -= 1;
+                                }
+
+                                closePopup = true;
                                 ImGui::CloseCurrentPopup();
                             }
 
                             ImGui::EndPopup();
                         }
-                        if (open)
+
+                        if (closePopup)
                         {
-                            ImGui::Indent(lineHeight);
-                            for (auto& [time, data] : timeNData)
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+
+                    ImGui::EndPopup();
+                }
+
+
+
+
+                if (!mAggregateStoreData.empty())
+                {
+                    auto StorePageITPostOp = mAggregateStoreData.begin();
+                    std::advance(StorePageITPostOp, mAggregatePage.mStorePage);
+
+                    auto StoreCode = StorePageITPostOp->first;
+
+                    if (ImGui::BeginTabBar("##AggregateTabBar"))
+                    {
+                        int houridx = 0;
+                        for (auto& [hour, Data] : mAggregateStoreData[StoreCode])
+                        {
+                            std::string hourText = "        ";
+                            if (hour >= 10)
+                                hourText += std::to_string(hour) + "hrs  ";
+                            else
+                                hourText += "0" + std::to_string(hour) + "hrs  ";
+
+                            bool hour2Bool = true;
+                            if (ImGui::BeginTabItem((hourText + "##Aggregate").c_str(), &hour2Bool, ImGuiTabItemFlags_NoReorder))
                             {
-                                if (ImGui::Button(("-##timeMinus##Aggregate" + store + std::to_string(time)).c_str(), ImVec2{ lineHeight, 0 }))
+                                mAggregatePage.mHourPage = houridx;
+
+                                auto hourIT = mAggregateStoreData[StoreCode].begin();
+                                std::advance(hourIT, mAggregatePage.mHourPage);
+                                auto& Hour = hourIT->first;
+                                auto& Data = hourIT->second;
+
+
+                                if (ImGui::CollapsingHeader("Statistics##Aggregate", ImGuiTreeNodeFlags_DefaultOpen))
                                 {
-                                    mAggregateStoreData[date][store].erase(time);
-                                    break;
-                                }
-                                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
-                                {
-                                    ImGui::BeginTooltip();
-                                    ImGui::Text("Remove this timing");
-                                    ImGui::EndTooltip();
-                                }
-                                ImGui::SameLine();
-
-                                if (ImGui::CollapsingHeader((Format::fmtTime(time) + "##Aggregate" + store).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-                                {
-                                    ImGui::Columns(4);
-                                    ImGui::Text("Store ID: ");
-                                    ImGui::SameLine();
-                                    ImGui::Text(mAggregateStoreData[date][store][time].StoreID.c_str());
-                                    ImGui::NextColumn();
-
-                                    ImGui::Text("Enters: ");
-                                    ImGui::SameLine();
-                                    ImGui::Text(std::to_string(mAggregateStoreData[date][store][time].Enters).c_str());
-                                    ImGui::NextColumn();
-
-                                    ImGui::Text("Exits: ");
-                                    ImGui::SameLine();
-                                    ImGui::Text(std::to_string(mAggregateStoreData[date][store][time].Exit).c_str());
-                                    ImGui::Columns(1);
-
-                                    ImGui::Separator();
-
-                                    ImGui::Text("Customer");
-                                    ImGui::SameLine();
-                                    {
-                                        int32_t buffer = mAggregateStoreData[date][store][time].mCustomer;
-                                        ImGui::SetNextItemWidth(lineHeight * 4);
-                                        if (ImGui::InputInt(("##Customer##Aggregate" + store + std::to_string(time)).c_str(), &buffer, 1, 100, ImGuiInputTextFlags_CharsDecimal))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&mAggregateStoreData[date][store][time].mCustomer, mAggregateStoreData[date][store][time].mCustomer, buffer));
-                                        }
-                                    }
-
                                     ImGui::Indent(lineHeight);
-                                    for (int entranceNum = 0; entranceNum < mAggregateStoreData[date][store][time].Entrance.size(); entranceNum++)
+                                    ImGui::Columns(2);
                                     {
-                                        if (ImGui::Button(("-##EntrancesMinus##Aggregate" + store + std::to_string(time) + std::to_string(entranceNum)).c_str(), ImVec2{ lineHeight, 0 }))
+                                        ImGui::PushFont(ImGuiManager::BoldFont);
+                                        ImGui::Text("Customer: ");
+                                        ImGui::PopFont();
+                                        ImGui::NextColumn();
+                                        auto buffer = Data.mCustomer;
+                                        ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                        if (ImGui::InputInt("##Customer##Aggregate", &buffer, 0, 0, ImGuiInputTextFlags_CharsDecimal))
                                         {
-                                            if (mAggregateStoreData[date][store].begin()->second.Entrance.size() > 1)
-                                            {
-                                                for (auto& [time, counter] : mAggregateStoreData[date][store])
-                                                {
-                                                    counter.Entrance.erase(counter.Entrance.begin() + entranceNum);
-                                                }
-                                                break;
-                                            }
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, buffer));
                                         }
-                                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+
+                                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
+                                        ImGui::SameLine();
+                                        if (ImGui::Button("-##Customer##Aggregate", { lineHeight, 0 }))
                                         {
-                                            ImGui::BeginTooltip();
-                                            ImGui::Text("Remove this entrance");
-                                            ImGui::EndTooltip();
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, Data.mCustomer - 1));
                                         }
                                         ImGui::SameLine();
-
-                                        if (ImGui::CollapsingHeader(("Entrance " + std::to_string(entranceNum + 1) + "##Entrances##Aggregate" + store).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                                        if (ImGui::Button("+##Customer##Aggregate", { lineHeight, 0 }))
                                         {
-                                            ImGui::Indent(lineHeight);
-                                            if (ImGui::Button(("+##AddFrameSkip##Aggregate" + std::to_string(entranceNum) + std::to_string(time) + store).c_str(), ImVec2{ lineHeight, 0 }))
+                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int32_t>>(&Data.mCustomer, Data.mCustomer, Data.mCustomer + 1));
+                                        }
+                                        ImGui::PopStyleVar();
+                                        ImGui::NextColumn();
+                                    }
+
+                                    ImGui::Columns(1);
+                                    ImGui::Unindent(lineHeight);
+
+                                }
+
+                                auto notesOpen = ImGui::CollapsingHeader("Notes##Aggregate", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+                                ImGui::Indent(lineHeight);
+                                if (notesOpen)
+                                {
+                                    int idx = 1;
+                                    for (auto& Entrance : Data.Entrance)
+                                    {
+
+                                        auto entranceOpen = ImGui::CollapsingHeader(("Entrance " + std::to_string(idx) + "##Aggregate").c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
+                                        if (Data.Entrance.size() > 1)
+                                        {
+                                            ImGui::SameLine(ImGui::GetContentRegionAvail().x + lineHeight * 0.5f); // Align to right (Button)
+
+
+                                            if (ImGui::Button(("-##MinusEntranceAggregate" + std::to_string(idx)).c_str(), { lineHeight, 0 }))
                                             {
-                                                mAggregateStoreData[date][store][time].Entrance[entranceNum].mFrameSkips.push_back({ "00:00:00", "00:00:00" });
+                                                CommandHistory::execute(std::make_unique<VectorEraseCommand<AggregateEntrance>>(&Data.Entrance, idx - 1));
+                                                break;
+                                            }
+
+                                        }
+                                        if (entranceOpen)
+                                        {
+                                            ImGui::SetNextWindowSizeConstraints({ ImGui::GetContentRegionAvail().x , lineHeight * 20 }, { ImGui::GetContentRegionAvail().x , lineHeight * 20 });
+                                            ImGui::BeginChild(("Entrance" + std::to_string(idx) + "##AggregateChild").c_str(), {}, ImGuiChildFlags_Border);
+                                            int idx2 = 0;
+
+
+                                            ImGui::NewLine();
+
+                                            if (ImGui::Button(("+##AddFrameSkip##Aggregate" + std::to_string(idx)).c_str(), ImVec2{ lineHeight, 0 }))
+                                            {
+
+                                                CommandHistory::execute(std::make_unique<PushBackCommand<std::pair<std::string, std::string>>>(&Entrance.mFrameSkips, std::pair<std::string, std::string>("00:00:00", "00:00:00")));
                                             }
 
                                             ImGui::SameLine();
                                             ImGui::PushFont(ImGuiManager::BoldFont);
                                             ImGui::Text("Frame Skips");
                                             ImGui::PopFont();
-                                            ImGui::Indent(lineHeight * 2);
-                                            int idx = 0;
-                                            if (!mAggregateStoreData[date][store][time].Entrance[entranceNum].mFrameSkips.empty())
+
+                                            ImGui::Columns(2);
+                                            ImGui::SetColumnWidth(0, lineHeight * 5);
+                                            if (!Entrance.mFrameSkips.empty())
                                             {
-                                                ImGui::Columns(2);
-                                                ImGui::SetColumnWidth(0, lineHeight * 4.5f);
                                                 ImGui::Text("Start Time");
                                                 ImGui::NextColumn();
                                                 ImGui::Text("End Time");
                                                 ImGui::NextColumn();
+
                                             }
-                                            for (auto& frameSkip : mAggregateStoreData[date][store][time].Entrance[entranceNum].mFrameSkips)
+
+                                            for (auto& frameSkip : Entrance.mFrameSkips)
                                             {
-                                                Widget::Time(("##FrameSkipBegin##Aggregate" + std::to_string(entranceNum) + std::to_string(idx) + std::to_string(time) + store).c_str(),
+                                                Widget::Time(("##FrameSkipsStart##Aggregate" + std::to_string(idx2)).c_str(),
                                                     frameSkip.first, lineHeight * 4);
 
                                                 ImGui::NextColumn();
 
-                                                Widget::Time(("##FrameSkipEnd##Aggregate" + std::to_string(entranceNum) + std::to_string(idx) + std::to_string(time) + store).c_str(),
+                                                Widget::Time(("##FrameSkipsEnd##Aggregate" + std::to_string(idx2)).c_str(),
                                                     frameSkip.second, lineHeight * 4);
 
                                                 ImGui::SameLine();
-                                                if (ImGui::Button(("-##RemoveFrameSkip##Aggregate" + std::to_string(entranceNum) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight, 0 }))
+
+                                                if (ImGui::Button(("-##RemoveFrameSkip##Aggregate" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight, 0 }))
                                                 {
-                                                    mAggregateStoreData[date][store][time].Entrance[entranceNum].mFrameSkips.erase(mAggregateStoreData[date][store][time].Entrance[entranceNum].mFrameSkips.begin() + idx);
+                                                    CommandHistory::execute(std::make_unique<VectorEraseCommand<std::pair<std::string, std::string>>>(&Entrance.mFrameSkips, idx2));
                                                     break;
                                                 }
                                                 ImGui::NextColumn();
-
-                                                idx++;
-
+                                                idx2++;
                                             }
-
                                             ImGui::Columns(1);
-                                            ImGui::Unindent(lineHeight * 2);
+
 
                                             ImGui::Separator();
+                                            idx2 = 0;
 
-                                            if (ImGui::Button(("+##AddBlankVideo##Aggregate" + std::to_string(entranceNum) + std::to_string(time) + store).c_str(), ImVec2{ lineHeight, 0 }))
+                                            if (Entrance.mBlankedVideos.empty())
                                             {
-                                                mAggregateStoreData[date][store][time].Entrance[entranceNum].mBlankedVideos.push_back({ "00:00:00" });
+                                                if (ImGui::Button(("+##AddBlankVideo##Aggregate" + std::to_string(idx)).c_str(), ImVec2{ lineHeight, 0 }))
+                                                {
+                                                    CommandHistory::execute(std::make_unique<PushBackCommand<std::pair<bool, std::string>>>(&Entrance.mBlankedVideos, std::pair<bool, std::string>(false, "00:00:00")));
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (ImGui::Button(("-##RemoveBlankVideo##Aggregate" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight, 0 }))
+                                                {
+                                                    CommandHistory::execute(std::make_unique<VectorEraseCommand<std::pair<bool, std::string>>>(&Entrance.mBlankedVideos, 0));
+                                                }
                                             }
 
                                             ImGui::SameLine();
                                             ImGui::PushFont(ImGuiManager::BoldFont);
                                             ImGui::Text("Blank Videos");
                                             ImGui::PopFont();
-                                            ImGui::Indent(lineHeight * 2);
-                                            idx = 0;
 
-                                            if (!mAggregateStoreData[date][store][time].Entrance[entranceNum].mBlankedVideos.empty())
-                                            {
-                                                ImGui::Text("Blank Time");
-                                            }
 
-                                            for (auto& blankVideo : mAggregateStoreData[date][store][time].Entrance[entranceNum].mBlankedVideos)
+                                            if (!Entrance.mBlankedVideos.empty())
                                             {
-                                                Widget::Time(("##BlankVideoTime##Aggregate" + std::to_string(entranceNum) + std::to_string(idx) + std::to_string(time) + store).c_str(),
-                                                    blankVideo, lineHeight * 4);
+                                                if (Entrance.mBlankedVideos[0].first)
+                                                {
+                                                    if (ImGui::Button("Start##AggregateBlankedVideos", { lineHeight * 2,0 }))
+                                                    {
+                                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<bool>>(&Entrance.mBlankedVideos[0].first, Entrance.mBlankedVideos[0].first, false));
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (ImGui::Button("End##AggregateBlankedVideos", { lineHeight * 2,0 }))
+                                                    {
+                                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<bool>>(&Entrance.mBlankedVideos[0].first, Entrance.mBlankedVideos[0].first, true));
+                                                    }
+                                                }
 
                                                 ImGui::SameLine();
-                                                if (ImGui::Button(("-##RemoveBlankVideo##Aggregate" + std::to_string(entranceNum) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight, 0 }))
-                                                {
-                                                    mAggregateStoreData[date][store][time].Entrance[entranceNum].mBlankedVideos.erase(mAggregateStoreData[date][store][time].Entrance[entranceNum].mBlankedVideos.begin() + idx);
-                                                    break;
-                                                }
-                                                idx++;
+                                                Widget::Time(("##BlankVideoTime##Aggregate" + std::to_string(idx2)).c_str(),
+                                                    Entrance.mBlankedVideos[0].second, lineHeight * 4);
 
                                             }
 
-                                            ImGui::Columns(1);
-                                            ImGui::Unindent(lineHeight * 2);
-
                                             ImGui::Separator();
+                                            idx2 = 0;
 
-                                            if (ImGui::Button(("+##AddCorruptedVideo##Aggregate" + std::to_string(entranceNum) + std::to_string(time) + store).c_str(), ImVec2{ lineHeight, 0 }))
+                                            if (ImGui::Button(("+##AddCorruptedTime##Aggregate" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight, 0 }))
                                             {
-                                                mAggregateStoreData[date][store][time].Entrance[entranceNum].mCorruptedVideos.push_back({ });
+                                                CommandHistory::execute(std::make_unique<PushBackCommand<std::string>>(&Entrance.mCorruptedVideos, std::string("")));
                                             }
 
                                             ImGui::SameLine();
                                             ImGui::PushFont(ImGuiManager::BoldFont);
                                             ImGui::Text("Corrupted Videos");
                                             ImGui::PopFont();
-                                            ImGui::Indent(lineHeight * 2);
-                                            idx = 0;
-                                            if (!mAggregateStoreData[date][store][time].Entrance[entranceNum].mCorruptedVideos.empty())
-                                            {
-                                                ImGui::Text("Video Name");
-                                            }
 
-                                            for (auto& corruptedVideo : mAggregateStoreData[date][store][time].Entrance[entranceNum].mCorruptedVideos)
+                                            for (auto& corruptedVideo : Entrance.mCorruptedVideos)
                                             {
-
-                                                char buffer[32] = {};
+                                                char buffer[16] = {};
                                                 std::memcpy(buffer, corruptedVideo.c_str(), corruptedVideo.size());
                                                 ImGui::SetNextItemWidth(lineHeight * 4);
-                                                if (ImGui::InputText(("##CorruptedName##Aggregate" + std::to_string(entranceNum) + std::to_string(idx) + std::to_string(time) + store).c_str(), buffer, 16))
+                                                if (ImGui::InputTextWithHint(("##CorruptedName##Aggregate" + std::to_string(idx2)).c_str(), "Video Name", buffer, 16))
                                                 {
-                                                    corruptedVideo = buffer;
+                                                    std::string newText = buffer;
+                                                    CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&corruptedVideo, corruptedVideo, newText));
                                                 }
+
 
                                                 ImGui::SameLine();
-                                                if (ImGui::Button(("-##RemoveCorruptedVideo##Aggregate" + std::to_string(entranceNum) + std::to_string(time) + store + std::to_string(idx)).c_str(), ImVec2{ lineHeight, 0 }))
+                                                if (ImGui::Button(("-##RemoveCorruptedVideo##Aggregate" + std::to_string(idx2)).c_str(), ImVec2{ lineHeight, 0 }))
                                                 {
-                                                    mAggregateStoreData[date][store][time].Entrance[entranceNum].mCorruptedVideos.erase(mAggregateStoreData[date][store][time].Entrance[entranceNum].mCorruptedVideos.begin() + idx);
+                                                    CommandHistory::execute(std::make_unique<VectorEraseCommand<std::string>>(&Entrance.mCorruptedVideos, idx2));
                                                     break;
                                                 }
-                                                ImGui::NextColumn();
-                                                idx++;
-
+                                                idx2++;
                                             }
 
-                                            ImGui::Unindent(lineHeight * 2);
+                                            ImGui::Separator();
+                                            ImGui::PushFont(ImGuiManager::BoldFont);
+                                            ImGui::Text("Additional Notes");
+                                            ImGui::PopFont();
+                                            char buffer[256] = {};
+                                            std::memcpy(buffer, Entrance.mAdditionalNotes.c_str(), Entrance.mAdditionalNotes.size());
+                                            if (ImGui::InputTextMultiline("##NotesAggregate", buffer, IM_ARRAYSIZE(buffer), ImVec2(ImGui::GetContentRegionAvail().x, lineHeight * 5)))
+                                            {
+                                                std::string newText = buffer;
+                                                CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&Entrance.mAdditionalNotes, Entrance.mAdditionalNotes, newText));
+                                            }
 
-
-                                            ImGui::Unindent(lineHeight);
+                                            ImGui::EndChild();
                                         }
+                                        idx++;
                                     }
-                                    ImGui::Unindent(lineHeight);
                                 }
+                                ImGui::Unindent(lineHeight);
+                                ImGui::EndTabItem();
 
                             }
-                            ImGui::Unindent(lineHeight);
+                            if (!hour2Bool)
+                            {
+                                ImGui::OpenPopup(("Remove Hour##Modal" + std::to_string(hour)).c_str());
+                            }
+                            {
+                                ImVec2 center = ImGui::GetWindowViewport()->Pos;
+                                center.x += ImGui::GetWindowViewport()->Size.x * 0.5f;
+                                center.y += ImGui::GetWindowViewport()->Size.y * 0.5f;
+                                ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+                            }
+                            if (ImGui::BeginPopupModal(("Remove Hour##Modal" + std::to_string(hour)).c_str(), NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+                            {
+                                ImGui::Text("Are you sure you want to remove this hour?");
 
-
+                                float spacing = ImGui::GetStyle().ItemSpacing.x;
+                                float totalWidth = lineHeight * 4 + spacing;
+                                float windowWidth = ImGui::GetWindowSize().x;
+                                float startX = (windowWidth - totalWidth) * 0.5f;
+                                ImGui::Spacing();
+                                ImGui::SetCursorPosX(startX);
+                                if (ImGui::Button("No##ClearDataModal", { lineHeight * 2, lineHeight }))
+                                {
+                                    ImGui::CloseCurrentPopup();
+                                }
+                                ImGui::SameLine();
+                                if (ImGui::Button("Yes##ClearDataModal", { lineHeight * 2, lineHeight }))
+                                {
+                                    if (mAggregateStoreData[StoreCode].size() == 1)
+                                    {
+                                        CommandHistory::execute(std::make_unique<EraseKeyCommand<std::map<Project::StoreCode, std::map<Project::Hour, CountData>>>>(&mAggregateStoreData, mAggregatePage.mStorePage));
+                                    }
+                                    else
+                                        CommandHistory::execute(std::make_unique<EraseKeyCommand<std::map<Project::Hour, CountData>>>(&mAggregateStoreData[StoreCode], houridx));
+                                    ImGui::CloseCurrentPopup();
+                                    ImGui::EndPopup();
+                                    break;
+                                }
+                                ImGui::EndPopup();
+                            }
+                            houridx++;
                         }
 
-                        if (timeNData.empty())
-                        {
-                            storetimedata.erase(store);
-                            break;
-                        }
+                        ImGui::EndTabBar();
                     }
-
-
-                    ImGui::Unindent(lineHeight);
-
-                }
-                ImGui::PopStyleVar();
-
-                if (storetimedata.empty())
-                {
-                    mAggregateStoreData.erase(date);
-                    break;
                 }
             }
-            //AGGREGATE TOOLSET HERE
+
+
+
+            ImGui::Separator();
+            ImGui::Spacing();
+
             ImGui::EndChild();
+
 
             ImGui::EndTabItem();
         }

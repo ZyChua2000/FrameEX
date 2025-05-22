@@ -30,14 +30,14 @@ namespace FrameExtractor
 		struct PageNumber
 		{
 			int mStorePage = 0;
-			int mDatePage = 0;
 			int mHourPage = 0;
 		};
 
-		std::string ExportAggregateStoreDataAsString();
+		std::string ExportAggregateStoreDataAsString(int date);
 		std::string errorLine1;
 		std::string errorLine2;
 		PageNumber mCountingPage;
+		PageNumber mAggregatePage;
 
 		Project* mProject;
 		int32_t mTimeBuffer = 0;

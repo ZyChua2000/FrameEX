@@ -286,7 +286,77 @@ namespace FrameExtractor
 
 	};
 
-	class AddStoreEntry : public ICommand
+	class AddStoreAggregateEntry : public ICommand
+	{
+	private:
+		std::map<Project::StoreCode, std::map<Project::Hour, AggregateData>>* mOriginalData;
+		Project::StoreCode newKey;
+		int EntranceBuffer;
+		int TimeBuffer;
+
+		// derived
+		int oldEntrances;
+		bool hadOld = false;
+	public:
+		AddStoreAggregateEntry(std::map<Project::StoreCode, std::map<Project::Hour, AggregateData>>* countData, Project::StoreCode key, int ent, int time) : mOriginalData(countData), newKey(key), EntranceBuffer(ent), TimeBuffer(time)
+		{
+			oldEntrances = 0;
+		}
+		void execute() override {
+			if (!mOriginalData->contains(newKey))
+			{
+				(*mOriginalData)[newKey] = {};
+				hadOld = true;
+			}
+
+			if (!(*mOriginalData)[newKey].empty())
+			{
+				oldEntrances = (int)(*mOriginalData)[newKey].begin()->second.Entrance.size();
+				if (EntranceBuffer > oldEntrances)
+				{
+					for (auto& [time, counter] : (*mOriginalData)[newKey])
+					{
+						counter.Entrance.resize(EntranceBuffer, {});
+					}
+				}
+				else
+				{
+					EntranceBuffer = (int)(*mOriginalData)[newKey].begin()->second.Entrance.size();
+				}
+			}
+
+			if (!(*mOriginalData)[newKey].contains(TimeBuffer))
+			{
+				(*mOriginalData)[newKey][TimeBuffer] = {};
+				for (int i = 0; i < EntranceBuffer; i++)
+					(*mOriginalData)[newKey][TimeBuffer].Entrance.push_back({});
+			}
+
+		}
+
+		void undo() override
+		{
+			(*mOriginalData)[newKey].erase(TimeBuffer);
+			if (hadOld)
+			{
+				mOriginalData->erase(newKey);
+			}
+			else if (!(*mOriginalData)[newKey].empty())
+			{
+				if (EntranceBuffer > oldEntrances)
+				{
+					for (auto& [time, counter] : (*mOriginalData)[newKey])
+					{
+						counter.Entrance.resize(oldEntrances, {});
+					}
+				}
+			}
+		}
+
+	};
+
+
+	class AddStoreEntryCounting : public ICommand
 	{
 	private:
 		std::map<Project::StoreCode, std::map<Project::Hour, CountData>>* mOriginalData;
@@ -298,9 +368,9 @@ namespace FrameExtractor
 		int oldEntrances;
 		bool hadOld = false;
 	public:
-		AddStoreEntry(std::map<Project::StoreCode, std::map<Project::Hour, CountData>>* countData, Project::StoreCode key, int ent, int time) : mOriginalData(countData), newKey(key), EntranceBuffer(ent), TimeBuffer(time)
+		AddStoreEntryCounting(std::map<Project::StoreCode, std::map<Project::Hour, CountData>>* countData, Project::StoreCode key, int ent, int time) : mOriginalData(countData), newKey(key), EntranceBuffer(ent), TimeBuffer(time)
 		{
-
+			oldEntrances = 0;
 		}
 		void execute() override {
 			if (!mOriginalData->contains(newKey))
@@ -311,7 +381,7 @@ namespace FrameExtractor
 
 			if (!(*mOriginalData)[newKey].empty())
 			{
-				oldEntrances = (*mOriginalData)[newKey].begin()->second.Entrance.size();
+				oldEntrances = (int)(*mOriginalData)[newKey].begin()->second.Entrance.size();
 				if (EntranceBuffer > oldEntrances)
 				{
 					for (auto& [time, counter] : (*mOriginalData)[newKey])
@@ -321,7 +391,7 @@ namespace FrameExtractor
 				}
 				else
 				{
-					EntranceBuffer = (*mOriginalData)[newKey].begin()->second.Entrance.size();
+					EntranceBuffer = (int)(*mOriginalData)[newKey].begin()->second.Entrance.size();
 				}
 			}
 

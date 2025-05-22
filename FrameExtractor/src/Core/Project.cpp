@@ -386,7 +386,7 @@ namespace FrameExtractor
         mProjectFilePath = path;
         
         std::map<StoreCode, std::map<Hour, CountData>> tmpCountingData;
-        std::map<Date, std::map<StoreCode, std::map<Hour, AggregateData>>> tmpAggregateStoreData;
+        std::map<StoreCode, std::map<Hour, AggregateData>> tmpAggregateStoreData;
 
         if (node["Counting Data"])
         {
@@ -406,25 +406,19 @@ namespace FrameExtractor
         // Load Aggregate Data
         if (node["Aggregate Data"])
         {
-            for (const auto& dateNode : node["Aggregate Data"])
+            for (const auto& storeNode : node["Aggregate Data"])
             {
-                Date date = dateNode.first.as<Date>(); // Date key
-                const YAML::Node& storesNode = dateNode.second;
+                StoreCode storeCode = storeNode.first.as<StoreCode>(); // StoreCode key
+                const YAML::Node& hoursNode = storeNode.second;
 
-                for (const auto& storeNode : storesNode)
+                for (const auto& hourNode : hoursNode)
                 {
-                    StoreCode storeCode = storeNode.first.as<StoreCode>(); // StoreCode key
-                    const YAML::Node& hoursNode = storeNode.second;
+                    Hour hour = hourNode.first.as<Hour>(); // Hour key
+                    const YAML::Node& dataNode = hourNode.second;
 
-                    for (const auto& hourNode : hoursNode)
-                    {
-                        Hour hour = hourNode.first.as<Hour>(); // Hour key
-                        const YAML::Node& dataNode = hourNode.second;
-
-                        AggregateData aggregateData;
-                        YAML::convert<AggregateData>::decode(dataNode, aggregateData); // Correctly decode from already-accessed node
-                        tmpAggregateStoreData[date][storeCode][hour] = aggregateData;
-                    }
+                    AggregateData aggregateData;
+                    YAML::convert<AggregateData>::decode(dataNode, aggregateData); // Correctly decode from already-accessed node
+                    tmpAggregateStoreData[storeCode][hour] = aggregateData;
                 }
             }
         }
@@ -461,23 +455,18 @@ namespace FrameExtractor
 
         emitter << YAML::Key << "Aggregate Data" << YAML::Value << YAML::BeginMap;
 
-        for (const auto& [date, storeData] : mAggregateStoreData)
+        for (const auto& [storeCode, hourData] : mAggregateStoreData)
         {
-            emitter << YAML::Key << date << YAML::Value << YAML::BeginMap;
+            emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
 
-            for (const auto& [storeCode, hourData] : storeData)
+            for (const auto& [hour, data] : hourData)
             {
-                emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
-
-                for (const auto& [hour, data] : hourData)
-                {
-					emitter << YAML::Key << hour;
-					emitter << YAML::Value << YAML::convert<AggregateData>::encode(data);
-                }
-                emitter << YAML::EndMap;
+				emitter << YAML::Key << hour;
+				emitter << YAML::Value << YAML::convert<AggregateData>::encode(data);
             }
             emitter << YAML::EndMap;
         }
+        emitter << YAML::EndMap;
 
         emitter << YAML::EndMap;
         emitter << YAML::EndMap;
@@ -520,23 +509,19 @@ namespace FrameExtractor
 
         emitter << YAML::Key << "Aggregate Data" << YAML::Value << YAML::BeginMap;
 
-        for (const auto& [date, storeData] : mAggregateStoreData)
+        for (const auto& [storeCode, hourData] : mAggregateStoreData)
         {
-            emitter << YAML::Key << date << YAML::Value << YAML::BeginMap;
+            emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
 
-            for (const auto& [storeCode, hourData] : storeData)
+            for (const auto& [hour, data] : hourData)
             {
-                emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
-
-                for (const auto& [hour, data] : hourData)
-                {
-                    emitter << YAML::Key << hour;
-                    emitter << YAML::Value << YAML::convert<AggregateData>::encode(data);
-                }
-                emitter << YAML::EndMap;
+                emitter << YAML::Key << hour;
+                emitter << YAML::Value << YAML::convert<AggregateData>::encode(data);
             }
             emitter << YAML::EndMap;
         }
+        emitter << YAML::EndMap;
+        
 
         emitter << YAML::EndMap;
         emitter << YAML::EndMap;

@@ -22,7 +22,7 @@ namespace FrameExtractor
 
 		void ExportSpikeDipReport(std::map<std::string, std::map<int32_t, CountData>>& countedData);
 		std::map<std::string, std::map<int32_t, CountData>> ImportSpikeDipReport();
-		std::map<int32_t, std::map<std::string, std::map<int32_t, AggregateData>>> ImportAggregatorReport();
+		std::map<std::string, std::map<int32_t, AggregateData>> ImportAggregatorReport();
 	private:
 		std::filesystem::path mPath;
 	};

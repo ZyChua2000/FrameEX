@@ -233,7 +233,7 @@ namespace FrameExtractor
                 {
                     // measure time here
                     auto currentTime = std::chrono::high_resolution_clock::now();
-                    if (mFrameNumber < mVideo->GetMaxFrames())
+                    if ((uint32_t)mFrameNumber < mVideo->GetMaxFrames())
                     {
                         if (mSpeedMultiplier < 50 && mSpeedMultiplier > 0)
                             mVideo->DecodeTime(dt, mSpeedMultiplier);
@@ -241,7 +241,7 @@ namespace FrameExtractor
                             mVideo->Decode(mFrameNumber);
                         DTTrack += dt * mSpeedMultiplier;
                         mFrameNumber = (int)(DTTrack * mVideo->GetFPS());
-                        if (mFrameNumber >= mVideo->GetMaxFrames())
+                        if ((uint32_t)mFrameNumber >= mVideo->GetMaxFrames())
                         {
                             mFrameNumber = mVideo->GetMaxFrames() - 1;
                         }
@@ -342,7 +342,7 @@ namespace FrameExtractor
         {
             if(mVideo)
             {
-                float buffer = mFrameNumber;
+                float buffer = (float)mFrameNumber;
                 if (ctrlHeld)
                 {
                     buffer -= 5 * std::clamp(std::fabsf(mSpeedMultiplier), 1.f, 100.f);
@@ -406,7 +406,7 @@ namespace FrameExtractor
         {
             if(mVideo)
             {
-                float buffer = mFrameNumber;
+                float buffer = (float)mFrameNumber;
                 if (ctrlHeld) 
                 { 
                     buffer += 5 * std::clamp(std::fabsf(mSpeedMultiplier), 1.f, 100.f);
@@ -418,7 +418,7 @@ namespace FrameExtractor
 
                 if (buffer > mVideo->GetMaxFrames())
                 {
-                    buffer = mVideo->GetMaxFrames();
+                    uint32_t(buffer) = mVideo->GetMaxFrames();
                 }
                 CommandHistory::execute(std::make_unique<SetVideoFrameCommand>(&mFrameNumber, mFrameNumber, buffer, mVideo));
                 mIsPlaying = false;

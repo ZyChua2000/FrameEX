@@ -224,7 +224,7 @@ namespace FrameExtractor
 		}
 
 
-		for (auto row = 2; row < wks.rowCount(); row++)
+		for (uint32_t row = 2; row < wks.rowCount(); row++)
 		{
 			if (storeCodeCol != -1)
 			{
@@ -299,20 +299,18 @@ namespace FrameExtractor
 
 	}
 
-	std::map<int32_t, std::map<std::string, std::map<int32_t, AggregateData>>> ExcelSerialiser::ImportAggregatorReport()
+	std::map<std::string, std::map<int32_t, AggregateData>> ExcelSerialiser::ImportAggregatorReport()
 	{
 		OpenXLSX::XLDocument doc(mPath.string());
 		if (!doc.isOpen())
 		{
 			APP_CORE_ERROR("Invalid Excel File for Spike Dip");
 		}
-		std::map<std::string, std::map<int32_t, CountData>> output;
-
 		auto wks = doc.workbook().worksheet("Aggregates");
 
 
-		std::map<int32_t, std::map<std::string, std::map<int32_t, AggregateData>>> data;
-		for (auto row = 2; row < wks.rowCount(); row++)
+		std::map<std::string, std::map<int32_t, AggregateData>> data;
+		for (uint32_t row = 2; row < wks.rowCount(); row++)
 		{
 			std::string shopperID = wks.cell(row, 1).getString();
 			std::string storeCode = wks.cell(row, 2).getString();
@@ -324,23 +322,18 @@ namespace FrameExtractor
 			std::string dateFMT = DateStr.substr(6, 2) + DateStr.substr(4, 2) + DateStr.substr(0, 4);
 			int32_t date = std::stoi(dateFMT);
 
-			if (!data.contains(date))
+			if (!data.contains(shopperID))
 			{
-				data[date] = {};
+				data[shopperID] = {};
 			}
 
-			if (!data[date].contains(shopperID))
+			if (!data[shopperID].contains(hour))
 			{
-				data[date][shopperID] = {};
-			}
-
-			if (!data[date][shopperID].contains(hour))
-			{
-				data[date][shopperID][hour] = {};
-				data[date][shopperID][hour].Enters = entry;
-				data[date][shopperID][hour].Exit = exit;
-				data[date][shopperID][hour].StoreID = storeCode;
-				data[date][shopperID][hour].Entrance.push_back({});
+				data[shopperID][hour] = {};
+				data[shopperID][hour].Enters = entry;
+				data[shopperID][hour].Exit = exit;
+				data[shopperID][hour].StoreID = storeCode;
+				data[shopperID][hour].Entrance.push_back({});
 			}
 		}
 

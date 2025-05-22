@@ -76,8 +76,9 @@ namespace FrameExtractor
 	struct AggregateEntrance
 	{
 		std::vector<std::string> mCorruptedVideos;
-		std::vector<std::string> mBlankedVideos; // video num to time
+		std::vector<std::pair<bool, std::string>> mBlankedVideos; // time
 		std::vector<std::pair<std::string, std::string>> mFrameSkips; // time to time
+		std::string mAdditionalNotes;
 
 	};
 
@@ -114,7 +115,7 @@ namespace FrameExtractor
 		using Date = int32_t;
 
 		std::map<StoreCode, std::map<Hour, CountData>> mCountingData;
-		std::map<Date, std::map<StoreCode, std::map<Hour, AggregateData>>> mAggregateStoreData;
+		std::map<StoreCode, std::map<Hour, AggregateData>> mAggregateStoreData;
 		std::unordered_set<std::filesystem::path> mVideosInProject;
 
 	private:
