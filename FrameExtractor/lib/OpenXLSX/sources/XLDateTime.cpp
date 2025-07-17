@@ -86,7 +86,7 @@ namespace OpenXLSX
      */
     XLDateTime::XLDateTime(double serial) : m_serial(serial)
     {
-        if (serial < 1.0) throw XLDateTimeError("Excel date/time serial number is invalid (must be >= 1.0.)"); // don't permit dates before 1900-01-01T00:00:00.000
+        if (serial < 1.0) throw XLDateTimeError("Excel Date/InputTime serial number is invalid (must be >= 1.0.)"); // don't permit dates before 1900-01-01T00:00:00.000
     }
 
     /**

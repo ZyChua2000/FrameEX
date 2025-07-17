@@ -2,7 +2,9 @@
 /*!
 \file       ImGuiManager.cpp
 \author     Chua Zheng Yang
+\par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
+\par		email: chuazhengyang2000\@gmail.com
 \date       May 10, 2024
 \brief      Defines the ImGui Manager class which manages the overall ImGui
 			interface and its components.
@@ -598,7 +600,7 @@ namespace FrameExtractor
 					
 						if (mPreferences.mGeneral.UseAutosave)
 						{
-							ImGui::Text("Autosave Time: ");
+							ImGui::Text("Autosave InputTime: ");
 							ImGui::NextColumn();
 							static int autosaveChoices[]{ 1,2,5,10,15,30,60 };
 
@@ -758,7 +760,7 @@ namespace FrameExtractor
 			ImGui::End();
 
 		}
-		catch (...)
+		catch (std::out_of_range& e)
 		{
 			mProject.SaveBackup();
 			throw ("Exception!");

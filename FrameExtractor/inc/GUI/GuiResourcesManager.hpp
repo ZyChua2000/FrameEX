@@ -2,7 +2,9 @@
 /*!
 \file       GUIResourcesManager.hpp
 \author     Chua Zheng Yang
+\par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
+\par		email: chuazhengyang2000\@gmail.com
 \date       May 22, 2025
 \brief      Declares the Resources Manager that contains all resources needed for
 			GUI.

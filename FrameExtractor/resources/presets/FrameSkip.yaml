@@ -1,0 +1,8 @@
+TypeName: FrameSkip
+Fields:
+  Start:
+    Type: string
+    Default: "00:00:00"
+  End:
+    Type: string
+    Default: "00:00:00"

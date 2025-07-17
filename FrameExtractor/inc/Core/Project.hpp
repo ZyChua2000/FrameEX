@@ -2,8 +2,10 @@
 /*!
 \file       Project.hpp
 \author     Chua Zheng Yang
+\par		email: 2202829.\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
-\date       May 16, 2024
+\par		email: chuazhengyang2000\@gmail.com
+\date       May 16, 2025
 \brief      Declares the Project class that contains all data and settings
 			related to the project. 
 
@@ -15,12 +17,10 @@
 #include <map>
 #include <array>
 #include <vector>
-#include <unordered_set>
-
-//#include <rttr/variant.h>
+#include <set>
+#include <Template/DynamicTask.hpp>
 namespace FrameExtractor
 {
-
 	enum EntryType
 	{
 		Customer,
@@ -40,6 +40,8 @@ namespace FrameExtractor
 		std::string StoreCode = "";
 		int32_t numEntrance = 1;
 	};
+
+	
 
 	struct PersonDesc
 	{
@@ -112,11 +114,11 @@ namespace FrameExtractor
 
 		using StoreCode = std::string;
 		using Hour = int32_t;
-		using Date = int32_t;
 
 		std::map<StoreCode, std::map<Hour, CountData>> mCountingData;
 		std::map<StoreCode, std::map<Hour, AggregateData>> mAggregateStoreData;
-		std::unordered_set<std::filesystem::path> mVideosInProject;
+		std::set<std::filesystem::path> mVideosInProject;
+		DynamicTask mDynamicTask;
 
 	private:
 
@@ -125,8 +127,6 @@ namespace FrameExtractor
 		std::filesystem::path mAssetDir;
 		std::filesystem::path mExportDir;
 		std::filesystem::path mProjectFilePath;
-		//std::vector<rttr::variant> mDataList;
-
 	};
 }
 

@@ -1501,7 +1501,7 @@ GLFWAPI void glfwSetTime(double time)
 
     if (time != time || time < 0.0 || time > 18446744073.0)
     {
-        _glfwInputError(GLFW_INVALID_VALUE, "Invalid time %f", time);
+        _glfwInputError(GLFW_INVALID_VALUE, "Invalid InputTime %f", time);
         return;
     }
 

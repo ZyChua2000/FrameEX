@@ -2,7 +2,9 @@
 /*!
 \file       Command.hpp
 \author     Chua Zheng Yang
+\par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
+\par		email: chuazhengyang2000\@gmail.com
 \date       May 13, 2024
 \brief      Declares the Command Design Pattern
  
@@ -19,6 +21,7 @@
 #include <Graphics/Video.hpp>
 #include <Core/Project.hpp>
 #include <Core/ExcelSerialiser.hpp>
+#include <rttr/variant.h>
 namespace FrameExtractor
 {
 
@@ -67,6 +70,73 @@ namespace FrameExtractor
 
 	public:
 		ModifyPropertyCommand(PropVal* instance, PropVal oldVal, PropVal newVal)
+			: originalData(instance), oldValue(oldVal), newValue(newVal) {
+		}
+
+		void execute() override {
+			*originalData = newValue;
+		}
+
+		void undo() override {
+			*originalData = oldValue;
+		}
+	};
+
+	class DeleteDynamicTaskLayerCommand : public ICommand
+	{
+	private:
+		DynamicTaskInterface mDTInterface;
+		int mLayer;
+		std::pair<std::vector<rttr::variant>, rttr::variant> mDeletedData;
+	public:
+		DeleteDynamicTaskLayerCommand(DynamicTaskInterface dtInterface, int idx)
+			: mDTInterface(dtInterface), mLayer(idx) {
+		}
+
+		void execute() override
+		{
+			mDeletedData = mDTInterface.DeleteLayer(mLayer);
+		}
+
+		void undo() override
+		{
+			mDTInterface.AddLayer(mDeletedData.first, mDeletedData.second);
+		}
+	};
+
+	class DeleteDynamicTaskLeafCommand : public ICommand
+	{
+	private:
+		DynamicTaskInterface mDTInterface;
+		int mIndex;
+		std::pair<std::vector<rttr::variant>, std::vector<TaskData>> mDeletedData;
+	public:
+		DeleteDynamicTaskLeafCommand(DynamicTaskInterface dtInterface, int idx)
+			: mDTInterface(dtInterface), mIndex(idx) {
+		}
+
+		DeleteDynamicTaskLeafCommand(DynamicTaskInterface dtInterface) :mDTInterface(dtInterface), mIndex(-1)
+		{ }
+		void execute() override
+		{
+			mIndex == -1 ? mDeletedData = mDTInterface.DeleteCurrentLeaf() : mDeletedData = mDTInterface.DeleteLeaf(mIndex);
+		}
+
+		void undo() override
+		{
+			mDTInterface.AddLeaf(mDeletedData.first);
+			mDTInterface.GetData() = mDeletedData.second;
+		}
+	};
+
+	template <typename PropVal>
+	class ModifyReflectedPropertyCommand : public ICommand {
+	private:
+		rttr::variant* originalData;
+		PropVal oldValue, newValue;
+
+	public:
+		ModifyReflectedPropertyCommand(rttr::variant* instance, PropVal oldVal, PropVal newVal)
 			: originalData(instance), oldValue(oldVal), newValue(newVal) {
 		}
 

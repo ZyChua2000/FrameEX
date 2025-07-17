@@ -1,0 +1,77 @@
+TypeName: DIOR_Counting
+Tab:
+  Name: Time
+  Type: Int
+NodeCategory:
+  Date:
+    Type: Date
+  StoreCode:
+    Type: Time
+Fields:
+  Customers:
+    Type: Int
+    Default: 0
+  Re-entry Customers:
+    Type: Int
+    Default: 0
+  Suspected Staff:
+    Type: Int
+    Default: 0
+  Re-entry Suspected Staff:
+    Type: Double
+    Default: 0
+  Children:
+    Type: Float
+    Default: 0
+  Re-entry Children:
+    Type: Int
+    Default: 0
+  Others:
+    Type: Bool
+    Default: true
+  Re-entry Others:
+    Type: String
+    Default: "TEST"
+Output: Excel
+ExportList:
+  ColumnHeaders:
+    0: Date
+    1: Store Code
+    2: Time
+    3: Customers
+    4: Re-entry Customers
+    5: Suspected Staff
+    6: Re-entry Suspected Staff
+    7: Children
+    8: Re-entry Children
+    9: Others
+    10: Re-entry Others
+  DataMapping:
+    0: "{$Date:format=D/M/YYYY}"
+    1: "{$StoreCode:format=H:MM:SS}"
+    2: "{$Time}"
+    3: "{$Customers}"
+    4: "{$Re-entry Customers}"
+    5: "{$Suspected Staff}"
+    6: "{$Re-entry Suspected Staff}"
+    7: "{$Children}"
+    8: "{$Re-entry Children}"
+    9: "{$Others} and {$Children}"
+    10: "{$Re-entry Others}"
+Input: Excel
+ImportList:
+  Settings:
+    HasHeader: true
+  DataMapping:
+    0: "Date"
+    1: "StoreCode"
+    2: "Time"
+    3: "Customers"
+    4: "Re-entry Customers"
+    5: "Suspected Staff"
+    6: "Re-entry Suspected Staff"
+    7: "Children"
+    8: "Re-entry Children"
+    9: "Others"
+    10: "Re-entry Others"
+

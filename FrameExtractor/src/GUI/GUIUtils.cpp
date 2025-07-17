@@ -2,7 +2,9 @@
 /*!
 \file       GUIUtils.cpp
 \author     Chua Zheng Yang
+\par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
+\par		email: chuazhengyang2000\@gmail.com
 \date       May 20, 2025
 \brief      Defines Utility functions for GUI
 
@@ -12,6 +14,7 @@
 #include <GUI/GUIUtils.hpp>
 #include <Core/Command.hpp>
 #include <imgui.h>
+#include <Template/DataSpecification.hpp>
 namespace FrameExtractor
 {
 
@@ -56,7 +59,7 @@ namespace FrameExtractor
         }
     }
 
-	void Widget::Time(const char* label, std::string& inText, float itemWidth)
+	void Widget::InputTime(const char* label, std::string& inText, float itemWidth)
 	{
         char buffer[16] = {};
         std::memcpy(buffer, inText.c_str(), inText.size());
@@ -65,7 +68,7 @@ namespace FrameExtractor
         {
             if (Format::isValidFormat(buffer))
             {
-                CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&inText, inText, std::string(buffer)));
+                inText = std::string(buffer);
             }
             else
             {
@@ -96,7 +99,7 @@ namespace FrameExtractor
                             << std::setfill('0') << std::setw(2) << mid2 << ":"
                             << std::setfill('0') << std::setw(2) << last2Digits;
 
-                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&inText, inText, ossTime.str()));
+                        inText = ossTime.str();
                     }
                     else
                     {
@@ -121,12 +124,145 @@ namespace FrameExtractor
                             << std::setfill('0') << std::setw(2) << mid2 << ":"
                             << std::setfill('0') << std::setw(2) << last2Digits;
 
-                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&inText, inText, ossTime.str()));
+                        inText = ossTime.str();
                     }
                 }
             }
         }
 	}
+
+    static std::string to_string(const std::chrono::hh_mm_ss<std::chrono::seconds>& time)
+    {
+        std::ostringstream oss;
+        oss << std::setfill('0')
+            << std::setw(2) << time.hours().count() << ":"
+            << std::setw(2) << time.minutes().count() << ":"
+            << std::setw(2) << time.seconds().count();
+        return oss.str();
+    }
+    static std::chrono::hh_mm_ss<std::chrono::seconds> from_string(const std::string& time_str)
+    {
+        int h, m, s;
+        char sep1, sep2;
+
+        std::istringstream iss(time_str);
+        if (!(iss >> h >> sep1 >> m >> sep2 >> s) || sep1 != ':' || sep2 != ':')
+        {
+            throw std::invalid_argument("Invalid InputTime format, expected hh:mm:ss");
+        }
+
+        using namespace std::chrono;
+        return hh_mm_ss<seconds>(hours(h) + minutes(m) + seconds(s));
+    }
+    void Widget::InputTime(const char* label, rttr::variant& inVar, float itemWidth)
+    {
+        char buffer[16] = {};
+        auto inText = inVar.get_value<Time>();
+        std::memcpy(buffer, inText.to_string().c_str(), inText.to_string().size());
+        ImGui::SetNextItemWidth(itemWidth);
+        if (ImGui::InputText(label, buffer, 16, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCharFilter, Format::FilterNumbersAndColon))
+        {
+            if (Format::isValidFormat(buffer))
+            {
+                Time t = from_string(buffer);
+                inVar = t;
+            }
+            else
+            {
+                std::string timeStampStr(buffer);
+                if (timeStampStr != "")
+                {
+                    timeStampStr.erase(std::remove(timeStampStr.begin(), timeStampStr.end(), ':'), timeStampStr.end());
+                    if (timeStampStr.size() > 6)
+                    {
+                        int last2Digits = std::stoi(timeStampStr.substr(timeStampStr.size() - 2));
+                        int mid2 = std::stoi(timeStampStr.substr(timeStampStr.size() - 4, 2));
+                        int firstDigits = std::stoi(timeStampStr.substr(0, timeStampStr.size() - 4));
+
+                        if (last2Digits >= 60)
+                        {
+                            last2Digits -= 60;
+                            mid2 += 1;
+                        }
+                        if (mid2 >= 60)
+                        {
+                            mid2 -= 60;
+                            firstDigits += 1;
+                        }
+                        firstDigits = firstDigits % 24;
+
+                        std::ostringstream ossTime;
+                        ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
+                            << std::setfill('0') << std::setw(2) << mid2 << ":"
+                            << std::setfill('0') << std::setw(2) << last2Digits;
+
+                        Time t = from_string(ossTime.str());
+                        inVar = t;
+                    }
+                    else
+                    {
+                        int intTime = std::stoi(buffer);
+                        int last2Digits = intTime % 100;
+                        int mid2 = (intTime / 100) % 100;
+                        int firstDigits = (intTime / 10000) % 100;
+                        if (last2Digits >= 60)
+                        {
+                            last2Digits -= 60;
+                            mid2 += 1;
+                        }
+                        if (mid2 >= 60)
+                        {
+                            mid2 -= 60;
+                            firstDigits += 1;
+                        }
+                        firstDigits = firstDigits % 24;
+
+                        std::ostringstream ossTime;
+                        ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
+                            << std::setfill('0') << std::setw(2) << mid2 << ":"
+                            << std::setfill('0') << std::setw(2) << last2Digits;
+                        Time t = from_string(ossTime.str());
+                        inVar = t;
+                    }
+                }
+            }
+        }
+    }
+    void Widget::InputDate(const char* label, rttr::variant& inDate, float itemWidth)
+    {
+        char buffer[16] = {};
+        auto inText = inDate.get_value<Date>();
+        std::memcpy(buffer, inText.to_string().c_str(), inText.to_string().size());
+		itemWidth -= ImGui::GetStyle().ItemSpacing.x * 4; // Adjust for spacing between inputs
+		itemWidth -= ImGui::GetStyle().FramePadding.x * 2.f; // Adjust for padding on both sides
+        itemWidth -= ImGui::CalcTextSize("/").x * 2;
+        itemWidth /= 4;
+        ImGui::SetNextItemWidth(itemWidth);
+
+        int day = inText.day;
+        ImGui::InputInt(("##" + std::string("day") + label).c_str(), &day, 0, 0, ImGuiInputTextFlags_CharsDecimal);
+        inText.day = day;
+        ImGui::SameLine();
+
+        ImGui::Text("/");
+        ImGui::SameLine();
+        
+        ImGui::SetNextItemWidth(itemWidth);
+        int month = inText.month;
+        ImGui::InputInt(("##" + std::string("month") + label).c_str(), &month, 0, 0, ImGuiInputTextFlags_CharsDecimal);
+        inText.month = month;
+        ImGui::SameLine();
+
+        ImGui::Text("/");
+        ImGui::SameLine();
+
+        ImGui::SetNextItemWidth(itemWidth * 2);
+        int year = inText.year;
+        ImGui::InputInt(("##" + std::string("year") + label).c_str(), &year, 0, 0, ImGuiInputTextFlags_CharsDecimal);
+        inText.year = year;
+
+        inDate = inText;
+    }
     void Widget::InputInt(const char* label, const char* display, int32_t& data)
     {
         ImGui::Text("Customer: ");

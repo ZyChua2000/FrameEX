@@ -7479,7 +7479,7 @@ void ImGui::DebugNodeTypingSelectState(ImGuiTypingSelectState* data)
 #ifndef IMGUI_DISABLE_DEBUG_TOOLS
     Text("SearchBuffer = \"%s\"", data->SearchBuffer);
     Text("SingleCharMode = %d, Size = %d, Lock = %d", data->Request.SingleCharMode, data->Request.SingleCharSize, data->SingleCharModeLock);
-    Text("LastRequest = time: %.2f, frame: %d", data->LastRequestTime, data->LastRequestFrame);
+    Text("LastRequest = InputTime: %.2f, frame: %d", data->LastRequestTime, data->LastRequestFrame);
 #else
     IM_UNUSED(data);
 #endif

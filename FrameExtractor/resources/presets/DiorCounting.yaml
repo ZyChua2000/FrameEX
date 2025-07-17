@@ -1,0 +1,28 @@
+TypeName: DiorCounting
+Fields:
+  Customer:
+    Type: int
+    Default: 0
+  Re-entry Customer:
+    Type: int
+    Default: 0
+  Suspected Staff:
+    Type: int
+    Default: 0
+  Re-entry Suspected Staff:
+    Type: int
+    Default: 0
+  Children:
+    Type: int
+    Default: 0
+  Re-entry Children:
+    Type: int
+    Default: 0
+  Others:
+    Type: int
+    Default: 0
+  Re-entry Others:
+    Type: int
+    Default: 0
+  Entrances:
+    Type: Vector<DiorEntrance>

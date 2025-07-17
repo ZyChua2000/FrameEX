@@ -1,0 +1,5 @@
+TypeName: CorruptedVideo
+Fields:
+  VideoName:
+    Type: string
+    Default: ""

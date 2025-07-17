@@ -2,7 +2,9 @@
 /*!
 \file       ProjectPanel.hpp
 \author     Chua Zheng Yang
+\par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
+\par		email: chuazhengyang2000\@gmail.com
 \date       May 13, 2024
 \brief      Declares the Project Panel class which has an interface for all the
 			videos involved in the project.

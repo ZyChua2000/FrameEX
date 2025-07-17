@@ -2,7 +2,9 @@
 /*!
 \file       Project.cpp
 \author     Chua Zheng Yang
+\par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
+\par		email: chuazhengyang2000\@gmail.com
 \date       May 16, 2024
 \brief      Defines the Project class that contains all data and settings
 			related to the project.
@@ -13,7 +15,7 @@
 #include <Core/LoggerManager.hpp>
 #define YAML_CPP_STATIC_DEFINE
 #include <yaml-cpp/yaml.h>
-
+#include <Template/TaskManager.hpp>
 namespace YAML
 {
     template<>
@@ -332,7 +334,22 @@ namespace FrameExtractor
 
     Project::Project()
     {
-        
+        mDynamicTask = GenerateTask("resources\\presets\\TaskType\\Counting\\DiorCounting.yaml");
+  //      Date date{ 8, 12, 2000 };
+  //      Time time{ 3, 5, 6 };
+
+  //      Date date2{ 9, 11, 2001 };
+		//Time time2{ 4, 6, 7 };
+  //      mDynamicTask.AddPage({}, date);
+  //      mDynamicTask.AddPage({ date }, time);
+  //      mDynamicTask.AddTab({ date, time}, 1);
+  //      mDynamicTask.AddTab({ date, time }, 2);
+
+		//mDynamicTask.AddPage({}, date2);
+		//mDynamicTask.AddPage({ date2 }, time2);
+		//mDynamicTask.AddTab({ date2, time2 }, 2);
+        //mDynamicTask.mSpecs->mExportFormat = new 
+
     }
 
     Project::~Project()

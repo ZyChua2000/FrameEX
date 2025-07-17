@@ -2,7 +2,9 @@
 /*!
 \file       ToolsPanel.hpp
 \author     Chua Zheng Yang
+\par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
+\par		email: chuazhengyang2000\@gmail.com
 \date       May 10, 2024
 \brief      Declares the Tools Panel class which has all the tools.
 
@@ -51,6 +53,15 @@ namespace FrameExtractor
 		char shopperIDBuffer[16] = {};
 		char dateBuffer[9] = {};
 		bool errorCodeBool = false;
+
+		bool exportSettingbool = false;
+		bool importSettingbool = false;
+		std::string exportVarPayload;
+		std::string importVarPayload;
+		DynamicTaskInterface mTaskInterface;
+		ExcelExport mExcelExportBuffer;
+		ExcelImport mExcelImportBuffer;
+
 
 		void CountingTab(float lineHeight);
 		void AggregateTab(float lineHeight);

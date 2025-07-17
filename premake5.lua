@@ -23,6 +23,7 @@ workspace "FrameEX"
 	IncludeDir["OpenXLSX"] = "FrameExtractor/lib/OpenXLSX/inc"
 	IncludeDir["YAML"] = "FrameExtractor/lib/yaml-cpp/include"
 	IncludeDir["RTTR"] = "FrameExtractor/lib/rttr/src"
+	IncludeDir["MagicEnum"] = "FrameExtractor/lib/magic_enum/include"
 
 	LibraryDir = {}
 	LibraryDir["FFMPEG"] = "lib/ffmpeg/lib"
@@ -80,6 +81,7 @@ workspace "FrameEX"
 			"%{IncludeDir.STBI}",
 			"%{IncludeDir.OpenXLSX}",
 			"%{IncludeDir.RTTR}",
+			"%{IncludeDir.MagicEnum}",
 			"%{IncludeDir.YAML}"
 		}
 

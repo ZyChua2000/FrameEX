@@ -1,0 +1,8 @@
+TypeName: BlankedVideo
+Fields:
+  StartEnd:
+    Type: bool
+    Default: true
+  TimeStamp:
+    Type: string
+    Default: "00:00:00"

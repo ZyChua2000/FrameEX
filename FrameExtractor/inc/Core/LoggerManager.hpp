@@ -2,7 +2,9 @@
 /*!
 \file       LoggerManager.hpp
 \author     Chua Zheng Yang
+\par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
+\par		email: chuazhengyang2000\@gmail.com
 \date       May 11, 2024
 \brief      Declares the Logger Manager class which handles the logs
 

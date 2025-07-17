@@ -2,7 +2,9 @@
 /*!
 \file       ToolsPanel.cpp
 \author     Chua Zheng Yang
+\par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
+\par		email: chuazhengyang2000\@gmail.com
 \date       May 13, 2024
 \brief      Defines the Project Panel class which has an interface for all the
 			videos involved in the project.
@@ -165,7 +167,7 @@ namespace FrameExtractor
         return "Project";
     }
     
-    static void AddDirectoryRecursive(const std::filesystem::directory_entry& currEntry, std::unordered_set<std::filesystem::path>& videosInProject)
+    static void AddDirectoryRecursive(const std::filesystem::directory_entry& currEntry, std::set<std::filesystem::path>& videosInProject)
     {
         if (currEntry.is_directory())
         {

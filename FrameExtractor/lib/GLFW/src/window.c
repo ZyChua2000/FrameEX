@@ -1185,7 +1185,7 @@ GLFWAPI void glfwWaitEventsTimeout(double timeout)
 
     if (timeout != timeout || timeout < 0.0 || timeout > DBL_MAX)
     {
-        _glfwInputError(GLFW_INVALID_VALUE, "Invalid time %f", timeout);
+        _glfwInputError(GLFW_INVALID_VALUE, "Invalid InputTime %f", timeout);
         return;
     }
 

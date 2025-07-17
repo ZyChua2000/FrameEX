@@ -1,0 +1,40 @@
+/******************************************************************************
+/*!
+\file       TemplateEnums.hpp
+\author     Chua Zheng Yang
+\par		email: 2202829\@sit.singaporetech.edu.sg
+\par    	email: zhengyang.chua\@hendrickscorp.com
+\par		email: chuazhengyang2000\@gmail.com
+\date       June 23, 2024
+\brief      Declares the Enums involved for Templating System
+
+ /******************************************************************************/
+
+#ifndef TEMPLATE_ENUMS_HPP
+#define TEMPLATE_ENUMS_HPP
+#include <string>
+namespace FrameExtractor
+{
+    enum class DataType
+    {
+        None,
+        Bool,
+        Int,
+        Float,
+        Double,
+        Date,
+        Time,
+        String,
+        Complex
+    };
+
+
+    enum class IOType
+    {
+        None,
+        Excel,
+        Text
+    };
+}
+
+#endif

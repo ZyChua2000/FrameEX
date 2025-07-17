@@ -13,6 +13,9 @@
     <Filter Include="inc\Graphics">
       <UniqueIdentifier>{3FDB5365-2B3E-E309-D4C3-1BC0C005AF8C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="inc\Template">
+      <UniqueIdentifier>{0A8EF697-F6F0-853C-9F76-BEF28BB851BF}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib">
       <UniqueIdentifier>{3C8C880B-A895-887C-3111-9F7C9D19947C}</UniqueIdentifier>
     </Filter>
@@ -64,6 +67,15 @@
     <Filter Include="lib\glm\glm\gtx">
       <UniqueIdentifier>{BCD4EE79-2860-5C3E-3171-DF329D7BB83E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\magic_enum">
+      <UniqueIdentifier>{A0774D3D-8C45-4143-75D9-B16961461DA8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\magic_enum\include">
+      <UniqueIdentifier>{133F28DB-FF38-512D-E8A5-E73DD43EB799}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\magic_enum\include\magic_enum">
+      <UniqueIdentifier>{1756DDFE-83C4-327E-CCAD-ED7D385B281A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
     </Filter>
@@ -75,6 +87,9 @@
     </Filter>
     <Filter Include="src\Graphics">
       <UniqueIdentifier>{0D564864-F9B8-D708-A23E-10BF8E80A38B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Template">
+      <UniqueIdentifier>{D808EB96-C46B-7A3B-6DF1-B2F1593346BE}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -114,6 +129,9 @@
     <ClInclude Include="inc\GUI\GUIUtils.hpp">
       <Filter>inc\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="inc\GUI\GuiResourcesManager.hpp">
+      <Filter>inc\GUI</Filter>
+    </ClInclude>
     <ClInclude Include="inc\GUI\IPanel.hpp">
       <Filter>inc\GUI</Filter>
     </ClInclude>
@@ -140,6 +158,18 @@
     </ClInclude>
     <ClInclude Include="inc\Graphics\Video.hpp">
       <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Template\DataSpecification.hpp">
+      <Filter>inc\Template</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Template\DynamicTask.hpp">
+      <Filter>inc\Template</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Template\TaskManager.hpp">
+      <Filter>inc\Template</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Template\TemplateEnums.hpp">
+      <Filter>inc\Template</Filter>
     </ClInclude>
     <ClInclude Include="lib\OpenXLSX\inc\OpenXLSX.hpp">
       <Filter>lib\OpenXLSX\inc</Filter>
@@ -1554,9 +1584,34 @@
     <ClInclude Include="lib\glm\glm\vector_relational.hpp">
       <Filter>lib\glm\glm</Filter>
     </ClInclude>
-    <ClInclude Include="inc\GUI\GuiResourcesManager.hpp">
-      <Filter>inc\GUI</Filter>
+    <ClInclude Include="lib\magic_enum\include\magic_enum\magic_enum.hpp">
+      <Filter>lib\magic_enum\include\magic_enum</Filter>
     </ClInclude>
+    <ClInclude Include="lib\magic_enum\include\magic_enum\magic_enum_all.hpp">
+      <Filter>lib\magic_enum\include\magic_enum</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\magic_enum\include\magic_enum\magic_enum_containers.hpp">
+      <Filter>lib\magic_enum\include\magic_enum</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\magic_enum\include\magic_enum\magic_enum_flags.hpp">
+      <Filter>lib\magic_enum\include\magic_enum</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\magic_enum\include\magic_enum\magic_enum_format.hpp">
+      <Filter>lib\magic_enum\include\magic_enum</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\magic_enum\include\magic_enum\magic_enum_fuse.hpp">
+      <Filter>lib\magic_enum\include\magic_enum</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\magic_enum\include\magic_enum\magic_enum_iostream.hpp">
+      <Filter>lib\magic_enum\include\magic_enum</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\magic_enum\include\magic_enum\magic_enum_switch.hpp">
+      <Filter>lib\magic_enum\include\magic_enum</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\magic_enum\include\magic_enum\magic_enum_utility.hpp">
+      <Filter>lib\magic_enum\include\magic_enum</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Template\TemplateDataType.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\ApplicationManager.cpp">
@@ -1616,5 +1671,15 @@
     <ClCompile Include="src\Graphics\Video.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\Template\DataSpecification.cpp">
+      <Filter>src\Template</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Template\DynamicTask.cpp">
+      <Filter>src\Template</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Template\TaskManager.cpp">
+      <Filter>src\Template</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Template\TemplateDataType.cpp" />
   </ItemGroup>
 </Project>

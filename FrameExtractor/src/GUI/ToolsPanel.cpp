@@ -2,7 +2,9 @@
 /*!
 \file       ToolsPanel.cpp
 \author     Chua Zheng Yang
+\par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
+\par		email: chuazhengyang2000\@gmail.com
 \date       May 10, 2024
 \brief      Defines the Tools Panel class which contains all the tools
 
@@ -17,20 +19,50 @@
 #include <GUI/GUIUtils.hpp>
 #include <GUI/GuiResourcesManager.hpp>
 #include <Core/ExcelSerialiser.hpp>
+#include <magic_enum/magic_enum.hpp>
 #define ERROR_DATEFMT 1
 #define ERROR_MISSINGFIELD 2
 #define ERROR_NONE -1
 namespace FrameExtractor
 {
 
-    ToolsPanel::ToolsPanel(Project* project) : mProject(project)
+    ToolsPanel::ToolsPanel(Project* project) : mProject(project), mTaskInterface(&project->mDynamicTask)
     {
-
-
     }
 
     ToolsPanel::~ToolsPanel()
     {
+    }
+
+    bool IsValidExcelColumnID(const std::string& col) {
+        if (col.empty()) return false;
+        for (char c : col) {
+            if (!std::isalpha(c)) return false;
+        }
+        return true;
+    }
+    std::string IntToExcelColumn(int in)
+    {
+        in += 1;
+        std::string result;
+
+        while (in > 0) {
+            in--; // Make it 0-based for current digit
+            result.insert(result.begin(), 'A' + (in % 26));
+            in /= 26;
+        }
+
+        return result;
+    }
+
+    int ExcelColumnToInt(std::string str)
+    {
+        int result = 0;
+        for (char c : str) {
+            result *= 26;
+            result += (std::toupper(c) - 'A' + 1);
+        }
+        return result - 1; // Convert to 0-based
     }
 
     void ToolsPanel::OnImGuiRender(float dt)
@@ -48,11 +80,13 @@ namespace FrameExtractor
 
             {
                 AggregateTab(lineHeight);
-
             }
 
             {
                 auto open = ImGui::BeginTabItem("Frame Extraction##Toolsbar");
+                bool open_clear_popup = false;
+                bool open_error_popup = false;
+                bool delete_store_popup = false;
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 {
                     ImGui::BeginTooltip();
@@ -61,7 +95,1059 @@ namespace FrameExtractor
                 }
                 if (open)
                 {
+                    
+              
+                    if (ImGui::ImageButton("Add Entry##Counting", Resource(Icon::ADDFILE_ICON)->GetTextureID(), { lineHeight * 1.5f, lineHeight * 1.5f }))
+                    {
+                        if (!mProject->IsProjectLoaded())
+                        {
+                            open_error_popup = true;
+                        }
+                        else
+                            ImGui::OpenPopup("AddEntryPopup##Counting");
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("Add Entry");
+                        ImGui::EndTooltip();
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::ImageButton("Clear##Counting", Resource(Icon::CLEAR_ICON)->GetTextureID(), { lineHeight * 1.5f, lineHeight * 1.5f }))
+                    {
+                        if (!mProject->IsProjectLoaded())
+                        {
+                            open_error_popup = true;
+                        }
+                        else
+                            open_clear_popup = true;
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("Clear All Entries");
+                        ImGui::EndTooltip();
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::ImageButton("Import Data##Counting", Resource(Icon::IMPORT_ICON)->GetTextureID(), { lineHeight * 1.5f ,lineHeight * 1.5f }))
+                    {
+                        //if (!mProject->IsProjectLoaded())
+                        //{
+                        //    open_error_popup = true;
+                        //}
+                        //else
+                        {
+                            auto spikeDipFile = OpenFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
+                            if (std::filesystem::exists(spikeDipFile))
+                            {
+                                ExcelSerialiser serialiser(spikeDipFile);
+								serialiser.Import(mProject->mDynamicTask);
+                                //CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::map<Project::StoreCode, std::map<Project::Hour, CountData>>>>(&mProject->mCountingData, mProject->mCountingData, serialiser.ImportSpikeDipReport()));
+                                APP_CORE_INFO("load counting_data {}", spikeDipFile);
+                            }
+                            else
+                            {
+                                APP_CORE_ERROR("Spike Dip file does not exist!");
+                            }
+                        }
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("Import Data (.xlsx)");
+                        ImGui::EndTooltip();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::ImageButton("Import Data Settings##Counting", Resource(Icon::IMPORT_ICON)->GetTextureID(), { lineHeight * 1.5f, lineHeight * 1.5f }))
+                    {
+                        importSettingbool = true;
+                        mExcelImportBuffer = mProject->mDynamicTask.mSpecs->mImportFormat->get_value<ExcelImport>();
+                    }
+
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("Import Data Settings");
+                        ImGui::EndTooltip();
+                    }
+                    if (importSettingbool)
+                    {
+                        ImGui::SetNextWindowSize({ lineHeight * 25, lineHeight * 20 }, ImGuiCond_Always);
+                        ImGui::Begin("ImportSettingsPopup##Counting", &importSettingbool, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_Modal);
+
+
+                        if (ImGui::Button("Save##ImportSettings", { lineHeight * 2, lineHeight }))
+                        {
+                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<ExcelImport>>(&mProject->mDynamicTask.mSpecs->mImportFormat->get_value<ExcelImport>(), mProject->mDynamicTask.mSpecs->mImportFormat->get_value<ExcelImport>(), mExcelImportBuffer));
+                            importSettingbool = false;
+                        }
+
+                        ImGui::SameLine();
+                        if (ImGui::Button("Cancel##ExportSettings", { lineHeight * 2, lineHeight }))
+                        {
+                            importSettingbool = false;
+                        }
+
+                        ImGuiID dockspace_id = ImGui::GetID("ImportSettingDockspace");
+                        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+                        auto& columnHeaders = mExcelImportBuffer.mDataMapping;
+
+                        ImGui::Begin("Headers##Counting", nullptr, ImGuiWindowFlags_NoMove);
+                        ImGui::Text("Column Headers");
+                        ImGui::SameLine();
+                        if (ImGui::Button("+##ColumnHeader", { lineHeight, lineHeight }))
+                        {
+                            if (!columnHeaders.empty())
+                                columnHeaders.emplace(columnHeaders.rbegin()->first + 1, "");
+                            else
+                                columnHeaders.emplace(0, "");
+                        }
+                        ImGui::Separator();
+
+                        ImGui::Checkbox("Has Header Row", &mExcelImportBuffer.mHasHeader);
+
+                        for (auto& [columnIndex, headerName] : columnHeaders)
+                        {
+                            ImGui::PushID(columnIndex);
+                            int colIDx = columnIndex;
+                            ImGui::SetNextItemWidth(lineHeight);
+
+                            {
+                                std::string ColumnInputStr = IntToExcelColumn(columnIndex);
+                                char columnHeaderBuffer[16];
+                                std::strncpy(columnHeaderBuffer, ColumnInputStr.c_str(), sizeof(columnHeaderBuffer) - 1);
+                                columnHeaderBuffer[sizeof(columnHeaderBuffer) - 1] = '\0';
+
+                                if (ImGui::InputText("##ColumnIndex", columnHeaderBuffer, sizeof(columnHeaderBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+                                {
+                                    ColumnInputStr = std::string(columnHeaderBuffer);
+                                    try {
+                                        colIDx = std::stoi(ColumnInputStr);
+                                    }
+                                    catch (const std::exception&)
+                                    {
+                                        if (IsValidExcelColumnID(ColumnInputStr))
+                                        {
+                                            colIDx = ExcelColumnToInt(ColumnInputStr);
+                                        }
+                                    }
+
+                                    if (colIDx != columnIndex)
+                                    {
+                                        if (columnHeaders.find(colIDx) == columnHeaders.end())
+                                        {
+                                            columnHeaders[colIDx] = headerName;
+                                            columnHeaders.erase(columnIndex);
+                                            ImGui::PopID();
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            colIDx = columnIndex; // Reset to original index if it already exists
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            ImGui::SameLine();
+                            // These should always execute, not only when the index changes:
+                            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 2 * lineHeight);
+                            {
+                                char buffer[64];
+                                std::strncpy(buffer, headerName.c_str(), sizeof(buffer) - 1);
+                                buffer[sizeof(buffer) - 1] = '\0';
+
+                                if (ImGui::InputTextWithHint(("##HeaderName" + std::to_string(columnIndex)).c_str(), "Header", buffer, sizeof(buffer)))
+                                {
+                                    columnHeaders[columnIndex] = std::string(buffer);
+                                }
+                                if (ImGui::BeginDragDropTarget())
+                                {
+                                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ImportVariable"))
+                                    {
+                                        if (payload->DataSize == sizeof(std::string))
+                                        {
+                                            std::string* varName = static_cast<std::string*>(payload->Data);
+                                            columnHeaders[colIDx] = *varName;
+                                        }
+                                    }
+                                    ImGui::EndDragDropTarget();
+                                }
+
+                                ImGui::SameLine();
+
+                                if (ImGui::Button("-##ColumnHeader", { lineHeight, lineHeight }))
+                                {
+                                    columnHeaders.erase(columnIndex);
+                                    ImGui::PopID();
+                                    break;
+                                }
+                            }
+
+                            ImGui::PopID();
+                        }
+                        ImGui::End();
+
+                        ImGui::Begin("Variables##ImportSetting", nullptr, ImGuiWindowFlags_NoMove);
+                        std::vector<std::pair<std::string, DataType>> dataList;
+                        // Variable mapping
+                        for (int i = 0; i < mProject->mDynamicTask.mSpecs->MaxCategories(); i++)
+                        {
+                            dataList.push_back({ *mProject->mDynamicTask.mSpecs->mNodeCategories->at(i)->mName, *mProject->mDynamicTask.mSpecs->mNodeCategories->at(i)->mType });
+                        }
+                        dataList.push_back({ *mProject->mDynamicTask.mSpecs->mTab->mName,*mProject->mDynamicTask.mSpecs->mTab->mType });
+                        for (int i = 0; i < mProject->mDynamicTask.mSpecs->mFieldSpecs->size(); i++)
+                        {
+                            dataList.push_back({ *mProject->mDynamicTask.mSpecs->mFieldSpecs->at(i)->mName,*mProject->mDynamicTask.mSpecs->mFieldSpecs->at(i)->mType });
+                        }
+
+                        ImGui::Text("Variables");
+                        ImGui::Separator();
+                        for (int i = 0; i < dataList.size(); i++)
+                        {
+                            ImGui::Button((dataList[i].first + "##Vars").c_str(), ImVec2(lineHeight * 6, lineHeight));
+                            if (ImGui::BeginDragDropSource())
+                            {
+                                importVarPayload = dataList[i].first;
+                                ImGui::SetDragDropPayload("ImportVariable", &importVarPayload, sizeof(std::string));
+                                ImGui::EndDragDropSource();
+                            }
+                            ImGui::SameLine();
+                            ImGui::Text(magic_enum::enum_name<DataType>(dataList[i].second).data());
+                        }
+                        ImGui::End();
+
+
+                        ImGui::End();
+                    }
+
+                    ImGui::SameLine();
+                    if (ImGui::ImageButton("Export Data##Counting", Resource(Icon::EXPORT_ICON)->GetTextureID(), { lineHeight * 1.5f, lineHeight * 1.5f }))
+                    {
+                       /* if (!mProject->IsProjectLoaded())
+                        {
+                            open_error_popup = true;
+                        }
+                        else {*/
+                            auto projectFile = SaveFileDialog("Excel File (*.xlsx)\0*.xlsx\0");
+                            if (!projectFile.empty())
+                            {
+                                projectFile.replace_extension(".xlsx");
+                                ExcelSerialiser serialiser(projectFile);
+								serialiser.Export(mProject->mDynamicTask);
+                            }
+                      /*  }*/
+
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("Export Data (.xlsx)");
+                        ImGui::EndTooltip();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::ImageButton("Export Data Settings##Counting", Resource(Icon::EXPORT_ICON)->GetTextureID(), { lineHeight * 1.5f, lineHeight * 1.5f }))
+                    {
+                        exportSettingbool = true;
+                        mExcelExportBuffer = mProject->mDynamicTask.mSpecs->mExportFormat->get_value<ExcelExport>();
+                    }
+
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+					{
+						ImGui::BeginTooltip();
+						ImGui::Text("Export Data Settings");
+						ImGui::EndTooltip();
+					}
+
+
+                    if (exportSettingbool)
+                    {
+                        ImGui::SetNextWindowSize({ lineHeight * 25, lineHeight * 20 }, ImGuiCond_Always);
+                        ImGui::Begin("ExportSettingsPopup##Counting", &exportSettingbool, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize |ImGuiWindowFlags_Modal);
+
+
+                        if (ImGui::Button("Save##ExportSettings", { lineHeight * 2, lineHeight }))
+                        {
+                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<ExcelExport>>(&mProject->mDynamicTask.mSpecs->mExportFormat->get_value<ExcelExport>(), mProject->mDynamicTask.mSpecs->mExportFormat->get_value<ExcelExport>(), mExcelExportBuffer));
+
+                            exportSettingbool = false;
+                        }
+
+                        ImGui::SameLine();
+                        if (ImGui::Button("Cancel##ExportSettings", { lineHeight * 2, lineHeight }))
+                        {
+                            exportSettingbool = false;
+                        }
+
+                        ImGuiID dockspace_id = ImGui::GetID("ExportSettingDockspace");
+                        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+                        auto& columnProps = mExcelExportBuffer.mDataColumnMapping;
+                        auto& columnHeaders = mExcelExportBuffer.mColumnHeaders;
+
+                        ImGui::Begin("Headers##Counting", nullptr, ImGuiWindowFlags_NoMove);
+                        ImGui::Text("Column Headers");
+                        ImGui::SameLine();
+                        if (ImGui::Button("+##ColumnHeader", { lineHeight, lineHeight }))
+                        {
+                            if (!columnHeaders.empty())
+                                columnHeaders.emplace(columnHeaders.rbegin()->first + 1, "");
+                            else
+                                columnHeaders.emplace(0, "");
+                        }
+                        ImGui::Separator();
+
+                        for (auto& [columnIndex, headerName] : columnHeaders)
+                        {
+                            ImGui::PushID(columnIndex);
+                            int colIDx = columnIndex;
+                            ImGui::SetNextItemWidth(lineHeight);
+
+                            {
+                                std::string ColumnInputStr = IntToExcelColumn(columnIndex);
+                                char columnHeaderBuffer[16];
+                                std::strncpy(columnHeaderBuffer, ColumnInputStr.c_str(), sizeof(columnHeaderBuffer) - 1);
+                                columnHeaderBuffer[sizeof(columnHeaderBuffer) - 1] = '\0';
+
+                                if (ImGui::InputText("##ColumnIndex", columnHeaderBuffer, sizeof(columnHeaderBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+                                {
+                                    ColumnInputStr = std::string(columnHeaderBuffer);
+                                    try {
+                                        colIDx = std::stoi(ColumnInputStr);
+                                    }
+                                    catch (const std::exception&)
+                                    {
+                                        if (IsValidExcelColumnID(ColumnInputStr))
+                                        {
+                                            colIDx = ExcelColumnToInt(ColumnInputStr);
+                                        }
+                                    }
+
+                                    if (colIDx != columnIndex)
+                                    {
+                                        if (columnHeaders.find(colIDx) == columnHeaders.end())
+                                        {
+                                            columnHeaders[colIDx] = headerName;
+                                            columnHeaders.erase(columnIndex);
+                                            ImGui::PopID();
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            colIDx = columnIndex; // Reset to original index if it already exists
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            ImGui::SameLine();
+                            // These should always execute, not only when the index changes:
+                            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 2 * lineHeight);
+                            {
+                                char buffer[64];
+                                std::strncpy(buffer, headerName.c_str(), sizeof(buffer) - 1);
+                                buffer[sizeof(buffer) - 1] = '\0';
+
+                                if (ImGui::InputTextWithHint(("##HeaderName" + std::to_string(columnIndex)).c_str(), "Header", buffer, sizeof(buffer)))
+                                {
+                                    columnHeaders[columnIndex] = std::string(buffer);
+                                }
+                                if (ImGui::BeginDragDropTarget())
+                                {
+                                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ExportVariable"))
+                                    {
+                                        if (payload->DataSize == sizeof(std::string))
+                                        {
+                                            std::string* varName = static_cast<std::string*>(payload->Data);
+                                            columnHeaders[colIDx] += *varName;
+                                        }
+                                    }
+                                    ImGui::EndDragDropTarget();
+                                }
+
+                                ImGui::SameLine();
+
+                                if (ImGui::Button("-##ColumnHeader", { lineHeight, lineHeight }))
+                                {
+                                    columnHeaders.erase(columnIndex);
+                                    ImGui::PopID();
+                                    break;
+                                }
+                            }
+
+                            ImGui::PopID();
+                        }
+                        ImGui::End();
+
+                        ImGui::Begin("Export Data##Counting", nullptr, ImGuiWindowFlags_NoMove);
+                        ImGui::Text("Data Column Mapping");
+                        ImGui::SameLine();
+                        if (ImGui::Button("+##DataColumnMapping", { lineHeight, lineHeight }))
+                        {
+							if (!columnProps.empty())
+								columnProps.emplace(columnProps.rbegin()->first + 1, "");
+							else
+                                columnProps.emplace(0, "");
+                        }
+                        ImGui::Separator();
+
+                        for (auto& [columnIndex, headerName] : columnProps)
+                        {
+                            ImGui::PushID(columnIndex);
+                            int colIDx = columnIndex;
+                            ImGui::SetNextItemWidth(lineHeight);
+
+                            {
+                                std::string ColumnInputStr = IntToExcelColumn(columnIndex);
+                                char columnHeaderBuffer[16];
+                                std::strncpy(columnHeaderBuffer, ColumnInputStr.c_str(), sizeof(columnHeaderBuffer) - 1);
+                                columnHeaderBuffer[sizeof(columnHeaderBuffer) - 1] = '\0';
+
+                                if (ImGui::InputText("##ColumnDataIndex", columnHeaderBuffer, sizeof(columnHeaderBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+                                {
+                                    ColumnInputStr = std::string(columnHeaderBuffer);
+                                    try {
+                                        colIDx = std::stoi(ColumnInputStr);
+                                    }
+                                    catch (const std::exception&)
+                                    {
+                                        if (IsValidExcelColumnID(ColumnInputStr))
+                                        {
+                                            colIDx = ExcelColumnToInt(ColumnInputStr);
+                                        }
+                                    }
+
+                                    if (colIDx != columnIndex)
+                                    {
+                                        if (columnProps.find(colIDx) == columnProps.end())
+                                        {
+                                            columnProps[colIDx] = headerName;
+                                            columnProps.erase(columnIndex);
+                                            ImGui::PopID();
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            colIDx = columnIndex; // Reset to original index if it already exists
+                                        }
+                                    }
+                                }
+                            }
+
+                            ImGui::SameLine();
+                            // These should always execute, not only when the index changes:
+                            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 2 * lineHeight);
+                            {
+                                char buffer[64];
+                                std::strncpy(buffer, headerName.c_str(), sizeof(buffer) - 1);
+                                buffer[sizeof(buffer) - 1] = '\0';
+
+                                if (ImGui::InputTextWithHint(("##HeaderDataName" + std::to_string(columnIndex)).c_str(), "Data Format", buffer, sizeof(buffer)))
+                                {
+                                    columnProps[columnIndex] = std::string(buffer);
+                                }
+                                if (ImGui::BeginDragDropTarget())
+                                {
+									if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ExportVariable"))
+									{
+										if (payload->DataSize == sizeof(std::string))
+										{
+											std::string* varName = static_cast<std::string*>(payload->Data);
+											columnProps[colIDx] += "{$" +*varName+"}";
+										}
+									}
+									ImGui::EndDragDropTarget();
+                                }
+
+                                ImGui::SameLine();
+
+                                if (ImGui::Button("-##ColumnDataHeader", { lineHeight, lineHeight }))
+                                {
+                                    columnProps.erase(columnIndex);
+                                    ImGui::PopID();
+                                    break;
+                                }
+                            }
+
+                            ImGui::PopID();
+                        }
+                        ImGui::End();
+
+                        ImGui::Begin("Variables##ExportData", nullptr, ImGuiWindowFlags_NoMove);
+                        std::vector<std::pair<std::string, DataType>> dataList;
+                        // Variable mapping
+                        for (int i = 0; i < mProject->mDynamicTask.mSpecs->MaxCategories(); i++)
+                        {
+                            dataList.push_back({ *mProject->mDynamicTask.mSpecs->mNodeCategories->at(i)->mName, *mProject->mDynamicTask.mSpecs->mNodeCategories->at(i)->mType });
+                        }
+                        dataList.push_back({ *mProject->mDynamicTask.mSpecs->mTab->mName,*mProject->mDynamicTask.mSpecs->mTab->mType });
+                        for (int i = 0; i < mProject->mDynamicTask.mSpecs->mFieldSpecs->size(); i++)
+                        {
+                            dataList.push_back({ *mProject->mDynamicTask.mSpecs->mFieldSpecs->at(i)->mName,*mProject->mDynamicTask.mSpecs->mFieldSpecs->at(i)->mType });
+                        }
+
+						ImGui::Text("Variables");
+                        ImGui::Separator();
+						for (int i = 0; i < dataList.size(); i++)
+						{
+							ImGui::Button((dataList[i].first + "##Vars").c_str(), ImVec2(lineHeight * 6, lineHeight));
+                            if (ImGui::BeginDragDropSource())
+                            {
+								exportVarPayload = dataList[i].first;
+								ImGui::SetDragDropPayload("ExportVariable", &exportVarPayload, sizeof(std::string));
+								ImGui::EndDragDropSource();
+                            }
+                            ImGui::SameLine();
+                            ImGui::Text(magic_enum::enum_name<DataType>(dataList[i].second).data());
+						}
+                        ImGui::Separator();
+                        ImGui::Text("Specifiers");
+                        ImGui::Separator();
+                        if (ImGui::CollapsingHeader("format##SpecifierList", ImGuiTreeNodeFlags_DefaultOpen))
+                        {
+                            ImGui::Text("Supported Data Types: Date, Time");
+                            ImGui::NewLine();
+                            ImGui::Text("Date Formats: ");
+                            ImGui::Text("D/M/YYYY");
+							ImGui::Text("D-MON-YY");
+							ImGui::Text("D-MON");
+							ImGui::Text("MON-YY");
+                            ImGui::NewLine();
+							ImGui::Text("Time Formats: ");
+							ImGui::Text("H:MM AM/PM");
+							ImGui::Text("H:MM:SS AM/PM");
+							ImGui::Text("H:MM");
+							ImGui::Text("H:MM:SS");
+                        }
+                        ImGui::End();
+                      
+
+                        ImGui::End();
+                    }
+
+
+                    ImGui::SetNextWindowSize({ lineHeight * 9.75f, lineHeight * 5.25f }, ImGuiCond_Always);
+                    if (ImGui::BeginPopup("AddEntryPopup##Counting", ImGuiWindowFlags_NoMove))
+                    {
+
+                        ImGui::Columns(2);
+                        ImGui::SetColumnWidth(0, lineHeight * 4);
+                        ImGui::Text("Store Code: ");
+                        ImGui::NextColumn();
+                        ImGui::SetNextItemWidth(lineHeight * 5);
+                        ImGui::InputText("##Store Code##Counting: ", mStoreCodeBuffer, 16);
+                        ImGui::NextColumn();
+
+                        ImGui::Text("Hour: ");
+                        ImGui::NextColumn();
+                        ImGui::SetNextItemWidth(lineHeight * 5);
+                        ImGui::InputInt("##Hour:##Counting ", &mTimeBuffer, 1, 1);
+                        ImGui::NextColumn();
+
+                        ImGui::Text("Entrances: ");
+                        ImGui::NextColumn();
+                        ImGui::SetNextItemWidth(lineHeight * 5);
+                        ImGui::InputInt("##Entrances##Counting: ", &mEntranceBuffer, 1, 1);
+                        ImGui::Columns(1);
+                        ImGui::Separator();
+                      
+
+                        ImGui::SameLine();
+
+                        if (ImGui::Button("Cancel##Counting"))
+                        {
+                            std::memset(mStoreCodeBuffer, 0, 16);
+                            mEntranceBuffer = 1;
+                            mTimeBuffer = 0;
+                            ImGui::CloseCurrentPopup();
+                        }
+
+                        ImGui::EndPopup();
+                    }
+                    auto& Task = mProject->mDynamicTask;
+                    ImGui::SameLine();
+                    auto lineLength = ImGui::GetContentRegionAvail().x;
+                    ImGui::BeginChild("DetailRegion", ImVec2(lineLength, lineHeight * 1.5f + ImGui::GetStyle().FramePadding.y * 2), true);
+                    ImGui::PushFont(ImGuiManager::BoldFont);
+                    ImGui::Text(Task.mTaskName.c_str());
+                    ImGui::PopFont();
+                    ImGui::EndChild();
+
+                    ImVec2 windowSize = ImGui::GetContentRegionAvail();
+                    ImGui::BeginChild("ScrollableRegion##Counting", ImVec2(windowSize.x, windowSize.y), true);
+                    auto CountingData = &Task.mPages;
+                    std::string tabKey;
+
+#pragma region NodeCategory
+                    for (int categoryNum = 0; categoryNum < Task.mSpecs->MaxCategories(); categoryNum++)
+                    {
+
+                        std::string nameStr = *mProject->mDynamicTask.mSpecs->mNodeCategories->at(categoryNum)->mName;
+                        DataType categoryType = *Task.mSpecs->mNodeCategories->at(categoryNum)->mType;
+
+                 
+                        if (mTaskInterface[categoryNum] > 0)
+                        {
+                            if (ImGui::ArrowButton(("##Back" + nameStr).c_str(), ImGuiDir_Left))
+                            {
+                                CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mTaskInterface[categoryNum], mTaskInterface[categoryNum], mTaskInterface[categoryNum]-1));
+                                APP_CORE_INFO("counting_data -page -minus 1");
+                            }
+                            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                            {
+                                ImGui::BeginTooltip();
+                                ImGui::Text("Previous Store");
+                                ImGui::EndTooltip();
+                            }
+                        }
+                        else
+                        {
+                            ImGui::InvisibleButton(("##DummyArrow1" + nameStr).c_str(), ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()));
+                        }
+
+                        ImGui::SameLine();
+
+#pragma region CategoryComboBox
+                        float spacing = ImGui::GetStyle().ItemSpacing.x;
+                        float arrow_button_width = ImGui::GetFrameHeight(); // Arrow buttons are square
+                        float total_spacing = spacing * 3; // space between 3 items
+
+                        // Calculate remaining width
+                        float remaining_width = ImGui::GetContentRegionAvail().x;
+                        float middle_button_width = remaining_width - (arrow_button_width * 2 + total_spacing);;
+
+                        
+                        std::vector<rttr::variant> keys;
+                        for (const auto& pair : *CountingData) {
+                            keys.push_back(pair.first);  // pair.first is the key
+                        }
+                        ImGui::SetNextItemWidth(middle_button_width);
+
+                        ImVec2 cursor_before_label = ImGui::GetCursorScreenPos();
+
+                        if (ImGui::BeginCombo(("##ComboList" + nameStr).c_str(), "", ImGuiComboFlags_None))
+                        {
+                            for (int key = 0; key < keys.size(); key++)
+                            {
+                                bool is_selected = mTaskInterface[categoryNum] == key;
+                                std::string strLabel;
+                                switch(categoryType)
+                                {
+                                case DataType::String:  strLabel = keys[key].get_value<std::string>(); break;
+                                case DataType::Int:     strLabel = std::to_string(keys[key].get_value<int>()); break;
+								case DataType::Float:   strLabel = std::to_string(keys[key].get_value<float>()); break;
+								case DataType::Double:  strLabel = std::to_string(keys[key].get_value<double>()); break;
+								case DataType::Bool:    keys[key].get_value<bool>() ? strLabel = "True" : strLabel = "False"; break;
+								case DataType::Date:    strLabel = keys[key].get_value<Date>().to_string();break;
+								case DataType::Time:    strLabel = keys[key].get_value<Time>().to_string(); break;
+
+                                case DataType::None: break;
+                                default: break;
+                                }
+
+                                if (ImGui::Selectable(strLabel.c_str(), &is_selected))
+                                {
+                                    CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mTaskInterface[categoryNum], mTaskInterface[categoryNum], key));
+                                    APP_CORE_INFO("counting_data -page -set {}", key);
+                                }
+
+                                if (is_selected)
+                                    ImGui::SetItemDefaultFocus();
+                            }
+                            ImGui::EndCombo();
+                        }
+                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::Text(nameStr.c_str());
+                            ImGui::EndTooltip();
+                        }
+
+                        ImGui::PushFont(ImGuiManager::BoldFont);
+                        if (!keys.empty())
+                        {
+                            // Center the label manually
+                            ImVec2 combo_pos = ImGui::GetItemRectMin(); // Position of combo box
+                            ImVec2 combo_size = ImGui::GetItemRectSize();
+
+                            std::string labelStr;
+                            switch (categoryType)
+                            {
+                            case DataType::String:  labelStr = keys[mTaskInterface[categoryNum]].get_value<std::string>(); break;
+                            case DataType::Int:     labelStr = std::to_string(keys[mTaskInterface[categoryNum]].get_value<int>()); break;
+                            case DataType::Float:   labelStr = std::to_string(keys[mTaskInterface[categoryNum]].get_value<float>()); break;
+                            case DataType::Double:  labelStr = std::to_string(keys[mTaskInterface[categoryNum]].get_value<double>()); break;
+                            case DataType::Bool:    keys[mTaskInterface[categoryNum]].get_value<bool>() ? labelStr = "True" : labelStr = "False"; break;
+                            case DataType::Date:    labelStr = keys[mTaskInterface[categoryNum]].get_value<Date>().to_string(); break;
+                            case DataType::Time:    labelStr = keys[mTaskInterface[categoryNum]].get_value<Time>().to_string(); break;
+                            case DataType::None:    labelStr = "NIL"; break;
+                            default: labelStr = "NIL";
+                            }
+
+                            labelStr.c_str();
+                            tabKey += labelStr;
+                            ImVec2 text_size = ImGui::CalcTextSize(labelStr.c_str());
+
+                            ImVec2 text_pos = ImVec2(
+                                combo_pos.x + (combo_size.x - text_size.x) * 0.5f,
+                                combo_pos.y + (combo_size.y - text_size.y) * 0.5f
+                            );
+
+                            ImGui::SetCursorScreenPos(text_pos);
+                            ImGui::TextUnformatted(labelStr.c_str());
+
+                            // Restore cursor after drawing the centered text
+                            ImGui::SetCursorScreenPos(cursor_before_label);
+                            ImGui::Dummy(combo_size);  // Reserve the space for the combo box
+                            
+                        }
+                        else
+                        {
+                            ImVec2 combo_pos = ImGui::GetItemRectMin(); // Position of combo box
+                            ImVec2 combo_size = ImGui::GetItemRectSize();
+                            const char* label = "NIL";
+                            ImVec2 text_size = ImGui::CalcTextSize(label);
+
+                            ImVec2 text_pos = ImVec2(
+                                combo_pos.x + (combo_size.x - text_size.x) * 0.5f,
+                                combo_pos.y + (combo_size.y - text_size.y) * 0.5f
+                            );
+
+                            ImGui::SetCursorScreenPos(text_pos);
+                            ImGui::TextUnformatted(label);
+
+                            // Restore cursor after drawing the centered text
+                            ImGui::SetCursorScreenPos(cursor_before_label);
+                            ImGui::Dummy(combo_size);  // Reserve the space for the combo box
+                        }
+                        ImGui::PopFont();
+#pragma endregion CategoryComboBox
+                        // Ensure SameLine aligns the arrow correctly
+                        ImGui::SameLine();  // This forces the next item to be on the same line
+
+
+                        if (mTaskInterface[categoryNum] + 1 < CountingData->size())
+                        {
+                            if (ImGui::ArrowButton(("##Next" + nameStr).c_str(), ImGuiDir_Right))
+                            {
+                                CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int>>(&mTaskInterface[categoryNum], mTaskInterface[categoryNum], mTaskInterface[categoryNum] + 1));
+                                APP_CORE_INFO("counting_data -page -add 1");
+                            }
+                            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                            {
+                                ImGui::BeginTooltip();
+                                ImGui::Text("Next Store");
+                                ImGui::EndTooltip();
+                            }
+                        }
+                        else
+                        {
+                            ImGui::InvisibleButton(("##DummyArrow2" + nameStr).c_str(), ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()));
+                        }
+                        if (!CountingData->empty())
+                        {
+                            ImGui::SameLine();
+                            if (ImGui::ImageButton(("##Settings" + nameStr).c_str(), Resource(Icon::SETTINGS_ICON)->GetTextureID(), { ImGui::GetFontSize(), ImGui::GetFontSize() }))
+                            {
+                                ImGui::OpenPopup(("StoreSettings##Counting" + nameStr).c_str());
+                                mTaskInterface.mLayeredBuffer.clear();
+								mTaskInterface.mLayeredBuffer.resize(Task.mSpecs->MaxDepth()- categoryNum - 1, rttr::variant()); // Resize the layered buffer to match the max depth
+								for (int categoryBuffer = categoryNum + 1; categoryBuffer < Task.mSpecs->MaxDepth(); categoryBuffer++)
+								{
+                                    DataType bufferType;
+                                    try
+                                    {
+                                       bufferType = *Task.mSpecs->mNodeCategories->at(categoryBuffer)->mType;
+                                    }
+									catch (const std::out_of_range& e)
+									{
+                                        bufferType = *Task.mSpecs->mTab->mType;
+									}
+                   
+
+                                    switch (bufferType)
+                                    {
+									case DataType::String:  mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1] = std::string(); break;
+									case DataType::Int:     mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1] = 0; break;
+									case DataType::Float:   mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1] = 0.0f; break;
+									case DataType::Double:  mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1] = 0.0; break;
+									case DataType::Bool:    mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1] = false; break;
+									case DataType::Date:    mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1] = Date(); break;
+									case DataType::Time:    mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1] = Time(); break;
+                                    }
+								}
+                            }
+                            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                            {
+                                ImGui::BeginTooltip();
+                                ImGui::Text(nameStr.c_str());
+                                ImGui::EndTooltip();
+                            }
+                        }
+
+						ImGui::SetNextWindowSize({ lineHeight * 9.75f, 0 }, ImGuiCond_Always);
+                        bool deleted = false;
+                        if (ImGui::BeginPopup(("StoreSettings##Counting" + nameStr).c_str(), ImGuiWindowFlags_NoMove))
+                        {
+                            auto* countPtr = &Task.mPages;
+                            ImGui::Columns(2);
+							ImGui::SetColumnWidth(0, lineHeight * 3.75f);
+
+                            for (int categoryBuffer = categoryNum + 1; categoryBuffer < Task.mSpecs->MaxDepth(); categoryBuffer++)
+                            {
+                                std::string bufferName;
+                                DataType bufferType;
+                                try
+                                {
+                                    bufferType = *Task.mSpecs->mNodeCategories->at(categoryBuffer)->mType;
+                                    bufferName = *Task.mSpecs->mNodeCategories->at(categoryBuffer)->mName;
+                                }
+                                catch (const std::out_of_range& e)
+                                {
+                                    bufferType = *Task.mSpecs->mTab->mType;
+                                    bufferName = *Task.mSpecs->mTab->mName;
+                                }
+                                ImGui::Text(bufferName.c_str());
+								ImGui::NextColumn();
+								ImGui::SetNextItemWidth(lineHeight * 5);
+                                switch (bufferType)
+                                {
+								case DataType::Int: ImGui::InputInt(("##" + bufferName).c_str(), &mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1].get_value<int>(), 1, 1, ImGuiInputTextFlags_CharsDecimal); break;
+								case DataType::Float: ImGui::InputFloat(("##" + bufferName).c_str(), &mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1].get_value<float>(), 0.1f, 0.1f, "%.2f"); break;
+								case DataType::Double: ImGui::InputDouble(("##" + bufferName).c_str(), &mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1].get_value<double>(), 0.1, 0.1, "%.2f"); break;
+								case DataType::Bool: ImGui::Checkbox(("##" + bufferName).c_str(), &mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1].get_value<bool>()); break;
+								case DataType::Time: Widget::InputTime(("##" + bufferName).c_str(), mTaskInterface.mLayeredBuffer[categoryBuffer - categoryNum - 1], lineHeight * 4);break;
+                                }
+                                ImGui::NextColumn();
+                            }
+                            ImGui::Columns(1);
+
+                            ImGui::Separator();
+                            if (ImGui::Button("Confirm"))
+                            {
+                                mTaskInterface.AddLeaf(mTaskInterface.mLayeredBuffer);
+                                ImGui::CloseCurrentPopup();
+                            }
+
+                            ImGui::SameLine();
+
+                            if (ImGui::Button("Cancel##Counting"))
+                            {
+                                ImGui::CloseCurrentPopup();
+                            }
+                            ImGui::SameLine();
+                            if (ImGui::Button(("Delete Current " + *Task.mSpecs->mNodeCategories->at(categoryNum)->mName).c_str()))
+                            {
+                                CommandHistory::execute(std::make_unique<DeleteDynamicTaskLayerCommand>(mTaskInterface, categoryNum));
+                                ImGui::CloseCurrentPopup();
+                                deleted = true;
+                            }
+                            ImGui::EndPopup();
+                        }
+
+
+                        ImGui::Separator();
+                        ImGui::Spacing();
+                        if (deleted) break;
+                        if (!mTaskInterface.empty())
+                        if (CountingData->at(keys[mTaskInterface[categoryNum]]).is_type<ReflectionMap>())
+                        {
+							CountingData = &CountingData->at(keys[mTaskInterface[categoryNum]]).get_value<ReflectionMap>();
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+#pragma endregion
+
+#pragma region NodeTab
+                    if (!mTaskInterface.empty())
+                    {
+						auto& tabs = mTaskInterface.GetLayer(mTaskInterface.LayerSize() - 1);
+                        if (!tabs.empty())
+                        {
+                            if (ImGui::BeginTabBar(("##CountingTabBar" + tabKey).c_str()))
+                            {
+                                int houridx = 0;
+                                for (auto& [tab, Data] : tabs)
+                                {
+                                    std::string tabText;
+                                    switch (*Task.mSpecs->mTab->mType)
+                                    {
+                                    case DataType::Int: tabText = std::to_string(tab.get_value<int>()); break;
+                                    case DataType::String: tabText = tab.get_value<std::string>(); break;
+                                    case DataType::Float: tabText = std::to_string(tab.get_value<float>()); break;
+                                    case DataType::Double: tabText = std::to_string(tab.get_value<double>()); break;
+                                    case DataType::Bool: tabText = tab.get_value<bool>() ? "True" : "False"; break;
+                                    case DataType::Date: tabText = tab.get_value<Date>().to_string(); break;
+                                    case DataType::Time: tabText = tab.get_value<Time>().to_string(); break;
+                                    }
+
+                                    bool hour2Bool = true;
+
+                                    if (ImGui::BeginTabItem((tabText + "##Counting").c_str(), &hour2Bool, ImGuiTabItemFlags_NoReorder))
+                                    {
+                                        if (ImGui::IsItemClicked())
+                                            mTaskInterface[mTaskInterface.LayerSize() - 1] = houridx;
+                                        ImGui::EndTabItem();
+                                    }
+
+                                    if (!hour2Bool)
+                                    {
+                                        CommandHistory::execute(std::make_unique<DeleteDynamicTaskLeafCommand>(mTaskInterface, houridx));
+                                        break;
+                                    }
+
+
+                                    houridx++;
+                                }
+                            }
+                            ImGui::EndTabBar();
+                        }
+                    }
+#pragma endregion 
+
+#pragma region Fields
+                    if (!mTaskInterface.empty())
+                    {
+                        auto& Fields = mTaskInterface.GetData();
+                        //auto& Fields = tabIT->second.get_value<std::vector<TaskData>>();
+                        ImGui::Indent(lineHeight);
+                        ImGui::Columns(2);
+
+                        for (auto& field : Fields)
+                        {
+                            if (field.mFieldData.is_type<int>())
+                            {
+                                ImGui::PushFont(ImGuiManager::BoldFont);
+                                ImGui::Text(field.mFieldName.c_str());
+                                ImGui::PopFont();
+                                ImGui::NextColumn();
+                                auto buffer = field.mFieldData.get_value<int>();
+                                ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                if (ImGui::InputInt(("##" + field.mFieldName).c_str(), &buffer, 0, 0, ImGuiInputTextFlags_CharsDecimal))
+                                {
+                                    CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<int32_t>>(&field.mFieldData, field.mFieldData.to_int(), buffer));
+                                }
+
+                                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4,4 });
+                                ImGui::SameLine();
+                                if (ImGui::Button(("-##" + field.mFieldName).c_str(), { lineHeight, 0 }))
+                                {
+                                    CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<int32_t>>(&field.mFieldData, field.mFieldData.to_int(), buffer - 1));
+                                }
+                                ImGui::SameLine();
+                                if (ImGui::Button(("+##" + field.mFieldName).c_str(), { lineHeight, 0 }))
+                                {
+                                    CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<int32_t>>(&field.mFieldData, field.mFieldData.to_int(), buffer + 1));
+                                }
+                                ImGui::PopStyleVar();
+                                ImGui::NextColumn();
+                            }
+
+                            if (field.mFieldData.is_type<Time>())
+                            {
+                                ImGui::PushFont(ImGuiManager::BoldFont);
+                                ImGui::Text(field.mFieldName.c_str());
+                                ImGui::PopFont();
+                                ImGui::NextColumn();
+                                ImGui::SetNextItemWidth(lineHeight * 2);
+
+                                Widget::InputTime(("##" + field.mFieldName).c_str(), field.mFieldData, lineHeight * 4);
+                                ImGui::NextColumn();
+                            }
+
+                            if (field.mFieldData.is_type<std::string>())
+                            {
+                                ImGui::PushFont(ImGuiManager::BoldFont);
+                                ImGui::Text(field.mFieldName.c_str());
+                                ImGui::PopFont();
+                                ImGui::NextColumn();
+                                ImGui::SetNextItemWidth(lineHeight * 2);
+                                char DescBuffer[128] = {};
+                                std::memcpy(DescBuffer, field.mFieldData.to_string().c_str(), 128);
+                                {
+                                    auto lineLength = ImGui::GetContentRegionAvail().x;
+                                    lineLength -= (lineHeight + ImGui::GetStyle().FramePadding.x * 3);
+                                    ImGui::SetNextItemWidth(lineLength);
+                                }
+                                if (ImGui::InputText(("##" + field.mFieldName).c_str(), DescBuffer, 128))
+                                {
+                                    CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<std::string>>(&field.mFieldData, field.mFieldData.to_string(), std::string(DescBuffer)));
+                                }
+                                ImGui::NextColumn();
+                            }
+
+                            if (field.mFieldData.is_type<bool>())
+                            {
+                                ImGui::PushFont(ImGuiManager::BoldFont);
+                                ImGui::Text(field.mFieldName.c_str());
+                                ImGui::PopFont();
+                                ImGui::NextColumn();
+                                ImGui::SetNextItemWidth(lineHeight * 2);
+                                bool buffer = field.mFieldData.to_bool();
+
+                                if (ImGui::Checkbox(("##" + field.mFieldName).c_str(), &buffer))
+                                {
+                                    CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<bool>>(&field.mFieldData, field.mFieldData.to_bool(), buffer));
+                                }
+                                ImGui::NextColumn();
+                            }
+
+                            if (field.mFieldData.is_type<float>())
+                            {
+                                ImGui::PushFont(ImGuiManager::BoldFont);
+                                ImGui::Text(field.mFieldName.c_str());
+                                ImGui::PopFont();
+                                ImGui::NextColumn();
+                                ImGui::SetNextItemWidth(lineHeight * 2);
+                                float buffer = field.mFieldData.to_float();
+
+                                ImGui::SetNextItemWidth(lineHeight * 4 + ImGui::GetStyle().FramePadding.x * 2);
+
+                                if (ImGui::InputFloat(("##" + field.mFieldName).c_str(), &buffer, 0, 0, "%.3f", ImGuiInputTextFlags_CharsDecimal))
+                                {
+                                    CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<float>>(&field.mFieldData, field.mFieldData.to_float(), buffer));
+                                }
+
+                                ImGui::NextColumn();
+                            }
+
+
+                            if (field.mFieldData.is_type<double>())
+                            {
+                                ImGui::PushFont(ImGuiManager::BoldFont);
+                                ImGui::Text(field.mFieldName.c_str());
+                                ImGui::PopFont();
+                                ImGui::NextColumn();
+                                ImGui::SetNextItemWidth(lineHeight * 2);
+                                double buffer = field.mFieldData.to_double();
+
+                                ImGui::SetNextItemWidth(lineHeight * 4 + ImGui::GetStyle().FramePadding.x * 2);
+
+                                if (ImGui::InputDouble(("##" + field.mFieldName).c_str(), &buffer, 0, 0, "%.6f", ImGuiInputTextFlags_CharsDecimal))
+                                {
+                                    CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<double>>(&field.mFieldData, field.mFieldData.to_double(), buffer));
+                                }
+
+                                ImGui::NextColumn();
+                            }
+                        }
+                        ImGui::Columns(1);
+                    }
+#pragma endregion
+
+                    ImGui::Unindent(lineHeight);
                     // FRAME EXTRACTION TOOLSET HERE
+
+                    ImGui::EndChild();
                     ImGui::EndTabItem();
                 }
             }
@@ -196,13 +1282,10 @@ namespace FrameExtractor
                 int idx = 1;
                 for (auto& entrance : data.Entrance)
                 {
+                    if (!(entrance.mBlankedVideos.empty() && entrance.mFrameSkips.empty() && entrance.mCorruptedVideos.empty() && entrance.mAdditionalNotes == ""))
                     if (data.Entrance.size() > 1)
                     {
                         ss << std::endl << "E" << idx;
-                    }
-                    for (auto& frameSkip : entrance.mFrameSkips)
-                    {
-                        ss << ", Video Skips from: " << frameSkip.first << " to " << frameSkip.second;              
                     }
 
                     for (auto& blankVideo : entrance.mBlankedVideos)
@@ -217,10 +1300,18 @@ namespace FrameExtractor
                         }
                     }
 
+                    for (auto& frameSkip : entrance.mFrameSkips)
+                    {
+                        ss << ", Video Skips from: " << frameSkip.first << " to " << frameSkip.second;
+                    }
                     for (auto& corruptedVideo : entrance.mCorruptedVideos)
                     {
                         ss << ", Video " << corruptedVideo << " is corrupted";
                     }
+
+                    if (entrance.mAdditionalNotes != "")
+                        ss << ", " << entrance.mAdditionalNotes;
+                    
                     idx++;
                 }
                 ss << "\n";
@@ -424,7 +1515,7 @@ namespace FrameExtractor
             }
             else
             {
-                ImGui::InvisibleButton("##DummyArrow1", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
+                ImGui::InvisibleButton("##DummyArrow1", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()));
             }
            
             ImGui::SameLine();
@@ -546,7 +1637,7 @@ namespace FrameExtractor
             }
             else
             {
-                ImGui::InvisibleButton("##DummyArrow2", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
+                ImGui::InvisibleButton("##DummyArrow2", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()));
             }
 
             if (!mCountingData.empty())
@@ -588,7 +1679,7 @@ namespace FrameExtractor
                         }
                     }
                     ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
-                    if (ImGui::MenuItem("Add New Time##CountingStoreSettings"))
+                    if (ImGui::MenuItem("Add New InputTime##CountingStoreSettings"))
                     {
                         ImGui::OpenPopup("AddTimePopUp##Counting");
                     }
@@ -1036,7 +2127,7 @@ namespace FrameExtractor
                                                     }
                                                     ImGui::SameLine();
 
-                                                    Widget::Time(("##timestamp##Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(hour) + StoreCode + std::to_string(entry)).c_str(), data.timeStamp, lineHeight * 4);
+                                                    Widget::InputTime(("##timestamp##Counting" + EntryTypeToString((EntryType)entryType) + data.timeStamp + std::to_string(hour) + StoreCode + std::to_string(entry)).c_str(), data.timeStamp, lineHeight * 4);
                                                    
                                                     ImGui::SameLine();
                                                     {
@@ -1085,21 +2176,21 @@ namespace FrameExtractor
                                             ImGui::SetColumnWidth(0, lineHeight * 5);
                                             if (!Entrance.mFrameSkips.empty())
                                             {
-                                                ImGui::Text("Start Time");
+                                                ImGui::Text("Start InputTime");
                                                 ImGui::NextColumn();
-                                                ImGui::Text("End Time");
+                                                ImGui::Text("End InputTime");
                                                 ImGui::NextColumn();
 
                                             }
 
                                             for (auto& frameSkip : Entrance.mFrameSkips)
                                             {
-                                                Widget::Time(("##FrameSkipsStart##Counting" + std::to_string(idx2)).c_str(),
+                                                Widget::InputTime(("##FrameSkipsStart##Counting" + std::to_string(idx2)).c_str(),
                                                     frameSkip.first, lineHeight * 4);
 
                                                 ImGui::NextColumn();
 
-                                                Widget::Time(("##FrameSkipsEnd##Counting" + std::to_string(idx2)).c_str(),
+                                                Widget::InputTime(("##FrameSkipsEnd##Counting" + std::to_string(idx2)).c_str(),
                                                     frameSkip.second, lineHeight * 4);
 
                                                 ImGui::SameLine();
@@ -1157,7 +2248,7 @@ namespace FrameExtractor
                                                 }
 
                                                 ImGui::SameLine();
-                                                Widget::Time(("##BlankVideoTime##Counting" + std::to_string(idx2)).c_str(),
+                                                Widget::InputTime(("##BlankVideoTime##Counting" + std::to_string(idx2)).c_str(),
                                                     Entrance.mBlankedVideos[0].second, lineHeight * 4);
 
                                             }
@@ -1570,7 +2661,7 @@ namespace FrameExtractor
                 ImGui::Text("Hour: ");
                 ImGui::NextColumn();
                 ImGui::SetNextItemWidth(lineHeight * 5);
-                ImGui::InputInt("##Time:##Aggregate ", &mTimeBuffer, 1, 1);
+                ImGui::InputInt("##InputTime:##Aggregate ", &mTimeBuffer, 1, 1);
                 ImGui::NextColumn();
 
                 ImGui::Text("Entry: ");
@@ -1654,7 +2745,7 @@ namespace FrameExtractor
             }
             else
             {
-                ImGui::InvisibleButton("##DummyArrow1", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
+                ImGui::InvisibleButton("##DummyArrow1", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()));
             }
 
             ImGui::SameLine();
@@ -1771,7 +2862,7 @@ namespace FrameExtractor
             }
             else
             {
-                ImGui::InvisibleButton("##DummyArrow2", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
+                ImGui::InvisibleButton("##DummyArrow2", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()));
             }
 
             if (!mAggregateStoreData.empty())
@@ -1812,7 +2903,7 @@ namespace FrameExtractor
                         }
                     }
                     ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
-                    if (ImGui::MenuItem("Add New Time##AggregateStoreSettings"))
+                    if (ImGui::MenuItem("Add New InputTime##AggregateStoreSettings"))
                     {
                         ImGui::OpenPopup("AddTimePopUp##Aggregate");
                     }
@@ -1961,60 +3052,69 @@ namespace FrameExtractor
                                 auto& Hour = hourIT->first;
                                 auto& Data = hourIT->second;
 
+                                ImGui::BeginChild("##AggregateStoreSettings", {ImGui::GetContentRegionAvail().x, 0}, ImGuiChildFlags_AutoResizeY);
+                                ImGui::Columns(2);
+                                ImGui::SetColumnWidth(0, lineHeight * 3.2f);
+                                {
+                                    ImGui::PushFont(ImGuiManager::BoldFont);
+                                    ImGui::Text("Store ID: ");
+                                    ImGui::PopFont();
+                                    ImGui::NextColumn();
+                                    char buffer[16] = {};
+                                    std::memcpy(buffer, Data.StoreID.data(), Data.StoreID.size());
+                                    ImGui::SetNextItemWidth(lineHeight * 4 + ImGui::GetStyle().ItemSpacing.x);
+
+                                    if (ImGui::InputText("##StoreID##Aggregate", buffer, IM_ARRAYSIZE(buffer)))
+                                    {
+                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&Data.StoreID, Data.StoreID, std::string(buffer)));
+                                    }
+                                    ImGui::NextColumn();
+                                }
+
+                                {
+                                    ImGui::PushFont(ImGuiManager::BoldFont);
+                                    ImGui::Text("Entry: ");
+                                    ImGui::PopFont();
+                                    ImGui::NextColumn();
+                                    int buffer = Data.Enters;
+                                    ImGui::SetNextItemWidth(lineHeight * 4 + ImGui::GetStyle().ItemSpacing.x);
+
+                                    if (ImGui::InputInt("##Enters##Aggregate", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                    {
+                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int8_t>>(&Data.Enters, Data.Enters, (int8_t)buffer));
+                                    }
+                                
+                                    ImGui::NextColumn();
+                                }
+
+                                {
+                                    ImGui::PushFont(ImGuiManager::BoldFont);
+                                    ImGui::Text("Exits: ");
+                                    ImGui::PopFont();
+                                    ImGui::NextColumn();
+                                    int buffer = Data.Exit;
+                                    ImGui::SetNextItemWidth(lineHeight * 4 + ImGui::GetStyle().ItemSpacing.x);
+
+                                    if (ImGui::InputInt("##Exits##Aggregate", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+                                    {
+                                        CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int8_t>>(&Data.Exit, Data.Exit, (int8_t)buffer));
+                                    }
+                                 
+                                    ImGui::NextColumn();
+
+                                }
+                                ImGui::Columns(1);
+
+                                ImGui::EndChild();
+
 
                                 if (ImGui::CollapsingHeader("Statistics##Aggregate", ImGuiTreeNodeFlags_DefaultOpen))
                                 {
-                                    ImGui::Indent(lineHeight);
-
-                                    
-                                    {
-                                        ImGui::PushFont(ImGuiManager::BoldFont);
-                                        ImGui::Text("Store ID: ");
-                                        ImGui::PopFont();
-                                        ImGui::SameLine();
-                                        char buffer[16] = {};
-                                        std::memcpy(buffer, Data.StoreID.data(), Data.StoreID.size());
-                                        ImGui::SetNextItemWidth(lineHeight * 2);
-
-                                        if (ImGui::InputText("##StoreID##Aggregate", buffer, IM_ARRAYSIZE(buffer)))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<std::string>>(&Data.StoreID, Data.StoreID, std::string(buffer)));
-                                        }
-                                    }
-                                    ImGui::SameLine();
-
-                                    {
-                                        ImGui::PushFont(ImGuiManager::BoldFont);
-                                        ImGui::Text("Entry: ");
-                                        ImGui::PopFont();
-                                        ImGui::SameLine();
-                                        int buffer = Data.Enters;
-                                        ImGui::SetNextItemWidth(lineHeight * 2);
-
-                                        if (ImGui::InputInt("##Enters##Aggregate", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int8_t>>(&Data.Enters, Data.Enters,(int8_t)buffer));
-                                        }
-                                    }
-
-                                    ImGui::SameLine();
-                                    {
-                                        ImGui::PushFont(ImGuiManager::BoldFont);
-                                        ImGui::Text("Exits: ");
-                                        ImGui::PopFont();
-                                        ImGui::SameLine();
-                                        int buffer = Data.Exit;
-                                        ImGui::SetNextItemWidth(lineHeight * 2);
-
-                                        if (ImGui::InputInt("##Exits##Aggregate", &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
-                                        {
-                                            CommandHistory::execute(std::make_unique<ModifyPropertyCommand<int8_t>>(&Data.Exit, Data.Exit, (int8_t)buffer));
-                                        }
-
-                                    }
-
+                                    ImGui::BeginChild("##StatisticsWindow", { ImGui::GetContentRegionAvail().x, 0 }, ImGuiChildFlags_AutoResizeY);
 
                                     ImGui::Columns(2);
+                                    ImGui::SetColumnWidth(0, lineHeight * 3.2f);
+
                                     {
                                         ImGui::PushFont(ImGuiManager::BoldFont);
                                         ImGui::Text("Customer: ");
@@ -2044,8 +3144,7 @@ namespace FrameExtractor
                                     }
 
                                     ImGui::Columns(1);
-                                    ImGui::Unindent(lineHeight);
-
+                                    ImGui::EndChild();
                                 }
 
                                 auto notesOpen = ImGui::CollapsingHeader("Notes##Aggregate", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
@@ -2093,21 +3192,21 @@ namespace FrameExtractor
                                             ImGui::SetColumnWidth(0, lineHeight * 5);
                                             if (!Entrance.mFrameSkips.empty())
                                             {
-                                                ImGui::Text("Start Time");
+                                                ImGui::Text("Start InputTime");
                                                 ImGui::NextColumn();
-                                                ImGui::Text("End Time");
+                                                ImGui::Text("End InputTime");
                                                 ImGui::NextColumn();
 
                                             }
 
                                             for (auto& frameSkip : Entrance.mFrameSkips)
                                             {
-                                                Widget::Time(("##FrameSkipsStart##Aggregate" + std::to_string(idx2)).c_str(),
+                                                Widget::InputTime(("##FrameSkipsStart##Aggregate" + std::to_string(idx2)).c_str(),
                                                     frameSkip.first, lineHeight * 4);
 
                                                 ImGui::NextColumn();
 
-                                                Widget::Time(("##FrameSkipsEnd##Aggregate" + std::to_string(idx2)).c_str(),
+                                                Widget::InputTime(("##FrameSkipsEnd##Aggregate" + std::to_string(idx2)).c_str(),
                                                     frameSkip.second, lineHeight * 4);
 
                                                 ImGui::SameLine();
@@ -2165,7 +3264,7 @@ namespace FrameExtractor
                                                 }
 
                                                 ImGui::SameLine();
-                                                Widget::Time(("##BlankVideoTime##Aggregate" + std::to_string(idx2)).c_str(),
+                                                Widget::InputTime(("##BlankVideoTime##Aggregate" + std::to_string(idx2)).c_str(),
                                                     Entrance.mBlankedVideos[0].second, lineHeight * 4);
 
                                             }

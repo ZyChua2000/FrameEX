@@ -1,0 +1,11 @@
+TypeName: PersonDesc
+Fields:
+  Gender:
+    Type: bool
+    Default: true
+  Desc:
+    Type: string
+    Default: ""
+  TimeStamp:
+    Type: string
+    Default: "00:00:00"
