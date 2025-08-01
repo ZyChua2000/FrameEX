@@ -13,9 +13,10 @@
 #ifndef Texture_HPP
 #define Texture_HPP
 #include <Core/Core.hpp>
+#include <Core/Asset.hpp>
 namespace FrameExtractor
 {
-	class Texture
+	class Texture : public Asset
 	{
 	public:
 		Texture();

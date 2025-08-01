@@ -14,18 +14,18 @@
 #define Video_HPP
 
 #include <filesystem>
-
 extern "C"
 {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 }
+#include <Core/Asset.hpp>
 #include <Core/Core.hpp>
 #include <Graphics/Texture.hpp>
 namespace FrameExtractor
 {
-	class Video
+	class Video : public Asset
 	{
 	public:
 		Video(const std::filesystem::path& path);
