@@ -28,7 +28,7 @@ namespace glm
 		typedef length_t length_type;
 		GLM_FUNC_DECL static GLM_CONSTEXPR length_type length() { return 4; }
 
-		GLM_FUNC_DECL GLM_CONSTEXPR col_type & operator[](length_type i) GLM_NOEXCEPT;
+		GLM_FUNC_DECL GLM_CONSTEXPR col_type& operator[](length_type i) GLM_NOEXCEPT;
 		GLM_FUNC_DECL GLM_CONSTEXPR col_type const& operator[](length_type i) const GLM_NOEXCEPT;
 
 		// -- Constructors --
@@ -86,19 +86,19 @@ namespace glm
 		// -- Unary arithmetic operators --
 
 		template<typename U>
-		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q> & operator=(mat<4, 3, U, Q> const& m);
+		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q>& operator=(mat<4, 3, U, Q> const& m);
 		template<typename U>
-		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q> & operator+=(U s);
+		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q>& operator+=(U s);
 		template<typename U>
-		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q> & operator+=(mat<4, 3, U, Q> const& m);
+		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q>& operator+=(mat<4, 3, U, Q> const& m);
 		template<typename U>
-		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q> & operator-=(U s);
+		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q>& operator-=(U s);
 		template<typename U>
-		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q> & operator-=(mat<4, 3, U, Q> const& m);
+		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q>& operator-=(mat<4, 3, U, Q> const& m);
 		template<typename U>
-		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q> & operator*=(U s);
+		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q>& operator*=(U s);
 		template<typename U>
-		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q> & operator/=(U s);
+		GLM_FUNC_DISCARD_DECL GLM_CONSTEXPR mat<4, 3, T, Q>& operator/=(U s);
 
 		// -- Increment and decrement operators --
 
@@ -146,7 +146,7 @@ namespace glm
 	GLM_FUNC_DECL GLM_CONSTEXPR mat<2, 3, T, Q> operator*(mat<4, 3, T, Q> const& m1, mat<2, 4, T, Q> const& m2);
 
 	template<typename T, qualifier Q>
-	GLM_FUNC_DECL GLM_CONSTEXPR mat<3, 3, T, Q> operator*(mat<4, 3, T, Q> const& m1,	mat<3, 4, T, Q> const& m2);
+	GLM_FUNC_DECL GLM_CONSTEXPR mat<3, 3, T, Q> operator*(mat<4, 3, T, Q> const& m1, mat<3, 4, T, Q> const& m2);
 
 	template<typename T, qualifier Q>
 	GLM_FUNC_DECL GLM_CONSTEXPR mat<4, 3, T, Q> operator*(mat<4, 3, T, Q> const& m1, mat<4, 4, T, Q> const& m2);

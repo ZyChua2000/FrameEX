@@ -27,7 +27,6 @@ namespace glm
 {
 	/// @addtogroup ext_scalar_integer
 	/// @{
-
 	/// Return true if the value is a power of two number.
 	///
 	/// @see ext_scalar_integer

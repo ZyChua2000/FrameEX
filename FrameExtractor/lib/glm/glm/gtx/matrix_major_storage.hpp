@@ -26,7 +26,6 @@ namespace glm
 {
 	/// @addtogroup gtx_matrix_major_storage
 	/// @{
-
 	//! Build a row major matrix from row vectors.
 	//! From GLM_GTX_matrix_major_storage extension.
 	template<typename T, qualifier Q>

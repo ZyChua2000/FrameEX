@@ -29,7 +29,6 @@ namespace glm
 {
 	/// @addtogroup gtc_round
 	/// @{
-
 	/// Return the power of two number which value is just higher the input value,
 	/// round up to a power of two.
 	///

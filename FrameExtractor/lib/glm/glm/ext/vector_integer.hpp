@@ -27,7 +27,6 @@ namespace glm
 {
 	/// @addtogroup ext_vector_integer
 	/// @{
-
 	/// Return true if the value is a power of two number.
 	///
 	/// @tparam L Integer between 1 and 4 included that qualify the dimension of the vector

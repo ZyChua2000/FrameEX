@@ -3,6 +3,8 @@ project "OpenXLSX"
     language "C++"
     cppdialect "C++20"
     staticruntime "On"
+    warnings "Off"
+    
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 

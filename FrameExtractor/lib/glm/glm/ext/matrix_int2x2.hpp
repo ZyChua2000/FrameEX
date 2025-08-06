@@ -23,7 +23,6 @@ namespace glm
 {
 	/// @addtogroup ext_matrix_int2x2
 	/// @{
-
 	/// Signed integer 2x2 matrix.
 	///
 	/// @see ext_matrix_int2x2

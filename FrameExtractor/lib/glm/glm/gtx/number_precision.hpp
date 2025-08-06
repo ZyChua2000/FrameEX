@@ -24,13 +24,13 @@
 #	pragma message("GLM: GLM_GTX_number_precision extension included")
 #endif
 
-namespace glm{
+namespace glm
+{
 	/////////////////////////////
 	// Unsigned int vector types
 
 	/// @addtogroup gtx_number_precision
 	/// @{
-
 	//////////////////////
 	// Float matrix types
 
@@ -41,4 +41,3 @@ namespace glm{
 
 	/// @}
 }//namespace glm
-

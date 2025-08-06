@@ -31,7 +31,6 @@ namespace glm
 {
 	/// @addtogroup gtc_integer
 	/// @{
-
 	/// Returns the log2 of x for integer values. Useful to compute mipmap count from the texture size.
 	/// @see gtc_integer
 	template<length_t L, typename T, qualifier Q>

@@ -23,7 +23,6 @@ namespace glm
 {
 	/// @addtogroup ext_matrix_int4x3
 	/// @{
-
 	/// Signed integer 4x3 matrix.
 	///
 	/// @see ext_matrix_int4x3

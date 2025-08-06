@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 10, 2024
+\date       May 10, 2025
 \brief      Defines the ImGui Manager class which manages the overall ImGui
 			interface and its components.
 
@@ -36,10 +36,13 @@
 #define YAML_CPP_STATIC_DEFINE
 #include <yaml-cpp/yaml.h>
 
-namespace YAML {
+namespace YAML
+{
 	template<>
-	struct convert<FrameExtractor::EditorPreferences> {
-		static Node encode(const FrameExtractor::EditorPreferences& rhs) {
+	struct convert<FrameExtractor::EditorPreferences>
+	{
+		static Node encode(const FrameExtractor::EditorPreferences& rhs)
+		{
 			Node node;
 			node["UseAutosave"] = rhs.mGeneral.UseAutosave;
 			node["AutosaveInterval"] = rhs.mGeneral.AutosaveInterval;
@@ -52,7 +55,8 @@ namespace YAML {
 			return node;
 		}
 
-		static bool decode(const Node& node, FrameExtractor::EditorPreferences& rhs) {
+		static bool decode(const Node& node, FrameExtractor::EditorPreferences& rhs)
+		{
 			if (!node.IsMap()) return false;
 
 			rhs.mGeneral.UseAutosave = node["UseAutosave"].as<bool>();
@@ -67,7 +71,6 @@ namespace YAML {
 		}
 	};
 }
-
 
 namespace FrameExtractor
 {
@@ -96,7 +99,8 @@ namespace FrameExtractor
 		inline static int Black = 0x00000000;
 		inline static int White = 0xFFFFFF00;
 		static ImVec4 GetColor(int c, int a = Alpha80) { return ImVec4(GetR(c), GetG(c), GetB(c), GetA(a)); }
-		static int GetColor(const ImVec4& color) {
+		static int GetColor(const ImVec4& color)
+		{
 			int r = static_cast<int>(color.x * 255.0f) & 0xFF;
 			int g = static_cast<int>(color.y * 255.0f) & 0xFF;
 			int b = static_cast<int>(color.z * 255.0f) & 0xFF;
@@ -196,7 +200,6 @@ namespace FrameExtractor
 			ImGui::GetStyle().WindowMenuButtonPosition = ImGuiDir_Right;
 
 			ImGui::GetStyle().FrameRounding = 2.f;
-
 		}
 	};
 
@@ -275,7 +278,6 @@ namespace FrameExtractor
 		ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)ApplicationManager::GetInstance()->GetWindowManager()->GetNativeWindow(), true);
 		ImGui_ImplOpenGL3_Init("#version 410");
 
-
 		EditorColorScheme::ApplyTheme();
 
 		BoldFont = io.Fonts->AddFontFromFileTTF("resources/fonts/OpenSans-Bold.ttf", 24.f);
@@ -297,7 +299,8 @@ namespace FrameExtractor
 
 	void ImGuiManager::Update(float dt)
 	{
-		try {
+		try
+		{
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
@@ -332,7 +335,7 @@ namespace FrameExtractor
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 			ImGui::Begin("DockSpace", &p_open, window_flags);
 			float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
-			
+
 			if ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_N)))
 			{
 				auto projectFile = SaveFileDialog("Project Name");
@@ -355,7 +358,6 @@ namespace FrameExtractor
 					mProject.SaveProject();
 					mTimer = 0;
 				}
-
 			}
 			if ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_O)))
 			{
@@ -376,7 +378,6 @@ namespace FrameExtractor
 			if ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_P)))
 			{
 				open_preferences_popup = true;
-
 			}
 			if ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_Q)))
 			{
@@ -386,7 +387,8 @@ namespace FrameExtractor
 			{
 				if (ImGui::BeginMenu("File"))
 				{
-					if (ImGui::MenuItem("  Open Project...", "(CTRL + O)")) {
+					if (ImGui::MenuItem("  Open Project...", "(CTRL + O)"))
+					{
 						auto projectFile = OpenFileDialog("FrameEX File (*.FrEX)\0*.FrEX\0");
 						if (std::filesystem::exists(projectFile))
 						{
@@ -447,22 +449,18 @@ namespace FrameExtractor
 						CommandHistory::undo();
 					}
 
-					if (ImGui::MenuItem("Redo##EditTab", "(CTRL + Y)", nullptr, CommandHistory::CanRedo())) 
+					if (ImGui::MenuItem("Redo##EditTab", "(CTRL + Y)", nullptr, CommandHistory::CanRedo()))
 					{
 						CommandHistory::redo();
 					}
 					ImGui::EndMenu();
 				}
 
-
 				ImGui::EndMenuBar();
 			}
 
 			ImGui::PopStyleVar();
 
-		
-
-			
 			if (open_quit_popup)
 			{
 				if (!CommandHistory::isDirty())
@@ -516,7 +514,7 @@ namespace FrameExtractor
 			}
 
 			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-			ImGui::SetNextWindowSize({ 0 ,lineHeight * 4}, ImGuiCond_Appearing);
+			ImGui::SetNextWindowSize({ 0 ,lineHeight * 4 }, ImGuiCond_Appearing);
 			if (ImGui::BeginPopupModal("Quit##Modal", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 			{
 				if (ImGui::IsKeyReleased(ImGuiKey_Escape))
@@ -544,16 +542,12 @@ namespace FrameExtractor
 				ImGui::EndPopup();
 			}
 
-			
-
-			
 			if (open_error_popup)
 			{
 				ImGui::OpenPopup("No Project Loaded##Modal");
 				open_error_popup = false;
 			}
 
-			
 			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 			bool projectLoadedModal = true;
 			if (ImGui::BeginPopupModal("No Project Loaded##Modal", &projectLoadedModal, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
@@ -597,7 +591,6 @@ namespace FrameExtractor
 						}
 						ImGui::NextColumn();
 
-					
 						if (mPreferences.mGeneral.UseAutosave)
 						{
 							ImGui::Text("Autosave InputTime: ");
@@ -609,7 +602,7 @@ namespace FrameExtractor
 								for (int i = 0; i < sizeof(autosaveChoices) / sizeof(autosaveChoices[0]); i++)
 								{
 									bool is_selected = mPreferences.mGeneral.AutosaveInterval == autosaveChoices[i];
-									if (ImGui::Selectable((std::to_string(autosaveChoices[i])+ "##AutosavePreference").c_str(), &is_selected))
+									if (ImGui::Selectable((std::to_string(autosaveChoices[i]) + "##AutosavePreference").c_str(), &is_selected))
 										mPreferences.mGeneral.AutosaveInterval = autosaveChoices[i];
 
 									if (is_selected)
@@ -631,11 +624,11 @@ namespace FrameExtractor
 						if (ImGui::Button("Reset to Default## Appearances"))
 						{
 							mPreferences.mAppearance = {};
-					
-							EditorColorScheme::SetColors(mPreferences.mAppearance.BackGroundColor, 
-								mPreferences.mAppearance.TextColor, 
+
+							EditorColorScheme::SetColors(mPreferences.mAppearance.BackGroundColor,
+								mPreferences.mAppearance.TextColor,
 								mPreferences.mAppearance.MainColor,
-								mPreferences.mAppearance.MainAccentColor, 
+								mPreferences.mAppearance.MainAccentColor,
 								mPreferences.mAppearance.HighlightColor);
 							EditorColorScheme::ApplyTheme();
 						}
@@ -743,7 +736,7 @@ namespace FrameExtractor
 
 			if (opt_fullscreen)
 				ImGui::PopStyleVar(2);
-			
+
 			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
 			{
 				ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
@@ -758,9 +751,8 @@ namespace FrameExtractor
 
 			ImGui::PopStyleVar();
 			ImGui::End();
-
 		}
-		catch (std::out_of_range& e)
+		catch (std::out_of_range&)
 		{
 			mProject.SaveBackup();
 			throw ("Exception!");
@@ -780,7 +772,6 @@ namespace FrameExtractor
 
 	void ImGuiManager::Render()
 	{
-
 		ImGuiIO& io = ImGui::GetIO();
 		ApplicationManager* app = ApplicationManager::GetInstance();
 		io.DisplaySize = ImVec2(static_cast<float>(app->GetWindowManager()->GetWidth()), static_cast<float>(app->GetWindowManager()->GetHeight()));
@@ -804,15 +795,15 @@ namespace FrameExtractor
 	{
 		YAML::Node node = YAML::convert<EditorPreferences>::encode(mPreferences);
 		std::ofstream fout("FrExt.pref");
-		fout << node;		
+		fout << node;
 		fout.close();
 	}
 	void ImGuiManager::LoadPreferences()
 	{
-		try {
+		try
+		{
 			YAML::Node node = YAML::LoadFile("FrExt.pref");
 			mPreferences = node.as<EditorPreferences>();
-
 
 			EditorColorScheme::SetColors(mPreferences.mAppearance.BackGroundColor,
 				mPreferences.mAppearance.TextColor,

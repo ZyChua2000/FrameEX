@@ -22,9 +22,9 @@ namespace glm
 
 		if (Vec3Len < epsilon<T>())
 		{
-			if(q.w > static_cast<T>(0))
+			if (q.w > static_cast<T>(0))
 				return qua<T, Q>::wxyz(log(q.w), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0));
-			else if(q.w < static_cast<T>(0))
+			else if (q.w < static_cast<T>(0))
 				return qua<T, Q>::wxyz(log(-q.w), pi<T>(), static_cast<T>(0), static_cast<T>(0));
 			else
 				return qua<T, Q>::wxyz(std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity());
@@ -42,14 +42,14 @@ namespace glm
 	{
 		//Raising to the power of 0 should yield 1
 		//Needed to prevent a division by 0 error later on
-		if(y > -epsilon<T>() && y < epsilon<T>())
-			return qua<T, Q>::wxyz(1,0,0,0);
+		if (y > -epsilon<T>() && y < epsilon<T>())
+			return qua<T, Q>::wxyz(1, 0, 0, 0);
 
 		//To deal with non-unit quaternions
-		T magnitude = sqrt(x.x * x.x + x.y * x.y + x.z * x.z + x.w *x.w);
+		T magnitude = sqrt(x.x * x.x + x.y * x.y + x.z * x.z + x.w * x.w);
 
 		T Angle;
-		if(abs(x.w / magnitude) > cos_one_over_two<T>())
+		if (abs(x.w / magnitude) > cos_one_over_two<T>())
 		{
 			//Scalar component is close to 1; using it to recover angle would lose precision
 			//Instead, we use the non-scalar components since sin() is accurate around 0
@@ -60,7 +60,8 @@ namespace glm
 			//VectorMagnitude to 0. here; we could use denorm_int() compiling a
 			//project with unsafe maths optimizations might make the comparison
 			//always false, even when VectorMagnitude is 0.
-			if (VectorMagnitude < std::numeric_limits<T>::min()) {
+			if (VectorMagnitude < std::numeric_limits<T>::min())
+			{
 				//Equivalent to raising a real number to a power
 				return qua<T, Q>::wxyz(pow(x.w, y), 0, 0, 0);
 			}
@@ -85,5 +86,3 @@ namespace glm
 		return pow(x, static_cast<T>(0.5));
 	}
 }//namespace glm
-
-

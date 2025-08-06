@@ -11,9 +11,9 @@ MM      MM  MM    MM MMMMMMMM MM    MM    d'`MM.     MM            MM    d'`MM.
 YM      M9  MM    MM MM       MM    MM   d'  `MM.    MM            MM   d'  `MM.
  8b    d8   MM.  ,M9 YM    d9 MM    MM  d'    `MM.   MM    / L    ,M9  d'    `MM.
   YMMMM9    MMYMMM9   YMMMM9 _MM_  _MM_M(_    _)MM_ _MMMMMMM MYMMMM9 _M(_    _)MM_
-            MM
-            MM
-           _MM_
+			MM
+			MM
+		   _MM_
 
   Copyright (c) 2018, Kenneth Troldal Balslev
 
@@ -22,13 +22,13 @@ YM      M9  MM    MM MM       MM    MM   d'  `MM.    MM            MM   d'  `MM.
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
   - Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
+	notice, this list of conditions and the following disclaimer.
   - Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
+	notice, this list of conditions and the following disclaimer in the
+	documentation and/or other materials provided with the distribution.
   - Neither the name of the author nor the
-    names of any contributors may be used to endorse or promote products
-    derived from this software without specific prior written permission.
+	names of any contributors may be used to endorse or promote products
+	derived from this software without specific prior written permission.
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -52,7 +52,7 @@ YM      M9  MM    MM MM       MM    MM   d'  `MM.    MM            MM   d'  `MM.
 #   pragma warning(disable : 4275)
 #endif // _MSC_VER
 
-// ===== External Includes ===== //
+ // ===== External Includes ===== //
 #include <ctime>
 
 // ===== OpenXLSX Includes ===== //
@@ -62,110 +62,110 @@ YM      M9  MM    MM MM       MM    MM   d'  `MM.    MM            MM   d'  `MM.
 // ========== CLASS AND ENUM TYPE DEFINITIONS ========== //
 namespace OpenXLSX
 {
-    class OPENXLSX_EXPORT XLDateTime
-    {
-    public:
-        /**
-         * @brief Constructor.
-         */
-        XLDateTime();
+	class OPENXLSX_EXPORT XLDateTime
+	{
+	public:
+		/**
+		 * @brief Constructor.
+		 */
+		XLDateTime();
 
-        /**
-         * @brief Constructor taking an Excel time point serial number as an argument.
-         * @param serial Excel time point serial number.
-         */
-        explicit XLDateTime(double serial);
+		/**
+		 * @brief Constructor taking an Excel time point serial number as an argument.
+		 * @param serial Excel time point serial number.
+		 */
+		explicit XLDateTime(double serial);
 
-        /**
-         * @brief Constructor taking a std::tm struct as an argument.
-         * @param timepoint A std::tm struct.
-         */
-        explicit XLDateTime(const std::tm& timepoint);
+		/**
+		 * @brief Constructor taking a std::tm struct as an argument.
+		 * @param timepoint A std::tm struct.
+		 */
+		explicit XLDateTime(const std::tm& timepoint);
 
-        /**
-         * @brief Constructor taking a unixtime format (seconds since 1/1/1970) as an argument.
-         * @param unixtime A time_t number.
-         */
-        explicit XLDateTime(time_t unixtime);
+		/**
+		 * @brief Constructor taking a unixtime format (seconds since 1/1/1970) as an argument.
+		 * @param unixtime A time_t number.
+		 */
+		explicit XLDateTime(time_t unixtime);
 
-        /**
-         * @brief Copy constructor.
-         * @param other Object to be copied.
-         */
-        XLDateTime(const XLDateTime& other);
+		/**
+		 * @brief Copy constructor.
+		 * @param other Object to be copied.
+		 */
+		XLDateTime(const XLDateTime& other);
 
-        /**
-         * @brief Move constructor.
-         * @param other Object to be moved.
-         */
-        XLDateTime(XLDateTime&& other) noexcept;
+		/**
+		 * @brief Move constructor.
+		 * @param other Object to be moved.
+		 */
+		XLDateTime(XLDateTime&& other) noexcept;
 
-        /**
-         * @brief Destructor
-         */
-        ~XLDateTime();
+		/**
+		 * @brief Destructor
+		 */
+		~XLDateTime();
 
-        /**
-         * @brief Copy assignment operator.
-         * @param other Object to be copied.
-         * @return Reference to the copied-to object.
-         */
-        XLDateTime& operator=(const XLDateTime& other);
+		/**
+		 * @brief Copy assignment operator.
+		 * @param other Object to be copied.
+		 * @return Reference to the copied-to object.
+		 */
+		XLDateTime& operator=(const XLDateTime& other);
 
-        /**
-         * @brief Move assignment operator.
-         * @param other Object to be moved.
-         * @return Reference to the moved-to object.
-         */
-        XLDateTime& operator=(XLDateTime&& other) noexcept;
+		/**
+		 * @brief Move assignment operator.
+		 * @param other Object to be moved.
+		 * @return Reference to the moved-to object.
+		 */
+		XLDateTime& operator=(XLDateTime&& other) noexcept;
 
-        /**
-         * @brief Assignment operator taking an Excel date/time serial number as an argument.
-         * @param serial A floating point value with the serial number.
-         * @return Reference to the copied-to object.
-         */
-        XLDateTime& operator=(double serial);
+		/**
+		 * @brief Assignment operator taking an Excel date/time serial number as an argument.
+		 * @param serial A floating point value with the serial number.
+		 * @return Reference to the copied-to object.
+		 */
+		XLDateTime& operator=(double serial);
 
-        /**
-         * @brief Assignment operator taking a std::tm object as an argument.
-         * @param timepoint std::tm object with the time point
-         * @return Reference to the copied-to object.
-         */
-        XLDateTime& operator=(const std::tm& timepoint);
+		/**
+		 * @brief Assignment operator taking a std::tm object as an argument.
+		 * @param timepoint std::tm object with the time point
+		 * @return Reference to the copied-to object.
+		 */
+		XLDateTime& operator=(const std::tm& timepoint);
 
-        /**
-         * @brief Implicit conversion to Excel date/time serial number (any floating point type).
-         * @tparam T Type to convert to (any floating point type).
-         * @return Excel date/time serial number.
-         */
-        template<typename T,
-                 typename = std::enable_if_t<std::is_floating_point_v<T>>>
-        operator T() const    // NOLINT
-        {
-            return serial();
-        }
+		/**
+		 * @brief Implicit conversion to Excel date/time serial number (any floating point type).
+		 * @tparam T Type to convert to (any floating point type).
+		 * @return Excel date/time serial number.
+		 */
+		template<typename T,
+			typename = std::enable_if_t<std::is_floating_point_v<T>>>
+		operator T() const    // NOLINT
+		{
+			return serial();
+		}
 
-        /**
-         * @brief Implicit conversion to std::tm object.
-         * @return std::tm object.
-         */
-        operator std::tm() const;    // NOLINT
+		/**
+		 * @brief Implicit conversion to std::tm object.
+		 * @return std::tm object.
+		 */
+		operator std::tm() const;    // NOLINT
 
-        /**
-         * @brief Get the date/time in the form of an Excel date/time serial number.
-         * @return A double with the serial number.
-         */
-        double serial() const;
+		/**
+		 * @brief Get the date/time in the form of an Excel date/time serial number.
+		 * @return A double with the serial number.
+		 */
+		double serial() const;
 
-        /**
-         * @brief Get the date/time in the form of a std::tm struct.
-         * @return A std::tm struct with the time point.
-         */
-        std::tm tm() const;
+		/**
+		 * @brief Get the date/time in the form of a std::tm struct.
+		 * @return A std::tm struct with the time point.
+		 */
+		std::tm tm() const;
 
-    private:
-        double m_serial { 1.0 }; /**<  */
-    };
+	private:
+		double m_serial{ 1.0 }; /**<  */
+	};
 }    // namespace OpenXLSX
 
 #ifdef _MSC_VER    // conditionally enable MSVC specific pragmas to avoid other compilers warning about unknown pragmas

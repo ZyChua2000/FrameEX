@@ -3,6 +3,7 @@ project "GLAD"
     language "C"
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+    warnings "Off"
 
     -- Common GLFW source files
     files

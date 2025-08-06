@@ -25,9 +25,6 @@ namespace glm
 {
 	/// @addtogroup gtx_scalar_relational
 	/// @{
-
-
-
 	/// @}
 }//namespace glm
 

@@ -24,8 +24,6 @@ namespace glm
 {
 	/// @addtogroup ext_scalar_packing
 	/// @{
-
-
 	/// @}
 }// namespace glm
 

@@ -2,6 +2,7 @@
 project "YAML"
     kind "StaticLib" -- Default to static library, can be changed based on options
     language "C++"
+    warnings "Off"
 
     -- Set C++ standard
     cppdialect "C++20"

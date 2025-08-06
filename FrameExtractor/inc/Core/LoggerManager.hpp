@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 11, 2024
+\date       May 11, 2025
 \brief      Declares the Logger Manager class which handles the logs
 
  /******************************************************************************/
@@ -23,7 +23,6 @@
 #define ENGINE_LOGLEVEL_ERROR spdlog::level::err
 #define ENGINE_LOGLEVEL_CRITICAL spdlog::level::critical
 
-
 #define FRAMEEX_ENABLE_ASSERTS
 
 #ifdef FRAMEEX_ENABLE_ASSERTS
@@ -37,7 +36,7 @@
 
  // Currently accepts at least the condition and one additional parameter (the message) being optional
 #define FRAMEEX_ASSERT(...) BOREALIS_EXPAND_MACRO( BOREALIS_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_, __VA_ARGS__) )
-#define FRAMEEX_CORE_ASSERT(...) 
+#define FRAMEEX_CORE_ASSERT(...)
 #else
 #define FRAMEEX_ASSERT(...)
 #define FRAMEEX_CORE_ASSERT(...)
@@ -62,17 +61,15 @@ namespace FrameExtractor
 }
 
 // Define the log macros
-#define FRAMEEX_CORE_INFO(...)     ::FrameExtractor::LoggerManager::GetEngineLogger()->info(__VA_ARGS__);  
-#define FRAMEEX_CORE_TRACE(...)    ::FrameExtractor::LoggerManager::GetEngineLogger()->trace(__VA_ARGS__); 
-#define FRAMEEX_CORE_WARN(...)		::FrameExtractor::LoggerManager::GetEngineLogger()->warn(__VA_ARGS__);  
+#define FRAMEEX_CORE_INFO(...)     ::FrameExtractor::LoggerManager::GetEngineLogger()->info(__VA_ARGS__);
+#define FRAMEEX_CORE_TRACE(...)    ::FrameExtractor::LoggerManager::GetEngineLogger()->trace(__VA_ARGS__);
+#define FRAMEEX_CORE_WARN(...)		::FrameExtractor::LoggerManager::GetEngineLogger()->warn(__VA_ARGS__);
 #define FRAMEEX_CORE_ERROR(...)    ::FrameExtractor::LoggerManager::GetEngineLogger()->error(__VA_ARGS__);
-#define FRAMEEX_CORE_CRITICAL(...) ::FrameExtractor::LoggerManager::GetEngineLogger()->critical(__VA_ARGS__); 
+#define FRAMEEX_CORE_CRITICAL(...) ::FrameExtractor::LoggerManager::GetEngineLogger()->critical(__VA_ARGS__);
 
 #define APP_CORE_INFO(...)     		::FrameExtractor::LoggerManager::mCP->AddLogInfo(__VA_ARGS__);
 #define APP_CORE_TRACE(...)     		::FrameExtractor::LoggerManager::mCP->AddLogTrace(__VA_ARGS__);
 #define APP_CORE_WARN(...)     		::FrameExtractor::LoggerManager::mCP->AddLogWarn(__VA_ARGS__);
 #define APP_CORE_ERROR(...)     		::FrameExtractor::LoggerManager::mCP->AddLogError(__VA_ARGS__);
-
-
 
 #endif

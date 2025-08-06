@@ -11,7 +11,7 @@ namespace glm
 		vec<3, T, Q> hsv = hsvColor;
 		vec<3, T, Q> rgbColor;
 
-		if(equal(hsv.y, static_cast<T>(0), epsilon<T>()))
+		if (equal(hsv.y, static_cast<T>(0), epsilon<T>()))
 			// achromatic (grey)
 			rgbColor = vec<3, T, Q>(hsv.z);
 		else
@@ -23,7 +23,7 @@ namespace glm
 			T p = hsv.z * (T(1) - hsv.y * frac);
 			T q = hsv.z * (T(1) - hsv.y * (T(1) - frac));
 
-			switch(int(sector))
+			switch (int(sector))
 			{
 			default:
 			case 0:
@@ -66,28 +66,28 @@ namespace glm
 	GLM_FUNC_QUALIFIER vec<3, T, Q> hsvColor(const vec<3, T, Q>& rgbColor)
 	{
 		vec<3, T, Q> hsv = rgbColor;
-		T Min   = min(min(rgbColor.r, rgbColor.g), rgbColor.b);
-		T Max   = max(max(rgbColor.r, rgbColor.g), rgbColor.b);
+		T Min = min(min(rgbColor.r, rgbColor.g), rgbColor.b);
+		T Max = max(max(rgbColor.r, rgbColor.g), rgbColor.b);
 		T Delta = Max - Min;
 
 		hsv.z = Max;
 
-		if(!equal(Max, static_cast<T>(0), epsilon<T>()))
+		if (!equal(Max, static_cast<T>(0), epsilon<T>()))
 		{
 			hsv.y = Delta / hsv.z;
 			T h = static_cast<T>(0);
 
-			if(equal(rgbColor.r, Max, epsilon<T>()))
+			if (equal(rgbColor.r, Max, epsilon<T>()))
 				// between yellow & magenta
 				h = static_cast<T>(0) + T(60) * (rgbColor.g - rgbColor.b) / Delta;
-			else if(equal(rgbColor.g, Max, epsilon<T>()))
+			else if (equal(rgbColor.g, Max, epsilon<T>()))
 				// between cyan & yellow
 				h = static_cast<T>(120) + T(60) * (rgbColor.b - rgbColor.r) / Delta;
 			else
 				// between magenta & cyan
 				h = static_cast<T>(240) + T(60) * (rgbColor.r - rgbColor.g) / Delta;
 
-			if(h < T(0))
+			if (h < T(0))
 				hsv.x = h + T(360);
 			else
 				hsv.x = h;

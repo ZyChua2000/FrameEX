@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 10, 2024
+\date       May 10, 2025
 \brief      Declares the ImGui Manager class which manages the overall ImGui
 			interface and its components.
 
@@ -28,7 +28,6 @@ namespace FrameExtractor
 
 	struct EditorPreferences
 	{
-		
 		struct AppearancePreferences
 		{
 			uint32_t BackGroundColor = 0x25213100;

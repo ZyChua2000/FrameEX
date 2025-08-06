@@ -27,7 +27,6 @@ namespace glm
 {
 	/// @addtogroup gtx_perpendicular
 	/// @{
-
 	//! Projects x a perpendicular axis of Normal.
 	//! From GLM_GTX_perpendicular extension.
 	template<typename genType>

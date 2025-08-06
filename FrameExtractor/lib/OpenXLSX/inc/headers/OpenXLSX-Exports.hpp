@@ -1,4 +1,3 @@
-
 #ifndef OPENXLSX_EXPORT_H
 #define OPENXLSX_EXPORT_H
 
@@ -8,16 +7,16 @@
 #else
 #  ifndef OPENXLSX_EXPORT
 #    ifdef OpenXLSX_EXPORTS
-        /* We are building this library */
-#      define OPENXLSX_EXPORT 
+/* We are building this library */
+#      define OPENXLSX_EXPORT
 #    else
-        /* We are using this library */
-#      define OPENXLSX_EXPORT 
+/* We are using this library */
+#      define OPENXLSX_EXPORT
 #    endif
 #  endif
 
 #  ifndef OPENXLSX_HIDDEN
-#    define OPENXLSX_HIDDEN 
+#    define OPENXLSX_HIDDEN
 #  endif
 #endif
 

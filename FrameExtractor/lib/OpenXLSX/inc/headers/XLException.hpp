@@ -11,9 +11,9 @@ MM      MM  MM    MM MMMMMMMM MM    MM    d'`MM.     MM            MM    d'`MM.
 YM      M9  MM    MM MM       MM    MM   d'  `MM.    MM            MM   d'  `MM.
  8b    d8   MM.  ,M9 YM    d9 MM    MM  d'    `MM.   MM    / L    ,M9  d'    `MM.
   YMMMM9    MMYMMM9   YMMMM9 _MM_  _MM_M(_    _)MM_ _MMMMMMM MYMMMM9 _M(_    _)MM_
-            MM
-            MM
-           _MM_
+			MM
+			MM
+		   _MM_
 
   Copyright (c) 2018, Kenneth Troldal Balslev
 
@@ -22,13 +22,13 @@ YM      M9  MM    MM MM       MM    MM   d'  `MM.    MM            MM   d'  `MM.
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
   - Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
+	notice, this list of conditions and the following disclaimer.
   - Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
+	notice, this list of conditions and the following disclaimer in the
+	documentation and/or other materials provided with the distribution.
   - Neither the name of the author nor the
-    names of any contributors may be used to endorse or promote products
-    derived from this software without specific prior written permission.
+	names of any contributors may be used to endorse or promote products
+	derived from this software without specific prior written permission.
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -52,7 +52,7 @@ YM      M9  MM    MM MM       MM    MM   d'  `MM.    MM            MM   d'  `MM.
 #   pragma warning(disable : 4275)
 #endif // _MSC_VER
 
-// ===== External Includes ===== //
+ // ===== External Includes ===== //
 #include <stdexcept>    // std::runtime_error
 #include <string>       // std::string - Issue #278 should be resolved by this
 
@@ -61,97 +61,95 @@ YM      M9  MM    MM MM       MM    MM   d'  `MM.    MM            MM   d'  `MM.
 
 namespace OpenXLSX
 {
-    /**
-     * @brief
-     */
-    class OPENXLSX_EXPORT XLException : public std::runtime_error
-    {
-    public:
-        explicit XLException(const std::string& err) : runtime_error(err) {};
-    };
+	/**
+	 * @brief
+	 */
+	class OPENXLSX_EXPORT XLException : public std::runtime_error
+	{
+	public:
+		explicit XLException(const std::string& err) : runtime_error(err) {};
+	};
 
-    /**
-     * @brief
-     */
-    class OPENXLSX_EXPORT XLOverflowError : public XLException
-    {
-    public:
-        explicit XLOverflowError(const std::string& err) : XLException(err) {};
-    };
+	/**
+	 * @brief
+	 */
+	class OPENXLSX_EXPORT XLOverflowError : public XLException
+	{
+	public:
+		explicit XLOverflowError(const std::string& err) : XLException(err) {};
+	};
 
-    /**
-     * @brief
-     */
-    class OPENXLSX_EXPORT XLValueTypeError : public XLException
-    {
-    public:
-        explicit XLValueTypeError(const std::string& err) : XLException(err) {};
-    };
+	/**
+	 * @brief
+	 */
+	class OPENXLSX_EXPORT XLValueTypeError : public XLException
+	{
+	public:
+		explicit XLValueTypeError(const std::string& err) : XLException(err) {};
+	};
 
-    /**
-     * @brief
-     */
-    class OPENXLSX_EXPORT XLCellAddressError : public XLException
-    {
-    public:
-        explicit XLCellAddressError(const std::string& err) : XLException(err) {};
-    };
+	/**
+	 * @brief
+	 */
+	class OPENXLSX_EXPORT XLCellAddressError : public XLException
+	{
+	public:
+		explicit XLCellAddressError(const std::string& err) : XLException(err) {};
+	};
 
-    /**
-     * @brief
-     */
-    class OPENXLSX_EXPORT XLInputError : public XLException
-    {
-    public:
-        explicit XLInputError(const std::string& err) : XLException(err) {};
-    };
+	/**
+	 * @brief
+	 */
+	class OPENXLSX_EXPORT XLInputError : public XLException
+	{
+	public:
+		explicit XLInputError(const std::string& err) : XLException(err) {};
+	};
 
-    /**
-     * @brief
-     */
-    class OPENXLSX_EXPORT XLInternalError : public XLException
-    {
-    public:
-        explicit XLInternalError(const std::string& err) : XLException(err) {};
-    };
+	/**
+	 * @brief
+	 */
+	class OPENXLSX_EXPORT XLInternalError : public XLException
+	{
+	public:
+		explicit XLInternalError(const std::string& err) : XLException(err) {};
+	};
 
-    /**
-     * @brief
-     */
-    class OPENXLSX_EXPORT XLPropertyError : public XLException
-    {
-    public:
-        explicit XLPropertyError(const std::string& err) : XLException(err) {};
-    };
+	/**
+	 * @brief
+	 */
+	class OPENXLSX_EXPORT XLPropertyError : public XLException
+	{
+	public:
+		explicit XLPropertyError(const std::string& err) : XLException(err) {};
+	};
 
-    /**
-     * @brief
-     */
-    class OPENXLSX_EXPORT XLSheetError : public XLException
-    {
-    public:
-        explicit XLSheetError(const std::string& err) : XLException(err) {};
-    };
+	/**
+	 * @brief
+	 */
+	class OPENXLSX_EXPORT XLSheetError : public XLException
+	{
+	public:
+		explicit XLSheetError(const std::string& err) : XLException(err) {};
+	};
 
-    /**
-     * @brief
-     */
-    class OPENXLSX_EXPORT XLDateTimeError : public XLException
-    {
-    public:
-        explicit XLDateTimeError(const std::string& err) : XLException(err) {};
-    };
+	/**
+	 * @brief
+	 */
+	class OPENXLSX_EXPORT XLDateTimeError : public XLException
+	{
+	public:
+		explicit XLDateTimeError(const std::string& err) : XLException(err) {};
+	};
 
-    /**
-     * @brief
-     */
-    class OPENXLSX_EXPORT XLFormulaError : public XLException
-    {
-    public:
-        explicit XLFormulaError(const std::string& err) : XLException(err) {};
-    };
-
-
+	/**
+	 * @brief
+	 */
+	class OPENXLSX_EXPORT XLFormulaError : public XLException
+	{
+	public:
+		explicit XLFormulaError(const std::string& err) : XLException(err) {};
+	};
 }    // namespace OpenXLSX
 
 #ifdef _MSC_VER    // conditionally enable MSVC specific pragmas to avoid other compilers warning about unknown pragmas

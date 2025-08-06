@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 10, 2024
+\date       May 10, 2025
 \brief      Declares the Application Manager class which handles the application
 
  /******************************************************************************/
@@ -16,7 +16,6 @@
 #include <GUI/ImGuiManager.hpp>
 namespace FrameExtractor
 {
-
 	class ApplicationManager
 	{
 	public:

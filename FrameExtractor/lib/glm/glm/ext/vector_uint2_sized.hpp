@@ -24,7 +24,6 @@ namespace glm
 {
 	/// @addtogroup ext_vector_uint2_sized
 	/// @{
-
 	/// 8 bit unsigned integer vector of 2 components type.
 	///
 	/// @see ext_vector_uint2_sized

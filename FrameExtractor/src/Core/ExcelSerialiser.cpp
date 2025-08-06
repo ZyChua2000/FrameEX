@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 15, 2024
+\date       May 15, 2025
 \brief      Defines the Excel Serialiser class which serialises Data
 
  /******************************************************************************/
@@ -26,10 +26,8 @@ static const std::unordered_map<std::string, int> formatToId = {
 	{ "H:MM:SS", 21 }
 };
 
-
-
 namespace FrameExtractor
-{ 
+{
 	std::string FormatToString(Date date, std::string fmt)
 	{
 		static const char* monthNames[] = {
@@ -38,28 +36,34 @@ namespace FrameExtractor
 		};
 		std::ostringstream oss;
 
-		if (fmt == "D/M/YYYY") {
+		if (fmt == "D/M/YYYY")
+		{
 			oss << date.day << "/" << date.month << "/" << date.year;
 		}
-		else if (fmt == "D-MON-YY") {
+		else if (fmt == "D-MON-YY")
+		{
 			oss << date.day << "-" << monthNames[date.month - 1] << "-"
 				<< std::setw(2) << std::setfill('0') << (date.year % 100);
 		}
-		else if (fmt == "D-MON") {
+		else if (fmt == "D-MON")
+		{
 			oss << date.day << "-" << monthNames[date.month - 1];
 		}
-		else if (fmt == "MON-YY") {
+		else if (fmt == "MON-YY")
+		{
 			oss << monthNames[date.month - 1] << "-"
 				<< std::setw(2) << std::setfill('0') << (date.year % 100);
 		}
-		else {
+		else
+		{
 			return "<invalid format>";
 		}
 
 		return oss.str();
 	}
 
-	std::string FormatToString(Time time, const std::string& fmt) {
+	std::string FormatToString(Time time, const std::string& fmt)
+	{
 		std::ostringstream oss;
 
 		bool ampm = fmt.find("AM/PM") != std::string::npos;
@@ -68,7 +72,8 @@ namespace FrameExtractor
 		int displayHour = time.hours;
 		std::string suffix;
 
-		if (ampm) {
+		if (ampm)
+		{
 			suffix = (displayHour < 12) ? "AM" : "PM";
 			displayHour = displayHour % 12;
 			if (displayHour == 0) displayHour = 12;
@@ -77,11 +82,13 @@ namespace FrameExtractor
 		oss << displayHour << ":"
 			<< std::setw(2) << std::setfill('0') << time.minutes;
 
-		if (includeSeconds) {
+		if (includeSeconds)
+		{
 			oss << ":" << std::setw(2) << std::setfill('0') << time.seconds;
 		}
 
-		if (ampm) {
+		if (ampm)
+		{
 			oss << " " << suffix;
 		}
 
@@ -89,22 +96,22 @@ namespace FrameExtractor
 	}
 
 	ExcelSerialiser::ExcelSerialiser(std::filesystem::path filepath) : mPath(filepath)
-	{
-
-	}
+	{}
 
 	ExcelSerialiser::~ExcelSerialiser()
-	{
-	}
+	{}
 
-	std::map<std::string, std::string> parseSpecifiers(const std::string& specStr) {
+	std::map<std::string, std::string> parseSpecifiers(const std::string& specStr)
+	{
 		std::map<std::string, std::string> result;
 		std::stringstream ss(specStr);
 		std::string part;
 
-		while (std::getline(ss, part, ';')) {
+		while (std::getline(ss, part, ';'))
+		{
 			size_t eq = part.find('=');
-			if (eq != std::string::npos) {
+			if (eq != std::string::npos)
+			{
 				std::string key = part.substr(0, eq);
 				std::string val = part.substr(eq + 1);
 				result[key] = val;
@@ -113,16 +120,20 @@ namespace FrameExtractor
 
 		return result;
 	}
-	std::string regex_escape(const std::string& s) {
+	std::string regex_escape(const std::string& s)
+	{
 		static const std::regex re(R"([.^$|()\\[\]{}*+?])");
 		return std::regex_replace(s, re, R"(\$&)");
 	}
 
-	void ExcelSerialiser::WriteRecursive(const ReflectionMap& tree, std::vector<rttr::variant>& path, OpenXLSX::XLWorksheet* wks, DynamicTask& task, int& row) {
-		for (const auto& [key, value] : tree) {
+	void ExcelSerialiser::WriteRecursive(const ReflectionMap& tree, std::vector<rttr::variant>& path, OpenXLSX::XLWorksheet* wks, DynamicTask& task, int& row)
+	{
+		for (const auto& [key, value] : tree)
+		{
 			path.push_back(key); // Record the path
 
-			if (value.is_type<std::vector<TaskData>>()) {
+			if (value.is_type<std::vector<TaskData>>())
+			{
 				const std::vector<TaskData>& data = value.get_value<std::vector<TaskData>>();
 				auto& fmt = task.mSpecs->mExportFormat->get_value<ExcelExport>();
 				std::map<std::string, rttr::variant> dataMapping;
@@ -132,7 +143,7 @@ namespace FrameExtractor
 					dataMapping[*task.mSpecs->mNodeCategories->at(i)->mName] = path[i];
 				}
 				dataMapping[*task.mSpecs->mTab->mName] = path.back();
-				for (int i = 0; i < data.size() ; i++)
+				for (int i = 0; i < data.size(); i++)
 				{
 					dataMapping[data[i].mFieldName] = data[i].mFieldData;
 				}
@@ -141,14 +152,15 @@ namespace FrameExtractor
 				for (auto& [column, txtFmt] : fmt.mDataColumnMapping)
 				{
 					//regex {$VAR} map to variables
-					
+
 					std::regex pattern(R"(\{\$([^:}]+)(?::([^}]+))?\})");
 					std::smatch match;
 					std::map<std::string, std::string> parsedSpecifiers;
 					bool nonMixed = false;
 					std::string varName;
 
-					if (std::regex_search(txtFmt, match, pattern)) {
+					if (std::regex_search(txtFmt, match, pattern))
+					{
 						if (match[0] == txtFmt)
 						{
 							nonMixed = true;
@@ -156,7 +168,8 @@ namespace FrameExtractor
 
 						varName = match[1];        // "Date"
 						std::string specifiers = match[2];     // "format=D/M/YYYY;pad=true"
-						if (!specifiers.empty()) {
+						if (!specifiers.empty())
+						{
 							parsedSpecifiers = parseSpecifiers(specifiers);
 						}
 					}
@@ -165,7 +178,6 @@ namespace FrameExtractor
 					{
 						if (dataMapping.contains(varName))
 						{
-
 							if (dataMapping[varName].is_type<int>())
 							{
 								cell.value() = dataMapping[varName].get_value<int>();
@@ -229,28 +241,34 @@ namespace FrameExtractor
 					else // Mixed: full string format
 					{
 						std::vector<std::pair<std::string, std::string>> replacing;
-						for (std::sregex_iterator it(txtFmt.begin(), txtFmt.end(), pattern), end; it != end; ++it) {
+						for (std::sregex_iterator it(txtFmt.begin(), txtFmt.end(), pattern), end; it != end; ++it)
+						{
 							std::smatch match = *it;
 
 							std::string varName = match[1];
 							std::string specifier = match[2];
 
 							std::map<std::string, std::string> parsedSpecifiers;
-							if (match[2].matched) {
+							if (match[2].matched)
+							{
 								parsedSpecifiers = parseSpecifiers(specifier);
 							}
 
 							std::string replace_str;
-							if (dataMapping.contains(varName)) {
-								if (dataMapping[varName].is_type<Date>()) {
+							if (dataMapping.contains(varName))
+							{
+								if (dataMapping[varName].is_type<Date>())
+								{
 									auto myDate = dataMapping[varName].get_value<Date>();
 									replace_str = FormatToString(myDate, parsedSpecifiers.contains("format") ? parsedSpecifiers["format"] : "D/M/YYYY");
 								}
-								else if (dataMapping[varName].is_type<Time>()) {
+								else if (dataMapping[varName].is_type<Time>())
+								{
 									auto myTime = dataMapping[varName].get_value<Time>();
 									replace_str = FormatToString(myTime, parsedSpecifiers.contains("format") ? parsedSpecifiers["format"] : "H:MM AM/PM");
 								}
-								else if (dataMapping[varName].can_convert<std::string>()) {
+								else if (dataMapping[varName].can_convert<std::string>())
+								{
 									replace_str = dataMapping[varName].convert<std::string>();
 								}
 							}
@@ -260,7 +278,8 @@ namespace FrameExtractor
 						}
 
 						// Replace all matches in the string (in one pass)
-						for (const auto& [matchText, replaceStr] : replacing) {
+						for (const auto& [matchText, replaceStr] : replacing)
+						{
 							txtFmt = std::regex_replace(txtFmt, std::regex(regex_escape(matchText)), replaceStr);
 						}
 
@@ -268,10 +287,10 @@ namespace FrameExtractor
 					}
 				}
 
-
 				row++;
 			}
-			else if (value.is_type<ReflectionMap>()) {
+			else if (value.is_type<ReflectionMap>())
+			{
 				const auto& subtree = value.get_value<ReflectionMap>();
 				WriteRecursive(subtree, path, wks, task, row);
 			}
@@ -304,9 +323,8 @@ namespace FrameExtractor
 			format.setNumberFormatId(num);
 		}
 
-
 		WriteRecursive(Task.mPages, var, &wks, Task, row);
-	
+
 		doc.save();
 	}
 
@@ -337,7 +355,6 @@ namespace FrameExtractor
 			std::map<std::string, rttr::variant> dataMapping;
 			for (auto& [colIDX, varName] : excelImport.mDataMapping)
 			{
-
 				if (mSpecsMapping.contains(varName))
 				{
 					auto& specs = mSpecsMapping[varName];
@@ -426,9 +443,7 @@ namespace FrameExtractor
 						}
 						break;
 					}
-					
 				}
-				
 			}
 			std::vector<rttr::variant> keys;
 			// Add dataMapping to Task
@@ -456,7 +471,6 @@ namespace FrameExtractor
 					datas.push_back(data);
 				}
 			}
-
 
 			variant = datas;
 		}
@@ -522,7 +536,6 @@ namespace FrameExtractor
 
 				for (auto entranceNum = 0; entranceNum < data.Entrance.size(); entranceNum++)
 				{
-		
 					// Person details
 					if (data.Entrance.size() > 1)
 						ss << "E" << entranceNum + 1 << ": ";
@@ -568,7 +581,8 @@ namespace FrameExtractor
 
 					std::string additionalNotes = data.Entrance[entranceNum].mAdditionalNotes;
 					size_t start_pos = 0;
-					while ((start_pos = additionalNotes.find("\r\n", start_pos)) != std::string::npos) {
+					while ((start_pos = additionalNotes.find("\r\n", start_pos)) != std::string::npos)
+					{
 						additionalNotes.replace(start_pos, 2, " ");
 						// No need to increment by 2 since we replaced it with 1 character
 						start_pos += 1;
@@ -576,13 +590,15 @@ namespace FrameExtractor
 
 					// Then replace remaining lone '\n' or '\r'
 					start_pos = 0;
-					while ((start_pos = additionalNotes.find("\n", start_pos)) != std::string::npos) {
+					while ((start_pos = additionalNotes.find("\n", start_pos)) != std::string::npos)
+					{
 						additionalNotes.replace(start_pos, 1, " ");
 						start_pos += 1;
 					}
 
 					start_pos = 0;
-					while ((start_pos = additionalNotes.find("\r", start_pos)) != std::string::npos) {
+					while ((start_pos = additionalNotes.find("\r", start_pos)) != std::string::npos)
+					{
 						additionalNotes.replace(start_pos, 1, " ");
 						start_pos += 1;
 					}
@@ -608,7 +624,6 @@ namespace FrameExtractor
 		std::map<std::string, std::map<int32_t, CountData>> output;
 
 		auto wks = doc.workbook().worksheet("Sheet1");
-
 
 		int storeCodeCol = -1;
 		int timeCol = -1;
@@ -665,7 +680,6 @@ namespace FrameExtractor
 			}
 		}
 
-
 		for (uint32_t row = 2; row <= wks.rowCount(); row++)
 		{
 			if (storeCodeCol != -1)
@@ -682,7 +696,8 @@ namespace FrameExtractor
 
 				int time = -1;
 				auto timeStr = wks.cell(row, timeCol).getString();
-				try {
+				try
+				{
 					time = std::stoi(timeStr);
 				}
 				catch (...)
@@ -738,7 +753,6 @@ namespace FrameExtractor
 		doc.close();
 
 		return output;
-
 	}
 
 	std::map<std::string, std::map<int32_t, AggregateData>> ExcelSerialiser::ImportAggregatorReport()
@@ -749,7 +763,6 @@ namespace FrameExtractor
 			APP_CORE_ERROR("Invalid Excel File for Spike Dip");
 		}
 		auto wks = doc.workbook().worksheet("Aggregates");
-
 
 		std::map<std::string, std::map<int32_t, AggregateData>> data;
 		for (uint32_t row = 2; row <= wks.rowCount(); row++)
@@ -781,5 +794,4 @@ namespace FrameExtractor
 
 		return data;
 	}
-
 }

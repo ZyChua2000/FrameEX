@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 11, 2024
+\date       May 11, 2025
 \brief      Defines the Logger Manager class which handles the logs
 
  /******************************************************************************/
@@ -35,6 +35,4 @@ namespace FrameExtractor
 	{
 		sEngineLogger->set_level(level);
 	}
-
 }
-

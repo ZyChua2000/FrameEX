@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       June 23, 2024
+\date       June 23, 2025
 \brief      Declares the Enums involved for Templating System
 
  /******************************************************************************/
@@ -15,26 +15,25 @@
 #include <string>
 namespace FrameExtractor
 {
-    enum class DataType
-    {
-        None,
-        Bool,
-        Int,
-        Float,
-        Double,
-        Date,
-        Time,
-        String,
-        Complex
-    };
+	enum class DataType
+	{
+		None,
+		Bool,
+		Int,
+		Float,
+		Double,
+		Date,
+		Time,
+		String,
+		Complex
+	};
 
-
-    enum class IOType
-    {
-        None,
-        Excel,
-        Text
-    };
+	enum class IOType
+	{
+		None,
+		Excel,
+		Text
+	};
 }
 
 #endif

@@ -28,7 +28,6 @@ namespace glm
 {
 	/// @addtogroup gtx_orthonormalize
 	/// @{
-
 	/// Returns the orthonormalized matrix of m.
 	///
 	/// @see gtx_orthonormalize

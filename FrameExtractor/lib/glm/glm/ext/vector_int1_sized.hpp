@@ -24,7 +24,6 @@ namespace glm
 {
 	/// @addtogroup ext_vector_int1_sized
 	/// @{
-
 	/// 8 bit signed integer vector of 1 component type.
 	///
 	/// @see ext_vector_int1_sized

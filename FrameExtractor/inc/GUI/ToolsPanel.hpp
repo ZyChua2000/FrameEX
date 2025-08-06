@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 10, 2024
+\date       May 10, 2025
 \brief      Declares the Tools Panel class which has all the tools.
 
  /******************************************************************************/
@@ -62,12 +62,9 @@ namespace FrameExtractor
 		ExcelExport mExcelExportBuffer;
 		ExcelImport mExcelImportBuffer;
 
-
 		void CountingTab(float lineHeight);
 		void AggregateTab(float lineHeight);
-
 	};
-
 }
 
 #endif

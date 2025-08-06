@@ -17,35 +17,33 @@
 
 namespace nowide
 {
-    namespace conv
-    {
-        ///
-        /// \addtogroup codepage
-        ///
-        /// @{
+	namespace conv
+	{
+		///
+		/// \addtogroup codepage
+		///
+		/// @{
+		///
+		/// \brief The excepton that is thrown in case of conversion error
+		///
+		class conversion_error : public std::runtime_error
+		{
+		public:
+			conversion_error() : std::runtime_error("Conversion failed") {}
+		};
 
-        ///
-        /// \brief The excepton that is thrown in case of conversion error
-        ///
-        class conversion_error : public std::runtime_error
-        {
-        public:
-            conversion_error() : std::runtime_error("Conversion failed") {}
-        };
+		///
+		/// enum that defines conversion policy
+		///
+		typedef enum
+		{
+			skip = 0,      ///< Skip illegal/unconvertable characters
+			stop = 1,      ///< Stop conversion and throw conversion_error
+			default_method = skip    ///< Default method - skip
+		} method_type;
 
-        ///
-        /// enum that defines conversion policy
-        ///
-        typedef enum {
-            skip           = 0,      ///< Skip illegal/unconvertable characters
-            stop           = 1,      ///< Stop conversion and throw conversion_error
-            default_method = skip    ///< Default method - skip
-        } method_type;
-
-        /// @}
-
-    }    // namespace conv
-
+		/// @}
+	}    // namespace conv
 }    // namespace nowide
 
 #    ifdef NOWIDE_MSVC

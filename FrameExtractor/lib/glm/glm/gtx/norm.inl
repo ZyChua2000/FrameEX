@@ -2,18 +2,19 @@
 
 #include "../detail/qualifier.hpp"
 
-namespace glm{
-namespace detail
+namespace glm
 {
-	template<length_t L, typename T, qualifier Q, bool Aligned>
-	struct compute_length2
+	namespace detail
 	{
-		GLM_FUNC_QUALIFIER static T call(vec<L, T, Q> const& v)
+		template<length_t L, typename T, qualifier Q, bool Aligned>
+		struct compute_length2
 		{
-			return dot(v, v);
-		}
-	};
-}//namespace detail
+			GLM_FUNC_QUALIFIER static T call(vec<L, T, Q> const& v)
+			{
+				return dot(v, v);
+			}
+		};
+	}//namespace detail
 
 	template<typename genType>
 	GLM_FUNC_QUALIFIER genType length2(genType x)
@@ -91,5 +92,4 @@ namespace detail
 	{
 		return compMax(abs(v));
 	}
-
 }//namespace glm

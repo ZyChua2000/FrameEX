@@ -49,6 +49,9 @@
     <Filter Include="lib\OpenXLSX\sources\utilities">
       <UniqueIdentifier>{4A55DED0-367B-A837-1FC1-2D030B86CD03}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\filewatch">
+      <UniqueIdentifier>{423BB386-AEFB-2EBD-7736-783AE3B57399}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib\glm">
       <UniqueIdentifier>{8BD44779-F7B3-C614-00CC-51EB6C2A2D76}</UniqueIdentifier>
     </Filter>
@@ -96,6 +99,15 @@
     <ClInclude Include="inc\Core\ApplicationManager.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Core\Asset.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Core\AssetHandle.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Core\AssetManager.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Core\Command.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
@@ -103,6 +115,9 @@
       <Filter>inc\Core</Filter>
     </ClInclude>
     <ClInclude Include="inc\Core\ExcelSerialiser.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Core\FileWatcher.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
     <ClInclude Include="inc\Core\LoggerManager.hpp">
@@ -166,6 +181,9 @@
       <Filter>inc\Template</Filter>
     </ClInclude>
     <ClInclude Include="inc\Template\TaskManager.hpp">
+      <Filter>inc\Template</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Template\TemplateDataType.hpp">
       <Filter>inc\Template</Filter>
     </ClInclude>
     <ClInclude Include="inc\Template\TemplateEnums.hpp">
@@ -335,6 +353,9 @@
     </ClInclude>
     <ClInclude Include="lib\OpenXLSX\sources\utilities\XLUtilities.hpp">
       <Filter>lib\OpenXLSX\sources\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\filewatch\FileWatch.hpp">
+      <Filter>lib\filewatch</Filter>
     </ClInclude>
     <ClInclude Include="lib\glm\glm\common.hpp">
       <Filter>lib\glm\glm</Filter>
@@ -1611,19 +1632,24 @@
     <ClInclude Include="lib\magic_enum\include\magic_enum\magic_enum_utility.hpp">
       <Filter>lib\magic_enum\include\magic_enum</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Template\TemplateDataType.hpp" />
-    <ClInclude Include="inc\Core\AssetHandle.hpp" />
-    <ClInclude Include="inc\Core\AssetManager.hpp" />
-    <ClInclude Include="inc\Core\Asset.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\ApplicationManager.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\AssetHandle.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\AssetManager.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\Command.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\ExcelSerialiser.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\FileWatcher.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\LoggerManager.cpp">
@@ -1683,7 +1709,8 @@
     <ClCompile Include="src\Template\TaskManager.cpp">
       <Filter>src\Template</Filter>
     </ClCompile>
-    <ClCompile Include="src\Template\TemplateDataType.cpp" />
-    <ClCompile Include="src\Core\AssetHandle.cpp" />
+    <ClCompile Include="src\Template\TemplateDataType.cpp">
+      <Filter>src\Template</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

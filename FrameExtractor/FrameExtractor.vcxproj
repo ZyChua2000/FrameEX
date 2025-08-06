@@ -80,7 +80,7 @@
       <PrecompiledHeaderFile>FrameExtractorPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_DEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;lib\rttr\src;lib\magic_enum\include;lib\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;lib\rttr\src;lib\magic_enum\include;lib\yaml-cpp\include;lib\Filewatch;lib\imgui\Extensions\Toggle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -108,7 +108,7 @@ copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
       <PrecompiledHeaderFile>FrameExtractorPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;lib\rttr\src;lib\magic_enum\include;lib\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;lib\rttr\src;lib\magic_enum\include;lib\yaml-cpp\include;lib\Filewatch;lib\imgui\Extensions\Toggle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -140,7 +140,7 @@ copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
       <PrecompiledHeaderFile>FrameExtractorPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;lib\rttr\src;lib\magic_enum\include;lib\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ffmpeg\include;lib\stb_image;lib\OpenXLSX\inc;lib\rttr\src;lib\magic_enum\include;lib\yaml-cpp\include;lib\Filewatch;lib\imgui\Extensions\Toggle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -169,16 +169,17 @@ copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
   <ItemGroup>
     <ClInclude Include="inc\Core\ApplicationManager.hpp" />
     <ClInclude Include="inc\Core\Asset.hpp" />
+    <ClInclude Include="inc\Core\AssetHandle.hpp" />
     <ClInclude Include="inc\Core\AssetManager.hpp" />
     <ClInclude Include="inc\Core\Command.hpp" />
     <ClInclude Include="inc\Core\Core.hpp" />
     <ClInclude Include="inc\Core\ExcelSerialiser.hpp" />
+    <ClInclude Include="inc\Core\FileWatcher.hpp" />
     <ClInclude Include="inc\Core\LoggerManager.hpp" />
     <ClInclude Include="inc\Core\PlatformUtils.hpp" />
     <ClInclude Include="inc\Core\Project.hpp" />
     <ClInclude Include="inc\Core\WindowManager.hpp" />
     <ClInclude Include="inc\FrameExtractorPCH.hpp" />
-    <ClInclude Include="inc\Core\AssetHandle.hpp" />
     <ClInclude Include="inc\GUI\ConsolePanel.hpp" />
     <ClInclude Include="inc\GUI\ExplorerPanel.hpp" />
     <ClInclude Include="inc\GUI\GUIUtils.hpp" />
@@ -252,6 +253,7 @@ copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
     <ClInclude Include="lib\OpenXLSX\inc\headers\XLXmlParser.hpp" />
     <ClInclude Include="lib\OpenXLSX\inc\headers\XLZipArchive.hpp" />
     <ClInclude Include="lib\OpenXLSX\sources\utilities\XLUtilities.hpp" />
+    <ClInclude Include="lib\filewatch\FileWatch.hpp" />
     <ClInclude Include="lib\glm\glm\common.hpp" />
     <ClInclude Include="lib\glm\glm\detail\_features.hpp" />
     <ClInclude Include="lib\glm\glm\detail\_fixes.hpp" />
@@ -680,8 +682,11 @@ copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\ApplicationManager.cpp" />
+    <ClCompile Include="src\Core\AssetHandle.cpp" />
+    <ClCompile Include="src\Core\AssetManager.cpp" />
     <ClCompile Include="src\Core\Command.cpp" />
     <ClCompile Include="src\Core\ExcelSerialiser.cpp" />
+    <ClCompile Include="src\Core\FileWatcher.cpp" />
     <ClCompile Include="src\Core\LoggerManager.cpp" />
     <ClCompile Include="src\Core\PlatformUtils.cpp" />
     <ClCompile Include="src\Core\Project.cpp" />
@@ -690,7 +695,6 @@ copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
     <ClCompile Include="src\FrameExtractorPCH.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Core\AssetHandle.cpp" />
     <ClCompile Include="src\GUI\ConsolePanel.cpp" />
     <ClCompile Include="src\GUI\ExplorerPanel.cpp" />
     <ClCompile Include="src\GUI\GUIUtils.cpp" />

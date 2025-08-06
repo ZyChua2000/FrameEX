@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 11, 2024
+\date       May 11, 2025
 \brief      Declares the Video class that represents a loaded video
 
  /******************************************************************************/
@@ -28,8 +28,15 @@ namespace FrameExtractor
 	class Video : public Asset
 	{
 	public:
+		Video() = default;
 		Video(const std::filesystem::path& path);
 		~Video();
+
+		void Load(const std::filesystem::path& path) override;
+		void Unload() override;
+		bool IsLoaded() const override { return formatContext != nullptr; }
+		AssetType GetAssetType() const override { return AssetType::Video; }
+
 		Ref<Texture> GetFrame();
 		void DecodeTime(float dt, float speedFactor);
 		bool Decode(uint32_t frameIndex);
@@ -46,21 +53,19 @@ namespace FrameExtractor
 		uint32_t mWidth;
 		uint32_t mHeight;
 
-		AVFormatContext* formatContext = nullptr;  // Container context
-		AVCodecContext* codecContext = nullptr;    // Decoder context
-		const AVCodec* codec = nullptr;            // Codec for decoding
-		AVStream* videoStream = nullptr;           // Video stream
-		AVFrame* frame = nullptr;                  // Frame to hold decoded data
-		AVFrame* RGBframe = nullptr;                  // Frame to hold decoded data
-		AVFrame* convertedFrame = nullptr;         // Converted frame (e.g., RGB)
+		AVFormatContext* formatContext = nullptr;	// Container context
+		AVCodecContext* codecContext = nullptr;		// Decoder context
+		const AVCodec* codec = nullptr;				// Codec for decoding
+		AVStream* videoStream = nullptr;			// Video stream
+		AVFrame* frame = nullptr;					// Frame to hold decoded data
+		AVFrame* RGBframe = nullptr;                // Frame to hold decoded data
+		AVFrame* convertedFrame = nullptr;			// Converted frame (e.g., RGB)
 		SwsContext* swsContext = nullptr;			// For pixel format conversion
-		AVPacket* packet = nullptr;                           // Packet for compressed data
+		AVPacket* packet = nullptr;                 // Packet for compressed data
 
-		Ref<Texture> mTexture;       // Vector of textures for each frame
+		Ref<Texture> mTexture;						// Vector of textures for each frame
 		double time_per_frame = 0.0;
 		double last_frame_time = 0.0;
-
-			
 	};
 }
 

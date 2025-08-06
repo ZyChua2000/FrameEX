@@ -23,7 +23,6 @@ namespace glm
 {
 	/// @addtogroup ext_matrix_uint4x4
 	/// @{
-
 	/// Unsigned integer 4x4 matrix.
 	///
 	/// @see ext_matrix_uint4x4

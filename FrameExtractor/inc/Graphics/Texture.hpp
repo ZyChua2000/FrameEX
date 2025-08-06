@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 11, 2024
+\date       May 11, 2025
 \brief      Declares the Texture class that represents a loaded video
 
  /******************************************************************************/
@@ -24,6 +24,12 @@ namespace FrameExtractor
 		Texture(std::filesystem::path path);
 		Texture(uint32_t width, uint32_t height);
 		~Texture();
+
+		void Load(const std::filesystem::path& path) override;
+		void Unload() override;
+		bool IsLoaded() const override { return mRendererID != 0; }
+		AssetType GetAssetType() const override { return AssetType::Texture; }
+
 		inline uint32_t GetTextureID() const { return mRendererID; }
 		void Update(void* buffer);
 		static Ref<Texture> GetInvisibleTexture();
@@ -32,7 +38,6 @@ namespace FrameExtractor
 		uint32_t mWidth = 0;
 		uint32_t mHeight = 0;
 		uint32_t mChannels = 0;
-
 	};
 }
 

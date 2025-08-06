@@ -1,14 +1,16 @@
 /// @ref gtx_hash
 
-namespace glm {
-namespace detail
+namespace glm
 {
-	GLM_INLINE void hash_combine(size_t &seed, size_t hash)
+	namespace detail
 	{
-		hash += 0x9e3779b9 + (seed << 6) + (seed >> 2);
-		seed ^= hash;
+		GLM_INLINE void hash_combine(size_t& seed, size_t hash)
+		{
+			hash += 0x9e3779b9 + (seed << 6) + (seed >> 2);
+			seed ^= hash;
+		}
 	}
-}}
+}
 
 namespace std
 {
@@ -53,7 +55,7 @@ namespace std
 	}
 
 	template<typename T, glm::qualifier Q>
-	GLM_FUNC_QUALIFIER size_t hash<glm::qua<T, Q> >::operator()(glm::qua<T,Q> const& q) const GLM_NOEXCEPT
+	GLM_FUNC_QUALIFIER size_t hash<glm::qua<T, Q> >::operator()(glm::qua<T, Q> const& q) const GLM_NOEXCEPT
 	{
 		size_t seed = 0;
 		hash<T> hasher;
@@ -138,7 +140,7 @@ namespace std
 	}
 
 	template<typename T, glm::qualifier Q>
-	GLM_FUNC_QUALIFIER size_t hash<glm::mat<4, 2, T,Q> >::operator()(glm::mat<4, 2, T,Q> const& m) const GLM_NOEXCEPT
+	GLM_FUNC_QUALIFIER size_t hash<glm::mat<4, 2, T, Q> >::operator()(glm::mat<4, 2, T, Q> const& m) const GLM_NOEXCEPT
 	{
 		size_t seed = 0;
 		hash<glm::vec<2, T, Q> > hasher;
@@ -150,7 +152,7 @@ namespace std
 	}
 
 	template<typename T, glm::qualifier Q>
-	GLM_FUNC_QUALIFIER size_t hash<glm::mat<4, 3, T,Q> >::operator()(glm::mat<4, 3, T,Q> const& m) const GLM_NOEXCEPT
+	GLM_FUNC_QUALIFIER size_t hash<glm::mat<4, 3, T, Q> >::operator()(glm::mat<4, 3, T, Q> const& m) const GLM_NOEXCEPT
 	{
 		size_t seed = 0;
 		hash<glm::vec<3, T, Q> > hasher;
@@ -162,7 +164,7 @@ namespace std
 	}
 
 	template<typename T, glm::qualifier Q>
-	GLM_FUNC_QUALIFIER size_t hash<glm::mat<4, 4, T,Q> >::operator()(glm::mat<4, 4, T, Q> const& m) const GLM_NOEXCEPT
+	GLM_FUNC_QUALIFIER size_t hash<glm::mat<4, 4, T, Q> >::operator()(glm::mat<4, 4, T, Q> const& m) const GLM_NOEXCEPT
 	{
 		size_t seed = 0;
 		hash<glm::vec<4, T, Q> > hasher;

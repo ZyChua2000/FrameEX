@@ -19,20 +19,20 @@
 /// ```
 /// std::vector<glm::dvec3> ptData;
 /// // ... fill ptData with some point data, e.g. vertices
-/// 
+///
 /// glm::dvec3 center = computeCenter(ptData);
-/// 
+///
 /// glm::dmat3 covarMat = glm::computeCovarianceMatrix(ptData.data(), ptData.size(), center);
-/// 
+///
 /// glm::dvec3 evals;
 /// glm::dmat3 evecs;
 /// int evcnt = glm::findEigenvaluesSymReal(covarMat, evals, evecs);
-/// 
+///
 /// if(evcnt != 3)
 ///     // ... error handling
-/// 
+///
 /// glm::sortEigenvalues(evals, evecs);
-/// 
+///
 /// // ... now evecs[0] points in the direction (symmetric) of the largest spatial distribution within ptData
 /// ```
 
@@ -48,10 +48,10 @@
 #	pragma message("GLM: GLM_GTX_pca extension included")
 #endif
 
-namespace glm {
+namespace glm
+{
 	/// @addtogroup gtx_pca
 	/// @{
-
 	/// Compute a covariance matrix form an array of relative coordinates `v` (e.g., relative to the center of gravity of the object)
 	/// @param v Points to a memory holding `n` times vectors
 	/// @param n Number of points in v

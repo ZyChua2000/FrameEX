@@ -14,13 +14,13 @@
 #ifndef HEADER_PUGICONFIG_HPP
 #define HEADER_PUGICONFIG_HPP
 
-// Uncomment this to enable wchar_t mode
-// #define PUGIXML_WCHAR_MODE
+ // Uncomment this to enable wchar_t mode
+ // #define PUGIXML_WCHAR_MODE
 
-// Uncomment this to enable compact mode
-// #define PUGIXML_COMPACT
+ // Uncomment this to enable compact mode
+ // #define PUGIXML_COMPACT
 
-// Uncomment this to disable XPath
+ // Uncomment this to disable XPath
 #define PUGIXML_NO_XPATH
 
 // Uncomment this to disable STL

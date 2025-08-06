@@ -7,9 +7,8 @@
 
 namespace OpenXLSX
 {
-    enum class XLIteratorDirection { Forward, Reverse };
-    enum class XLIteratorLocation { Begin, End };
-
+	enum class XLIteratorDirection { Forward, Reverse };
+	enum class XLIteratorLocation { Begin, End };
 }    // namespace OpenXLSX
 
 #endif    // OPENXLSX_XLITERATOR_HPP

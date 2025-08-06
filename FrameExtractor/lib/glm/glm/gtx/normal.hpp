@@ -26,7 +26,6 @@ namespace glm
 {
 	/// @addtogroup gtx_normal
 	/// @{
-
 	/// Computes triangle normal from triangle points.
 	///
 	/// @see gtx_normal

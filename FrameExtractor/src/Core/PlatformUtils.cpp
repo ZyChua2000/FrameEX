@@ -5,11 +5,10 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 16, 2024
+\date       May 16, 2025
 \brief      Defines the Platform specific utilities
 
  /******************************************************************************/
-
 
 #include <FrameExtractorPCH.hpp>
 #include <Core/PlatformUtils.hpp>
@@ -73,7 +72,6 @@ namespace FrameExtractor
 		// Allocate a global memory object for the text
 		HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, text.size() + 1);
 
-
 		// Lock the handle and copy the text to the buffer
 		char* pGlobal = static_cast<char*>(GlobalLock(hGlobal));
 		memcpy(pGlobal, text.c_str(), text.size() + 1);
@@ -90,5 +88,3 @@ namespace FrameExtractor
 		::ShowWindow(::GetConsoleWindow(), SW_HIDE);
 	}
 }
-
-

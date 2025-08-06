@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 11, 2024
+\date       May 11, 2025
 \brief      Declares the Core structure of the engine
 
  /******************************************************************************/
@@ -20,7 +20,8 @@ namespace FrameExtractor
 	using Ref = std::shared_ptr<ClassObject>;
 
 	template <typename T, typename... Args>
-	Ref<T> MakeRef(Args&&... args) {
+	Ref<T> MakeRef(Args&&... args)
+	{
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
 
@@ -28,7 +29,8 @@ namespace FrameExtractor
 	using Scope = std::unique_ptr<ClassObject>;
 
 	template <typename T, typename... Args>
-	Scope<T> MakeScope(Args&&... args) {
+	Scope<T> MakeScope(Args&&... args)
+	{
 		return std::make_unique<T>(std::forward<Args>(args)...);
 	}
 
@@ -51,6 +53,4 @@ namespace FrameExtractor
 	};
 }
 
-
 #endif
-

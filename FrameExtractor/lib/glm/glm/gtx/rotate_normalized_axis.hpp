@@ -29,7 +29,6 @@ namespace glm
 {
 	/// @addtogroup gtx_rotate_normalized_axis
 	/// @{
-
 	/// Builds a rotation 4 * 4 matrix created from a normalized axis and an angle.
 	///
 	/// @param m Input matrix multiplied by this rotation matrix.

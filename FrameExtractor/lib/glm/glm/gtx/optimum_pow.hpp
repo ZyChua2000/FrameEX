@@ -25,7 +25,6 @@ namespace glm
 {
 	/// @addtogroup gtx_optimum_pow
 	/// @{
-
 	/// Returns x raised to the power of 2.
 	///
 	/// @see gtx_optimum_pow

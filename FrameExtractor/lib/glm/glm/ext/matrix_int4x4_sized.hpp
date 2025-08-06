@@ -24,7 +24,6 @@ namespace glm
 {
 	/// @addtogroup ext_matrix_int4x4_sized
 	/// @{
-
 	/// 8 bit signed integer 4x4 matrix.
 	///
 	/// @see ext_matrix_int4x4_sized
@@ -44,7 +43,6 @@ namespace glm
 	///
 	/// @see ext_matrix_int4x4_sized
 	typedef mat<4, 4, int64, defaultp>				i64mat4x4;
-
 
 	/// 8 bit signed integer 4x4 matrix.
 	///

@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 10, 2024
+\date       May 10, 2025
 \brief      Defines the Window Manager class which handles the application window
 
  /******************************************************************************/
@@ -25,7 +25,6 @@ namespace FrameExtractor
 	{
 		FRAMEEX_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
 	}
-
 
 	WindowManager::WindowManager(const WindowProperties& properties)
 	{
@@ -70,23 +69,23 @@ namespace FrameExtractor
 		glfwSetErrorCallback(GLFWErrorCallback);
 
 		glfwSetWindowCloseCallback((GLFWwindow*)mWindow, [](GLFWwindow* window)
-		{
+			{
 				ImGuiManager::QuitCallback();
-		});
+			});
 
 		glfwSetWindowPosCallback((GLFWwindow*)mWindow, [](GLFWwindow* window, int x, int y)
-		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-			data.mPosX = x;
-			data.mPosY = y;
-		});
+			{
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				data.mPosX = x;
+				data.mPosY = y;
+			});
 
 		glfwSetWindowSizeCallback((GLFWwindow*)mWindow, [](GLFWwindow* window, int width, int height)
-		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-			data.mWidth = width;
-			data.mHeight = height;
-		});
+			{
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				data.mWidth = width;
+				data.mHeight = height;
+			});
 	}
 	void WindowManager::Shutdown()
 	{
@@ -94,4 +93,3 @@ namespace FrameExtractor
 		delete mContext;
 	}
 }
-

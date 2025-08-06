@@ -24,7 +24,6 @@ namespace glm
 {
 	/// @addtogroup ext_vector_uint3_sized
 	/// @{
-
 	/// 8 bit unsigned integer vector of 3 components type.
 	///
 	/// @see ext_vector_uint3_sized

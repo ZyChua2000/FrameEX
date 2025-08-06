@@ -28,7 +28,6 @@ namespace glm
 {
 	/// @addtogroup gtx_wrap
 	/// @{
-
 	/// @}
 }// namespace glm
 

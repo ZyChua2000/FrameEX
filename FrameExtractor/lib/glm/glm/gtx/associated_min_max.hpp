@@ -26,7 +26,6 @@ namespace glm
 {
 	/// @addtogroup gtx_associated_min_max
 	/// @{
-
 	/// Minimum comparison between 2 variables and returns 2 associated variable values
 	/// @see gtx_associated_min_max
 	template<typename T, typename U>

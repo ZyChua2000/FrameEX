@@ -24,7 +24,7 @@ namespace glm
 		detail::float_t<genType> const b(y);
 
 		// Different signs means they do not match.
-		if(a.negative() != b.negative())
+		if (a.negative() != b.negative())
 			return false;
 
 		// Find the difference in ULPs.

@@ -17,6 +17,7 @@ workspace "FrameEX"
 	IncludeDir["GLFW"] = "FrameExtractor/lib/GLFW/include"
 	IncludeDir["GLAD"] = "FrameExtractor/lib/GLAD/include"
 	IncludeDir["ImGui"] = "FrameExtractor/lib/imgui"
+	IncludeDir["ImGui_Toggle"] = "FrameExtractor/lib/imgui/Extensions/Toggle"
 	IncludeDir["GLM"] = "FrameExtractor/lib/glm"
 	IncludeDir["FFMPEG"] = "FrameExtractor/lib/ffmpeg/include"
 	IncludeDir["STBI"] = "FrameExtractor/lib/stb_image"
@@ -24,6 +25,7 @@ workspace "FrameEX"
 	IncludeDir["YAML"] = "FrameExtractor/lib/yaml-cpp/include"
 	IncludeDir["RTTR"] = "FrameExtractor/lib/rttr/src"
 	IncludeDir["MagicEnum"] = "FrameExtractor/lib/magic_enum/include"
+	IncludeDir["Filewatch"] = "FrameExtractor/lib/Filewatch"
 
 	LibraryDir = {}
 	LibraryDir["FFMPEG"] = "lib/ffmpeg/lib"
@@ -82,7 +84,9 @@ workspace "FrameEX"
 			"%{IncludeDir.OpenXLSX}",
 			"%{IncludeDir.RTTR}",
 			"%{IncludeDir.MagicEnum}",
-			"%{IncludeDir.YAML}"
+			"%{IncludeDir.YAML}",
+			"%{IncludeDir.Filewatch}",
+			"%{IncludeDir.ImGui_Toggle}",
 		}
 
 

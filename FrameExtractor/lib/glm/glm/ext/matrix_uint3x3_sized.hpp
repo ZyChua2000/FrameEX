@@ -24,7 +24,6 @@ namespace glm
 {
 	/// @addtogroup ext_matrix_uint3x3_sized
 	/// @{
-
 	/// 8 bit unsigned integer 3x3 matrix.
 	///
 	/// @see ext_matrix_uint3x3_sized
@@ -44,7 +43,6 @@ namespace glm
 	///
 	/// @see ext_matrix_uint3x3_sized
 	typedef mat<3, 3, uint64, defaultp>				u64mat3x3;
-
 
 	/// 8 bit unsigned integer 3x3 matrix.
 	///

@@ -27,7 +27,6 @@ namespace glm
 {
 	/// @addtogroup gtx_exterior_product
 	/// @{
-
 	/// Returns the cross product of x and y.
 	///
 	/// @tparam T Floating-point scalar types

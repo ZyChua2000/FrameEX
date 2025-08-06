@@ -3,63 +3,64 @@
 #include "../integer.hpp"
 #include "../ext/vector_integer.hpp"
 
-namespace glm{
-namespace detail
+namespace glm
 {
-	template<bool is_float, bool is_signed>
-	struct compute_roundMultiple {};
-
-	template<>
-	struct compute_roundMultiple<true, true>
+	namespace detail
 	{
-		template<typename genType>
-		GLM_FUNC_QUALIFIER static genType call(genType Source, genType Multiple)
-		{
-			if (Source >= genType(0))
-				return Source - std::fmod(Source, Multiple);
-			else
-			{
-				genType Tmp = Source + genType(1);
-				return Tmp - std::fmod(Tmp, Multiple) - Multiple;
-			}
-		}
-	};
+		template<bool is_float, bool is_signed>
+		struct compute_roundMultiple {};
 
-	template<>
-	struct compute_roundMultiple<false, false>
-	{
-		template<typename genType>
-		GLM_FUNC_QUALIFIER static genType call(genType Source, genType Multiple)
+		template<>
+		struct compute_roundMultiple<true, true>
 		{
-			if (Source >= genType(0))
-				return Source - Source % Multiple;
-			else
+			template<typename genType>
+			GLM_FUNC_QUALIFIER static genType call(genType Source, genType Multiple)
 			{
-				genType Tmp = Source + genType(1);
-				return Tmp - Tmp % Multiple - Multiple;
+				if (Source >= genType(0))
+					return Source - std::fmod(Source, Multiple);
+				else
+				{
+					genType Tmp = Source + genType(1);
+					return Tmp - std::fmod(Tmp, Multiple) - Multiple;
+				}
 			}
-		}
-	};
+		};
 
-	template<>
-	struct compute_roundMultiple<false, true>
-	{
-		template<typename genType>
-		GLM_FUNC_QUALIFIER static genType call(genType Source, genType Multiple)
+		template<>
+		struct compute_roundMultiple<false, false>
 		{
-			if (Source >= genType(0))
-				return Source - Source % Multiple;
-			else
+			template<typename genType>
+			GLM_FUNC_QUALIFIER static genType call(genType Source, genType Multiple)
 			{
-				genType Tmp = Source + genType(1);
-				return Tmp - Tmp % Multiple - Multiple;
+				if (Source >= genType(0))
+					return Source - Source % Multiple;
+				else
+				{
+					genType Tmp = Source + genType(1);
+					return Tmp - Tmp % Multiple - Multiple;
+				}
 			}
-		}
-	};
-}//namespace detail
+		};
 
-	//////////////////
-	// ceilPowerOfTwo
+		template<>
+		struct compute_roundMultiple<false, true>
+		{
+			template<typename genType>
+			GLM_FUNC_QUALIFIER static genType call(genType Source, genType Multiple)
+			{
+				if (Source >= genType(0))
+					return Source - Source % Multiple;
+				else
+				{
+					genType Tmp = Source + genType(1);
+					return Tmp - Tmp % Multiple - Multiple;
+				}
+			}
+		};
+	}//namespace detail
+
+		//////////////////
+		// ceilPowerOfTwo
 
 	template<typename genType>
 	GLM_FUNC_QUALIFIER genType ceilPowerOfTwo(genType value)
@@ -94,7 +95,7 @@ namespace detail
 	template<typename genIUType>
 	GLM_FUNC_QUALIFIER genIUType roundPowerOfTwo(genIUType value)
 	{
-		if(isPowerOfTwo(value))
+		if (isPowerOfTwo(value))
 			return value;
 
 		genIUType const prev = static_cast<genIUType>(1) << findMSB(value);

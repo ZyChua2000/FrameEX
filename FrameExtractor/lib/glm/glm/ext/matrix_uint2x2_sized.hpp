@@ -24,7 +24,6 @@ namespace glm
 {
 	/// @addtogroup ext_matrix_uint2x2_sized
 	/// @{
-
 	/// 8 bit unsigned integer 2x2 matrix.
 	///
 	/// @see ext_matrix_uint2x2_sized
@@ -44,7 +43,6 @@ namespace glm
 	///
 	/// @see ext_matrix_uint2x2_sized
 	typedef mat<2, 2, uint64, defaultp>				u64mat2x2;
-
 
 	/// 8 bit unsigned integer 2x2 matrix.
 	///

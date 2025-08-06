@@ -1,9 +1,9 @@
-
 #pragma once
 #include <functional>
 #include "_vectorize.hpp"
 
-namespace glm {
+namespace glm
+{
 	namespace detail
 	{
 		template<length_t L, typename T, qualifier Q, bool UseSimd>
@@ -152,7 +152,7 @@ namespace glm {
 				return v;
 			}
 		};
-		
+
 		template<length_t L, typename T, qualifier Q, int IsInt, std::size_t Size>
 		struct compute_vec_equal<L, T, Q, IsInt, Size, false>
 		{
@@ -185,6 +185,5 @@ namespace glm {
 				return v;
 			}
 		};
-
 	}
 }

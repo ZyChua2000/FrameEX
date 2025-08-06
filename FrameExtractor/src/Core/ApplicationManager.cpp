@@ -5,15 +5,15 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 10, 2024
+\date       May 10, 2025
 \brief      Defines the Application Manager class which handles the application
 
  /******************************************************************************/
 
-
 #include <FrameExtractorPCH.hpp>
 #include <Core/LoggerManager.hpp>
 #include <Core/ApplicationManager.hpp>
+#include <Core/AssetManager.hpp>
 namespace FrameExtractor
 {
 	ApplicationManager* ApplicationManager::sInstance = nullptr;
@@ -33,7 +33,6 @@ namespace FrameExtractor
 		while (mIsRunning)
 		{
 			ULONGLONG currentTickCount = GetTickCount64();
-		
 
 			mImGuiManager->Update(deltaTime);
 			mImGuiManager->Render();
@@ -63,6 +62,7 @@ namespace FrameExtractor
 		LoggerManager::Init();
 		mWindowManager = new WindowManager(WindowProperties(name));
 		mImGuiManager = new ImGuiManager();
+		AssetManager::Init();
 	}
 	void ApplicationManager::Free()
 	{
@@ -71,4 +71,3 @@ namespace FrameExtractor
 		LoggerManager::Shutdown();
 	}
 }
-

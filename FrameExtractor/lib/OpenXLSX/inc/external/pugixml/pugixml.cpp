@@ -1114,13 +1114,13 @@ namespace pugi
 			header = PUGI_IMPL_GETHEADER_IMPL(this, page, 0);
 		}
 
-		uintptr_t header;
+		uintptr_t header{};
 
-		char_t*	name;
-		char_t*	value;
+		char_t* name{};
+		char_t* value{};
 
-		xml_attribute_struct* prev_attribute_c;
-		xml_attribute_struct* next_attribute;
+		xml_attribute_struct* prev_attribute_c{};
+		xml_attribute_struct* next_attribute{};
 	};
 
 	struct xml_node_struct
@@ -1130,19 +1130,19 @@ namespace pugi
 			header = PUGI_IMPL_GETHEADER_IMPL(this, page, type);
 		}
 
-		uintptr_t header;
+		uintptr_t header{};
 
-		char_t* name;
-		char_t* value;
+		char_t* name{};
+		char_t* value{};
 
-		xml_node_struct* parent;
+		xml_node_struct* parent{};
 
-		xml_node_struct* first_child;
+		xml_node_struct* first_child{};
 
-		xml_node_struct* prev_sibling_c;
-		xml_node_struct* next_sibling;
+		xml_node_struct* prev_sibling_c{};
+		xml_node_struct* next_sibling{};
 
-		xml_attribute_struct* first_attribute;
+		xml_attribute_struct* first_attribute{};
 	};
 }
 #endif
@@ -3938,7 +3938,7 @@ PUGI_IMPL_NS_BEGIN
 			bufcapacity = bufcapacitybytes / (sizeof(char_t) + 4)
 		};
 
-		char_t buffer[bufcapacity];
+		char_t buffer[bufcapacity]{};
 
 		union
 		{
@@ -3946,7 +3946,7 @@ PUGI_IMPL_NS_BEGIN
 			uint16_t data_u16[2 * bufcapacity];
 			uint32_t data_u32[bufcapacity];
 			char_t data_char[bufcapacity];
-		} scratch;
+		} scratch{};
 
 		xml_writer& writer;
 		size_t bufsize;
@@ -4922,10 +4922,10 @@ PUGI_IMPL_NS_BEGIN
 		{
 		}
 
-		xml_stream_chunk* next;
-		size_t size;
+		xml_stream_chunk* next{};
+		size_t size{};
 
-		T data[xml_memory_page_size / sizeof(T)];
+		T data[xml_memory_page_size / sizeof(T)]{};
 	};
 
 	template <typename T> PUGI_IMPL_FN xml_parse_status load_stream_data_noseek(std::basic_istream<T>& stream, void** out_buffer, size_t* out_size)

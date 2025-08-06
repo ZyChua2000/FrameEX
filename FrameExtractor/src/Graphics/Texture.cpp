@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 11, 2024
+\date       May 11, 2025
 \brief      Defines the Texture class that represents a loaded texture
 
  /******************************************************************************/
@@ -19,10 +19,8 @@
 #include <stb_image.h>
 namespace FrameExtractor
 {
-
 	Texture::Texture()
-	{
-	}
+	{}
 
 	Texture::Texture(int internalformat, uint32_t width, uint32_t height, int format, int type, const void* data)
 	{
@@ -34,12 +32,33 @@ namespace FrameExtractor
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
 	}
 
 	Texture::Texture(std::filesystem::path path)
 	{
-		auto data = stbi_load(path.string().c_str(), (int*)&mWidth, (int*)&mHeight, (int*) & mChannels, 0);
+		if (mRendererID)
+			Unload();
+		Load(path);
+	}
+	// Fill with solid red (255, 0, 0)
+	Texture::Texture(uint32_t width, uint32_t height) : mWidth(width), mHeight(height)
+	{
+		mChannels = 3;
+		glGenTextures(1, &mRendererID);
+		glBindTexture(GL_TEXTURE_2D, mRendererID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+
+	Texture::~Texture()
+	{
+		if (mRendererID)
+			Unload();
+	}
+	void Texture::Load(const std::filesystem::path& path)
+	{
+		auto data = stbi_load(path.string().c_str(), (int*)&mWidth, (int*)&mHeight, (int*)&mChannels, 0);
 		if (mChannels == 0)
 		{
 			FRAMEEX_CORE_ERROR("Failed to load texture from path: {0}", path.string());
@@ -68,20 +87,10 @@ namespace FrameExtractor
 		glBindTexture(GL_TEXTURE_2D, 0);
 		stbi_image_free(data);
 	}
-	// Fill with solid red (255, 0, 0)
-	Texture::Texture(uint32_t width, uint32_t height) : mWidth(width), mHeight(height)
-	{
-		mChannels = 3;
-        glGenTextures(1, &mRendererID);
-        glBindTexture(GL_TEXTURE_2D, mRendererID);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	}
-
-	Texture::~Texture()
+	void Texture::Unload()
 	{
 		glDeleteTextures(1, &mRendererID);
+		mRendererID = 0;
 	}
 	void Texture::Update(void* buffer)
 	{
@@ -89,14 +98,11 @@ namespace FrameExtractor
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, mWidth, mHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 	}
 
-
 	Ref<Texture> Texture::GetInvisibleTexture()
 	{
 		static unsigned char data[4]{ 0,0,0,0 };
 		static Ref<Texture> sInvisibleTexture = MakeRef<Texture>(GL_RGBA, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 		return sInvisibleTexture;
-
 	}
 }
-

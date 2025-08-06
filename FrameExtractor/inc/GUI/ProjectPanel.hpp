@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 13, 2024
+\date       May 13, 2025
 \brief      Declares the Project Panel class which has an interface for all the
 			videos involved in the project.
 
@@ -35,9 +35,7 @@ namespace FrameExtractor
 		ExplorerPanel* ExPanel;
 		ViewportPanel* VpPanel;
 		Project* mProject;
-
 	};
-
 }
 
 #endif

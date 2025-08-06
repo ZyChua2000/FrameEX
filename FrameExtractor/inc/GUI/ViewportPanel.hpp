@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 10, 2024
+\date       May 10, 2025
 \brief      Declares the Viewport Panel class.
 
  /******************************************************************************/
@@ -19,7 +19,6 @@
 #include <Graphics/BoundingBox.hpp>
 namespace FrameExtractor
 {
-
 	class ViewportPanel : public IPanel
 	{
 	public:
@@ -36,10 +35,11 @@ namespace FrameExtractor
 		inline float GetSpeedMultiplier() const { return mSpeedMultiplier; }
 		void SetVideo(std::filesystem::path path);
 		void ClearVideo() { if (mVideo) delete mVideo; mVideo = nullptr; }
-		std::filesystem::path GetVideoPath() { 
-			if (mVideo) 
-				return mVideo->GetPath(); 
-			else 
+		std::filesystem::path GetVideoPath()
+		{
+			if (mVideo)
+				return mVideo->GetPath();
+			else
 				return {};
 		}
 	private:
@@ -55,10 +55,7 @@ namespace FrameExtractor
 		int8_t mSpeedMultiplierIndex = 1;
 		bool initialIn = false;
 		bool mIsPlaying = true;
-
-
 	};
-
 }
 
 #endif

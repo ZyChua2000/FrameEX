@@ -6,6 +6,8 @@ project "RTTR"
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
     rtti "On"
+    warnings "Off"
+    
     includedirs {
         "src",
         "src/rttr",

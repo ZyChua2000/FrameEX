@@ -28,7 +28,6 @@ namespace FrameExtractor
 		HOME_ICON,
 		END_ICON,
 
-
 		PLUS_LOGO,
 		PLAY_ICON,
 		STOP_ICON,
@@ -55,14 +54,15 @@ namespace FrameExtractor
 		GUIResourcesManager(const GUIResourcesManager&) = delete;
 		~GUIResourcesManager() {};
 
-		static GUIResourcesManager& GetInstance() {
+		static GUIResourcesManager& GetInstance()
+		{
 			static GUIResourcesManager instance;
 			return instance;
 		}
 		Ref<Texture> GetIcon(Icon icon) { return mIcons[icon]; }
 	private:
-		GUIResourcesManager() {
-
+		GUIResourcesManager()
+		{
 			mIcons[Icon::CTRL_ICON] = MakeRef<Texture>("resources/icons/Ctrl.png");
 			mIcons[Icon::SHIFT_ICON] = MakeRef<Texture>("resources/icons/Shift.png");
 			mIcons[Icon::LEFTARROW_ICON] = MakeRef<Texture>("resources/icons/leftArrow.png");
@@ -89,8 +89,6 @@ namespace FrameExtractor
 			mIcons[Icon::ADDFILE_ICON] = MakeRef<Texture>("resources/icons/addfile.png");
 			mIcons[Icon::CLEAR_ICON] = MakeRef<Texture>("resources/icons/clear.png");
 			mIcons[Icon::SETTINGS_ICON] = MakeRef<Texture>("resources/icons/settings.png");
-
-
 		}
 		std::unordered_map<Icon, Ref<Texture>> mIcons;
 	};

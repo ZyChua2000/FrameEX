@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       June 23, 2024
+\date       June 23, 2025
 \brief      Defines the Data Specifications that specifies what the data entails
  /******************************************************************************/
 
@@ -15,8 +15,6 @@
 
 namespace FrameExtractor
 {
-	
-
 	void* ConstructDefaultByType(DataType type, void* DefaultData)
 	{
 		switch (type)
@@ -72,7 +70,6 @@ namespace FrameExtractor
 			delete mType;
 		if (mDefault)
 			delete mDefault;
-
 
 		mName = other.mName;
 		mType = other.mType;

@@ -5,9 +5,9 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 13, 2024
+\date       May 13, 2025
 \brief      Declares the Command Design Pattern
- 
+
  /******************************************************************************/
 
 #ifndef COMMAND_HPP
@@ -24,7 +24,6 @@
 #include <rttr/variant.h>
 namespace FrameExtractor
 {
-
 	template<typename, typename = std::void_t<>>
 	struct has_clear : std::false_type {};
 
@@ -33,8 +32,6 @@ namespace FrameExtractor
 
 	template<typename T>
 	inline constexpr bool has_clear_v = has_clear<T>::value;
-
-
 
 	class ICommand
 	{
@@ -63,21 +60,24 @@ namespace FrameExtractor
 	};
 
 	template <typename PropVal>
-	class ModifyPropertyCommand : public ICommand {
+	class ModifyPropertyCommand : public ICommand
+	{
 	private:
 		PropVal* originalData;
 		PropVal oldValue, newValue;
 
 	public:
 		ModifyPropertyCommand(PropVal* instance, PropVal oldVal, PropVal newVal)
-			: originalData(instance), oldValue(oldVal), newValue(newVal) {
-		}
+			: originalData(instance), oldValue(oldVal), newValue(newVal)
+		{}
 
-		void execute() override {
+		void execute() override
+		{
 			*originalData = newValue;
 		}
 
-		void undo() override {
+		void undo() override
+		{
 			*originalData = oldValue;
 		}
 	};
@@ -90,8 +90,8 @@ namespace FrameExtractor
 		std::pair<std::vector<rttr::variant>, rttr::variant> mDeletedData;
 	public:
 		DeleteDynamicTaskLayerCommand(DynamicTaskInterface dtInterface, int idx)
-			: mDTInterface(dtInterface), mLayer(idx) {
-		}
+			: mDTInterface(dtInterface), mLayer(idx)
+		{}
 
 		void execute() override
 		{
@@ -112,11 +112,11 @@ namespace FrameExtractor
 		std::pair<std::vector<rttr::variant>, std::vector<TaskData>> mDeletedData;
 	public:
 		DeleteDynamicTaskLeafCommand(DynamicTaskInterface dtInterface, int idx)
-			: mDTInterface(dtInterface), mIndex(idx) {
-		}
+			: mDTInterface(dtInterface), mIndex(idx)
+		{}
 
 		DeleteDynamicTaskLeafCommand(DynamicTaskInterface dtInterface) :mDTInterface(dtInterface), mIndex(-1)
-		{ }
+		{}
 		void execute() override
 		{
 			mIndex == -1 ? mDeletedData = mDTInterface.DeleteCurrentLeaf() : mDeletedData = mDTInterface.DeleteLeaf(mIndex);
@@ -130,49 +130,54 @@ namespace FrameExtractor
 	};
 
 	template <typename PropVal>
-	class ModifyReflectedPropertyCommand : public ICommand {
+	class ModifyReflectedPropertyCommand : public ICommand
+	{
 	private:
 		rttr::variant* originalData;
 		PropVal oldValue, newValue;
 
 	public:
 		ModifyReflectedPropertyCommand(rttr::variant* instance, PropVal oldVal, PropVal newVal)
-			: originalData(instance), oldValue(oldVal), newValue(newVal) {
-		}
+			: originalData(instance), oldValue(oldVal), newValue(newVal)
+		{}
 
-		void execute() override {
+		void execute() override
+		{
 			*originalData = newValue;
 		}
 
-		void undo() override {
+		void undo() override
+		{
 			*originalData = oldValue;
 		}
 	};
 
 	template <typename PropVal>
-	class ModifyPropertyPairCommand : public ICommand {
+	class ModifyPropertyPairCommand : public ICommand
+	{
 	private:
-		PropVal* originalData1, *originalData2;
+		PropVal* originalData1, * originalData2;
 		PropVal oldValue1, newValue1, oldValue2, newValue2;
 	public:
 		ModifyPropertyPairCommand(PropVal* instance1, PropVal oldVal1, PropVal newVal1, PropVal* instance2, PropVal oldVal2, PropVal newVal2)
-			: originalData1(instance1), oldValue1(oldVal1), newValue1(newVal1), originalData2(instance2), oldValue2(oldVal2), newValue2(newVal2) {
-		}
+			: originalData1(instance1), oldValue1(oldVal1), newValue1(newVal1), originalData2(instance2), oldValue2(oldVal2), newValue2(newVal2)
+		{}
 
-		void execute() override {
+		void execute() override
+		{
 			*originalData1 = newValue1;
 			*originalData2 = newValue2;
-
 		}
 
-		void undo() override {
+		void undo() override
+		{
 			*originalData1 = oldValue1;
 			*originalData2 = oldValue2;
-
 		}
 	};
 
-	class PlayCommand : public ICommand {
+	class PlayCommand : public ICommand
+	{
 	private:
 		int32_t frameNum;
 		int32_t* frameNumPtr;
@@ -181,21 +186,24 @@ namespace FrameExtractor
 
 	public:
 		PlayCommand(bool* Pl, int32_t* fnp, int32_t fn, Video* vid)
-			: playBtnPtr(Pl), frameNumPtr(fnp), frameNum(fn), mVideo(vid) {
-		}
+			: playBtnPtr(Pl), frameNumPtr(fnp), frameNum(fn), mVideo(vid)
+		{}
 
-		void execute() override {
+		void execute() override
+		{
 			*playBtnPtr = true;
 		}
 
-		void undo() override {
+		void undo() override
+		{
 			*playBtnPtr = false;
 			*frameNumPtr = frameNum;
 			mVideo->Decode(frameNum);
 		}
 	};
 
-	class SetVideoFrameCommand : public ICommand {
+	class SetVideoFrameCommand : public ICommand
+	{
 	private:
 		int32_t* frameNumPtr;
 		int32_t newValue, oldValue;
@@ -203,35 +211,40 @@ namespace FrameExtractor
 
 	public:
 		SetVideoFrameCommand(int32_t* ptr, int32_t old, int32_t New, Video* vid)
-			: frameNumPtr(ptr), oldValue(old), newValue(New), mVideo(vid) {
-		}
+			: frameNumPtr(ptr), oldValue(old), newValue(New), mVideo(vid)
+		{}
 
-		void execute() override {
+		void execute() override
+		{
 			*frameNumPtr = newValue;
 			mVideo->Decode(newValue);
 		}
 
-		void undo() override {
+		void undo() override
+		{
 			*frameNumPtr = oldValue;
 			mVideo->Decode(oldValue);
 		}
 	};
 
-	class CallFunctionCommand : public ICommand {
+	class CallFunctionCommand : public ICommand
+	{
 	private:
 		std::function<void()> funcExecute;
 		std::function<void()> funcDe_Execute;
 
 	public:
 		CallFunctionCommand(std::function<void()> exe, std::function<void()> dexe)
-			: funcExecute(exe), funcDe_Execute(dexe) {
-		}
+			: funcExecute(exe), funcDe_Execute(dexe)
+		{}
 
-		void execute() override {
+		void execute() override
+		{
 			funcExecute();
 		}
 
-		void undo() override {
+		void undo() override
+		{
 			funcDe_Execute();
 		}
 	};
@@ -249,17 +262,18 @@ namespace FrameExtractor
 			"Map must be a std::map or similar container with valid key_type");
 	public:
 		EraseKeyCommand(Map* OD, int dist)
-			: originalData(OD), duplicateData(*OD), distance(dist) {
-		}
+			: originalData(OD), duplicateData(*OD), distance(dist)
+		{}
 
-		void execute() override {
-			
+		void execute() override
+		{
 			auto IT = originalData->begin();
 			std::advance(IT, distance);
 			originalData->erase(IT);
 		}
 
-		void undo() override {
+		void undo() override
+		{
 			*originalData = duplicateData;
 		}
 	};
@@ -268,20 +282,22 @@ namespace FrameExtractor
 	class AddKeyCommand : public ICommand
 	{
 	private:
-		std::map<Key,Val>* originalData;
+		std::map<Key, Val>* originalData;
 		Key newKey;
 		Val value;
 
 	public:
 		AddKeyCommand(std::map<Key, Val>* OD, Key key, Val val)
-			: originalData(OD), newKey(key), value(val) {
-		}
+			: originalData(OD), newKey(key), value(val)
+		{}
 
-		void execute() override {
+		void execute() override
+		{
 			(*originalData)[newKey] = value;
 		}
 
-		void undo() override {
+		void undo() override
+		{
 			originalData->erase(newKey);
 		}
 	};
@@ -295,15 +311,16 @@ namespace FrameExtractor
 
 	public:
 		PushBackCommand(std::vector<ValType>* OD, ValType data)
-			: original(OD), val(data) {
-		}
+			: original(OD), val(data)
+		{}
 
-		void execute() override {
-
+		void execute() override
+		{
 			original->push_back(val);
 		}
 
-		void undo() override {
+		void undo() override
+		{
 			original->pop_back();
 		}
 	};
@@ -318,16 +335,18 @@ namespace FrameExtractor
 
 	public:
 		VectorEraseCommand(std::vector<ValType>* OD, int data)
-			: original(OD), distance(data) {
+			: original(OD), distance(data)
+		{
 			val = (*original)[distance];
 		}
 
-		void execute() override {
-
+		void execute() override
+		{
 			original->erase(original->begin() + distance);
 		}
 
-		void undo() override {
+		void undo() override
+		{
 			original->insert(original->begin() + distance, val);
 		}
 	};
@@ -353,7 +372,6 @@ namespace FrameExtractor
 		{
 			*container = oldData;
 		}
-
 	};
 
 	class AddStoreAggregateEntry : public ICommand
@@ -372,7 +390,8 @@ namespace FrameExtractor
 		{
 			oldEntrances = 0;
 		}
-		void execute() override {
+		void execute() override
+		{
 			if (!mOriginalData->contains(newKey))
 			{
 				(*mOriginalData)[newKey] = {};
@@ -401,7 +420,6 @@ namespace FrameExtractor
 				for (int i = 0; i < EntranceBuffer; i++)
 					(*mOriginalData)[newKey][TimeBuffer].Entrance.push_back({});
 			}
-
 		}
 
 		void undo() override
@@ -422,9 +440,7 @@ namespace FrameExtractor
 				}
 			}
 		}
-
 	};
-
 
 	class AddStoreEntryCounting : public ICommand
 	{
@@ -442,7 +458,8 @@ namespace FrameExtractor
 		{
 			oldEntrances = 0;
 		}
-		void execute() override {
+		void execute() override
+		{
 			if (!mOriginalData->contains(newKey))
 			{
 				(*mOriginalData)[newKey] = {};
@@ -471,7 +488,6 @@ namespace FrameExtractor
 				for (int i = 0; i < EntranceBuffer; i++)
 					(*mOriginalData)[newKey][TimeBuffer].Entrance.push_back({});
 			}
-
 		}
 
 		void undo() override
@@ -492,11 +508,7 @@ namespace FrameExtractor
 				}
 			}
 		}
-
 	};
-
 }
 
-
 #endif
-

@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 16, 2024
+\date       May 16, 2025
 \brief      Defines the Project class that contains all data and settings
 			related to the project.
 
@@ -18,536 +18,514 @@
 #include <Template/TaskManager.hpp>
 namespace YAML
 {
-    template<>
-    struct convert<FrameExtractor::PersonDesc>
-    {
-        static bool decode(const Node& node, FrameExtractor::PersonDesc& person)
-        {
-            if (!node.IsMap()) return false;
-            person.Description = node["Description"].as<std::string>();
-            person.IsMale = node["IsMale"].as<bool>();
-            person.timeStamp = node["Timestamp"].as<std::string>();
-            return true;
-        }
+	template<>
+	struct convert<FrameExtractor::PersonDesc>
+	{
+		static bool decode(const Node& node, FrameExtractor::PersonDesc& person)
+		{
+			if (!node.IsMap()) return false;
+			person.Description = node["Description"].as<std::string>();
+			person.IsMale = node["IsMale"].as<bool>();
+			person.timeStamp = node["Timestamp"].as<std::string>();
+			return true;
+		}
 
-        static Node encode(const FrameExtractor::PersonDesc& person)
-        {
+		static Node encode(const FrameExtractor::PersonDesc& person)
+		{
 			Node node;
 			node["Description"] = person.Description;
 			node["IsMale"] = person.IsMale;
 			node["Timestamp"] = person.timeStamp;
 			return node;
 		}
-    };
+	};
 
-    template<>
-    struct convert<FrameExtractor::CountData>
-    {
-        static bool decode(const Node& node, FrameExtractor::CountData& data)
-        {
-            data.mCustomer = node["Customer"].as<int>(0);
-            data.mReCustomer = node["ReCustomer"].as<int>(0);
-            data.mSuspectedStaff = node["SuspectedStaff"].as<int>(0);
-            data.mReSuspectedStaff = node["ReSuspectedStaff"].as<int>(0);
-            data.mChildren = node["Children"].as<int>(0);
-            data.mReChildren = node["ReChildren"].as<int>(0);
-            data.mOthers = node["Others"].as<int>(0);
-            data.mReOthers = node["ReOthers"].as<int>(0);
+	template<>
+	struct convert<FrameExtractor::CountData>
+	{
+		static bool decode(const Node& node, FrameExtractor::CountData& data)
+		{
+			data.mCustomer = node["Customer"].as<int>(0);
+			data.mReCustomer = node["ReCustomer"].as<int>(0);
+			data.mSuspectedStaff = node["SuspectedStaff"].as<int>(0);
+			data.mReSuspectedStaff = node["ReSuspectedStaff"].as<int>(0);
+			data.mChildren = node["Children"].as<int>(0);
+			data.mReChildren = node["ReChildren"].as<int>(0);
+			data.mOthers = node["Others"].as<int>(0);
+			data.mReOthers = node["ReOthers"].as<int>(0);
 
-            const Node& entranceData = node["EntranceData"];
-            if (entranceData)
-            {
-                for (const auto& entrancePair : entranceData)
-                {
-                    int entranceIndex = entrancePair.first.as<int>(); // Get entrance index
-                    const auto& typeMap = entrancePair.second;
+			const Node& entranceData = node["EntranceData"];
+			if (entranceData)
+			{
+				for (const auto& entrancePair : entranceData)
+				{
+					int entranceIndex = entrancePair.first.as<int>(); // Get entrance index
+					const auto& typeMap = entrancePair.second;
 
-                    // Resize Entrance vector if necessary
-                    if (entranceIndex >= data.Entrance.size())
-                        data.Entrance.resize(entranceIndex + 1);
+					// Resize Entrance vector if necessary
+					if (entranceIndex >= data.Entrance.size())
+						data.Entrance.resize(entranceIndex + 1);
 
-                    auto& entranceTypes = data.Entrance[entranceIndex];
+					auto& entranceTypes = data.Entrance[entranceIndex];
 
-                    for (const auto& typePair : typeMap["DescDetails"])
-                    {
-                        int typeIndex = typePair.first.as<int>(); // Get type index
-                        const Node& typeNode = typePair.second;
+					for (const auto& typePair : typeMap["DescDetails"])
+					{
+						int typeIndex = typePair.first.as<int>(); // Get type index
+						const Node& typeNode = typePair.second;
 
-                        // Decode mDesc (person descriptions)
-                        if (typeNode.IsSequence()) // Ensure that the node is a sequence (array) of person nodes
-                        {
-                            for (const auto& personNode : typeNode)
-                            {
-                                entranceTypes.mDesc[typeIndex].push_back(personNode.as<FrameExtractor::PersonDesc>());
-                            }
-                        }
-                       
-                    }
-                    entranceTypes.mCorruptedVideos = typeMap["FrameDetails"]["CorruptedVideos"].as<std::vector<std::string>>();
-                    const Node& blankVideoNode = typeMap["FrameDetails"]["BlankedVideos"];
+						// Decode mDesc (person descriptions)
+						if (typeNode.IsSequence()) // Ensure that the node is a sequence (array) of person nodes
+						{
+							for (const auto& personNode : typeNode)
+							{
+								entranceTypes.mDesc[typeIndex].push_back(personNode.as<FrameExtractor::PersonDesc>());
+							}
+						}
+					}
+					entranceTypes.mCorruptedVideos = typeMap["FrameDetails"]["CorruptedVideos"].as<std::vector<std::string>>();
+					const Node& blankVideoNode = typeMap["FrameDetails"]["BlankedVideos"];
 
-                    if (blankVideoNode.IsSequence()) // Ensure it's a sequence of pairs
-                    {
-                        for (const auto& blankVideo : blankVideoNode)
-                        {
-                            if (blankVideo.IsSequence() && blankVideo.size() == 2)
-                            {
-                                std::pair<bool, std::string> blankVideoPair;
-                                blankVideoPair.first = blankVideo[0].as<bool>();
-                                blankVideoPair.second = blankVideo[1].as<std::string>();
-                                entranceTypes.mBlankedVideos.push_back(blankVideoPair);
-                            }
-                        }
-                    }
+					if (blankVideoNode.IsSequence()) // Ensure it's a sequence of pairs
+					{
+						for (const auto& blankVideo : blankVideoNode)
+						{
+							if (blankVideo.IsSequence() && blankVideo.size() == 2)
+							{
+								std::pair<bool, std::string> blankVideoPair;
+								blankVideoPair.first = blankVideo[0].as<bool>();
+								blankVideoPair.second = blankVideo[1].as<std::string>();
+								entranceTypes.mBlankedVideos.push_back(blankVideoPair);
+							}
+						}
+					}
 
-                    
-                    const Node& frameSkipsNode = typeMap["FrameDetails"]["FrameSkips"];
-                    if (frameSkipsNode.IsSequence()) // Ensure it's a sequence of pairs
-                    {
-                        for (const auto& frameSkip : frameSkipsNode)
-                        {
-                            if (frameSkip.IsSequence() && frameSkip.size() == 2)
-                            {
-                                std::pair<std::string, std::string> frameSkipPair;
-                                frameSkipPair.first = frameSkip[0].as<std::string>();
-                                frameSkipPair.second = frameSkip[1].as<std::string>();
-                                entranceTypes.mFrameSkips.push_back(frameSkipPair);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        static Node encode(const FrameExtractor::CountData& data)
-        {
-            Node node;
-            node["Customer"] = data.mCustomer;
-            node["ReCustomer"] = data.mReCustomer;
-            node["SuspectedStaff"] = data.mSuspectedStaff;
-            node["ReSuspectedStaff"] = data.mReSuspectedStaff;
-            node["Children"] = data.mChildren;
-            node["ReChildren"] = data.mReChildren;
-            node["Others"] = data.mOthers;
-            node["ReOthers"] = data.mReOthers;
-            Node entranceDataNode;
-            for (size_t entranceIndex = 0; entranceIndex < data.Entrance.size(); ++entranceIndex)
-            {
-                const auto& entranceTypes = data.Entrance[entranceIndex];
-                Node entranceNode;
-                for (size_t typeIndex = 0; typeIndex < entranceTypes.mDesc.size(); ++typeIndex)
-                {
-                    Node typeNode;
-                    for (const auto& person : entranceTypes.mDesc[typeIndex])
-                    {
-                        typeNode.push_back(person);
-                    }
-                    entranceNode["DescDetails"][std::to_string(typeIndex)] = typeNode;
-                }
-
-                Node frameSkipsNode;
-                for (const auto& frameSkip : entranceTypes.mFrameSkips)
-                {
-                    Node pairNode;
-                    pairNode.push_back(frameSkip.first);
-                    pairNode.push_back(frameSkip.second);
-                    frameSkipsNode.push_back(pairNode);
-                }
-                Node blankNode;
-                for (const auto& blankedVideos : entranceTypes.mBlankedVideos)
-                {
-                    Node pairNode;
-                    pairNode.push_back(blankedVideos.first);
-                    pairNode.push_back(blankedVideos.second);
-                    blankNode.push_back(pairNode);
-                }
-                entranceNode["FrameDetails"]["CorruptedVideos"] = entranceTypes.mCorruptedVideos;
-                entranceNode["FrameDetails"]["BlankedVideos"] = blankNode;
-                entranceNode["FrameDetails"]["FrameSkips"] = frameSkipsNode;
-
-                entranceDataNode[std::to_string(entranceIndex)] = entranceNode;
-            }
-            node["EntranceData"] = entranceDataNode;
-            return node;
-        }
-    };
-
-
-    template<>
-    struct convert<FrameExtractor::AggregateEntrance>
-    {
-        static bool decode(const Node& node, FrameExtractor::AggregateEntrance& data)
-        {
-            if (!node.IsMap()) return false;
-
-            // Decode mCorruptedVideos (as a sequence of strings)
-            if (node["CorruptedVideos"])
-            {
-                data.mCorruptedVideos = node["CorruptedVideos"].as<std::vector<std::string>>();
-            }
-
-
-            // Decode mBlankedVideos (as a sequence of strings)
-            if (node["BlankedVideos"])
-            {
-                for (const auto& blankNode : node["BlankedVideos"])
-                {
-                    // Each item is a pair with two strings
-                    data.mBlankedVideos.push_back(blankNode.as<std::pair<bool, std::string>>());
-                }
-            }
-
-            // Decode mFrameSkips (as a sequence of pairs)
-            if (node["FrameSkips"])
-            {
-                for (const auto& frameSkipNode : node["FrameSkips"])
-                {
-                    // Each item is a pair with two strings
-                    data.mFrameSkips.push_back(frameSkipNode.as<std::pair<std::string, std::string>>());
-                }
-            }
+					const Node& frameSkipsNode = typeMap["FrameDetails"]["FrameSkips"];
+					if (frameSkipsNode.IsSequence()) // Ensure it's a sequence of pairs
+					{
+						for (const auto& frameSkip : frameSkipsNode)
+						{
+							if (frameSkip.IsSequence() && frameSkip.size() == 2)
+							{
+								std::pair<std::string, std::string> frameSkipPair;
+								frameSkipPair.first = frameSkip[0].as<std::string>();
+								frameSkipPair.second = frameSkip[1].as<std::string>();
+								entranceTypes.mFrameSkips.push_back(frameSkipPair);
+							}
+						}
+					}
+				}
+			}
 
 			return true;
-        }
+		}
 
-        static Node encode(const FrameExtractor::AggregateEntrance& data)
-        {
-            Node node;
+		static Node encode(const FrameExtractor::CountData& data)
+		{
+			Node node;
+			node["Customer"] = data.mCustomer;
+			node["ReCustomer"] = data.mReCustomer;
+			node["SuspectedStaff"] = data.mSuspectedStaff;
+			node["ReSuspectedStaff"] = data.mReSuspectedStaff;
+			node["Children"] = data.mChildren;
+			node["ReChildren"] = data.mReChildren;
+			node["Others"] = data.mOthers;
+			node["ReOthers"] = data.mReOthers;
+			Node entranceDataNode;
+			for (size_t entranceIndex = 0; entranceIndex < data.Entrance.size(); ++entranceIndex)
+			{
+				const auto& entranceTypes = data.Entrance[entranceIndex];
+				Node entranceNode;
+				for (size_t typeIndex = 0; typeIndex < entranceTypes.mDesc.size(); ++typeIndex)
+				{
+					Node typeNode;
+					for (const auto& person : entranceTypes.mDesc[typeIndex])
+					{
+						typeNode.push_back(person);
+					}
+					entranceNode["DescDetails"][std::to_string(typeIndex)] = typeNode;
+				}
 
-            // Encode mCorruptedVideos as a sequence of strings
-            node["CorruptedVideos"] = data.mCorruptedVideos;
+				Node frameSkipsNode;
+				for (const auto& frameSkip : entranceTypes.mFrameSkips)
+				{
+					Node pairNode;
+					pairNode.push_back(frameSkip.first);
+					pairNode.push_back(frameSkip.second);
+					frameSkipsNode.push_back(pairNode);
+				}
+				Node blankNode;
+				for (const auto& blankedVideos : entranceTypes.mBlankedVideos)
+				{
+					Node pairNode;
+					pairNode.push_back(blankedVideos.first);
+					pairNode.push_back(blankedVideos.second);
+					blankNode.push_back(pairNode);
+				}
+				entranceNode["FrameDetails"]["CorruptedVideos"] = entranceTypes.mCorruptedVideos;
+				entranceNode["FrameDetails"]["BlankedVideos"] = blankNode;
+				entranceNode["FrameDetails"]["FrameSkips"] = frameSkipsNode;
 
-            Node blankNode;
-            for (const auto& pair : data.mBlankedVideos)
-            {
-                Node pairNode;
-                pairNode.push_back(pair.first);  // first string (time)
-                pairNode.push_back(pair.second); // second string (time)
-                blankNode.push_back(pairNode);
-            }
-            node["FrameSkips"] = blankNode;
+				entranceDataNode[std::to_string(entranceIndex)] = entranceNode;
+			}
+			node["EntranceData"] = entranceDataNode;
+			return node;
+		}
+	};
 
-            // Encode mFrameSkips as a sequence of pairs (time -> time)
-            Node frameSkipsNode;
-            for (const auto& pair : data.mFrameSkips)
-            {
-                Node pairNode;
-                pairNode.push_back(pair.first);  // first string (time)
-                pairNode.push_back(pair.second); // second string (time)
-                frameSkipsNode.push_back(pairNode);
-            }
-            node["FrameSkips"] = frameSkipsNode;
+	template<>
+	struct convert<FrameExtractor::AggregateEntrance>
+	{
+		static bool decode(const Node& node, FrameExtractor::AggregateEntrance& data)
+		{
+			if (!node.IsMap()) return false;
+
+			// Decode mCorruptedVideos (as a sequence of strings)
+			if (node["CorruptedVideos"])
+			{
+				data.mCorruptedVideos = node["CorruptedVideos"].as<std::vector<std::string>>();
+			}
+
+			// Decode mBlankedVideos (as a sequence of strings)
+			if (node["BlankedVideos"])
+			{
+				for (const auto& blankNode : node["BlankedVideos"])
+				{
+					// Each item is a pair with two strings
+					data.mBlankedVideos.push_back(blankNode.as<std::pair<bool, std::string>>());
+				}
+			}
+
+			// Decode mFrameSkips (as a sequence of pairs)
+			if (node["FrameSkips"])
+			{
+				for (const auto& frameSkipNode : node["FrameSkips"])
+				{
+					// Each item is a pair with two strings
+					data.mFrameSkips.push_back(frameSkipNode.as<std::pair<std::string, std::string>>());
+				}
+			}
+
+			return true;
+		}
+
+		static Node encode(const FrameExtractor::AggregateEntrance& data)
+		{
+			Node node;
+
+			// Encode mCorruptedVideos as a sequence of strings
+			node["CorruptedVideos"] = data.mCorruptedVideos;
+
+			Node blankNode;
+			for (const auto& pair : data.mBlankedVideos)
+			{
+				Node pairNode;
+				pairNode.push_back(pair.first);  // first string (time)
+				pairNode.push_back(pair.second); // second string (time)
+				blankNode.push_back(pairNode);
+			}
+			node["FrameSkips"] = blankNode;
+
+			// Encode mFrameSkips as a sequence of pairs (time -> time)
+			Node frameSkipsNode;
+			for (const auto& pair : data.mFrameSkips)
+			{
+				Node pairNode;
+				pairNode.push_back(pair.first);  // first string (time)
+				pairNode.push_back(pair.second); // second string (time)
+				frameSkipsNode.push_back(pairNode);
+			}
+			node["FrameSkips"] = frameSkipsNode;
 
 			return node;
-        }
-    };
+		}
+	};
 
-    template<>
-    struct convert<FrameExtractor::AggregateData>
-    {
-        static bool decode(const Node& node, FrameExtractor::AggregateData& data)
-        {
-            // Ensure the node is a map
-            if (!node.IsMap()) return false;
+	template<>
+	struct convert<FrameExtractor::AggregateData>
+	{
+		static bool decode(const Node& node, FrameExtractor::AggregateData& data)
+		{
+			// Ensure the node is a map
+			if (!node.IsMap()) return false;
 
-            // Decode pre-existing data
-            if (node["StoreID"])
-            {
-                data.StoreID = node["StoreID"].as<std::string>();
-            }
-            if (node["Enters"])
-            {
-                data.Enters = node["Enters"].as<int32_t>();
-            }
-            if (node["Exit"])
-            {
-                data.Exit = node["Exit"].as<int32_t>();
-            }
+			// Decode pre-existing data
+			if (node["StoreID"])
+			{
+				data.StoreID = node["StoreID"].as<std::string>();
+			}
+			if (node["Enters"])
+			{
+				data.Enters = node["Enters"].as<int32_t>();
+			}
+			if (node["Exit"])
+			{
+				data.Exit = node["Exit"].as<int32_t>();
+			}
 
-            // Decode new data (mCustomer)
-            if (node["Customer"])
-            {
-                data.mCustomer = node["Customer"].as<int32_t>();
-            }
+			// Decode new data (mCustomer)
+			if (node["Customer"])
+			{
+				data.mCustomer = node["Customer"].as<int32_t>();
+			}
 
-            // Decode Entrance data (which is a vector of AggregateEntrance objects)
-            if (node["Entrance"])
-            {
-                data.Entrance = node["Entrance"].as<std::vector<FrameExtractor::AggregateEntrance>>();
-            }
+			// Decode Entrance data (which is a vector of AggregateEntrance objects)
+			if (node["Entrance"])
+			{
+				data.Entrance = node["Entrance"].as<std::vector<FrameExtractor::AggregateEntrance>>();
+			}
 
-            return true;
-        }
+			return true;
+		}
 
-        static Node encode(const FrameExtractor::AggregateData& data)
-        {
-            Node node;
+		static Node encode(const FrameExtractor::AggregateData& data)
+		{
+			Node node;
 
-            // Encode pre-existing data
-            node["StoreID"] = data.StoreID;
-            node["Enters"] = (int32_t)data.Enters;
-            node["Exit"] = (int32_t)data.Exit;
+			// Encode pre-existing data
+			node["StoreID"] = data.StoreID;
+			node["Enters"] = (int32_t)data.Enters;
+			node["Exit"] = (int32_t)data.Exit;
 
-            // Encode new data (mCustomer)
-            node["Customer"] = data.mCustomer;
+			// Encode new data (mCustomer)
+			node["Customer"] = data.mCustomer;
 
-            // Encode Entrance data (which is a vector of AggregateEntrance objects)
-            node["Entrance"] = data.Entrance;
+			// Encode Entrance data (which is a vector of AggregateEntrance objects)
+			node["Entrance"] = data.Entrance;
 
-            return node;
-        }
-    };
-
+			return node;
+		}
+	};
 }
-
-
 
 namespace FrameExtractor
 {
-    std::string EntryTypeToString(EntryType type)
-    {
-        switch (type)
-        {
-        case Customer:
-            return "Customer";
-        case ReCustomer:
-            return "Re-entry Customer";
-        case SuspectedStaff:
-            return "Suspected Staff";
-        case ReSuspectedStaff:
-            return "Re-entry Suspected Staff";
-        case Children:
-            return "Children";
-        case ReChildren:
-            return "Re-entry Children";
-        case Others:
-            return "Others";
-        case ReOthers:
-            return "Re-entry Others";
-        default:
-            return "Unknown type";
-        }
-    }
+	std::string EntryTypeToString(EntryType type)
+	{
+		switch (type)
+		{
+		case Customer:
+			return "Customer";
+		case ReCustomer:
+			return "Re-entry Customer";
+		case SuspectedStaff:
+			return "Suspected Staff";
+		case ReSuspectedStaff:
+			return "Re-entry Suspected Staff";
+		case Children:
+			return "Children";
+		case ReChildren:
+			return "Re-entry Children";
+		case Others:
+			return "Others";
+		case ReOthers:
+			return "Re-entry Others";
+		default:
+			return "Unknown type";
+		}
+	}
 
+	Project::Project()
+	{
+		mDynamicTask = GenerateTask("resources\\presets\\TaskType\\Counting\\DiorCounting.yaml");
+	}
 
-    Project::Project()
-    {
-        mDynamicTask = GenerateTask("resources\\presets\\TaskType\\Counting\\DiorCounting.yaml");
-  //      Date date{ 8, 12, 2000 };
-  //      Time time{ 3, 5, 6 };
+	Project::~Project()
+	{}
 
-  //      Date date2{ 9, 11, 2001 };
-		//Time time2{ 4, 6, 7 };
-  //      mDynamicTask.AddPage({}, date);
-  //      mDynamicTask.AddPage({ date }, time);
-  //      mDynamicTask.AddTab({ date, time}, 1);
-  //      mDynamicTask.AddTab({ date, time }, 2);
+	void Project::CreateProject(std::string name, std::filesystem::path dir)
+	{
+		mCountingData.clear();
+		mAggregateStoreData.clear();
 
-		//mDynamicTask.AddPage({}, date2);
-		//mDynamicTask.AddPage({ date2 }, time2);
-		//mDynamicTask.AddTab({ date2, time2 }, 2);
-        //mDynamicTask.mSpecs->mExportFormat = new 
-
-    }
-
-    Project::~Project()
-    {
-    }
-
-    void Project::CreateProject(std::string name, std::filesystem::path dir)
-    {
-        mCountingData.clear();
-        mAggregateStoreData.clear();
 		mName = name;
-        mProjectDir = dir;
-        mProjectDir /= name;
-        mAssetDir /= mProjectDir / "Assets";
+		mProjectDir = dir;
+		mProjectDir /= name;
+		mAssetDir /= mProjectDir / "Assets";
+		mProjectFilePath = mProjectDir / (name + ".FrEX");
+
 		std::filesystem::create_directory(mProjectDir);
-        std::filesystem::create_directory(mAssetDir);
-        mProjectFilePath = mProjectDir / (name + ".FrEX");
+		std::filesystem::create_directory(mAssetDir);
+		AssetManager::mFileWatcher.Start(mAssetDir);
+		AssetManager::Clear();
+		AssetManager::LoadDirectory(mAssetDir);
 
-        YAML::Node node;
+		YAML::Node node;
 
-        node["Project Name"] = mName;
-        node["Project Directory"] = mProjectDir.string();
-        node["Asset Directory"] = mAssetDir.string();
+		node["Project Name"] = mName;
+		node["Project Directory"] = mProjectDir.string();
+		node["Asset Directory"] = mAssetDir.string();
 
-        std::ofstream file(mProjectFilePath);
-        if (file.is_open())
-        {
+		std::ofstream file(mProjectFilePath);
+		if (file.is_open())
+		{
 			file << node;
 			file.close();
 		}
-        else
-        {
+		else
+		{
 			FRAMEEX_CORE_ERROR("Failed to create project file: {}", mProjectFilePath.string());
 		}
-    }
+	}
 
-    void Project::LoadProject(std::filesystem::path path)
-    {
-        std::ifstream ifs(path);
-        if (!ifs.is_open())
-        {
+	void Project::LoadProject(std::filesystem::path path)
+	{
+		std::ifstream ifs(path);
+		if (!ifs.is_open())
+		{
 			FRAMEEX_CORE_ERROR("Failed to open project file: {}", path.string());
 			return;
 		}
 
-        YAML::Node node = YAML::Load(ifs);
+		YAML::Node node = YAML::Load(ifs);
 		mName = node["Project Name"].as<std::string>();
 		mProjectDir = node["Project Directory"].as<std::string>();
 		mAssetDir = node["Asset Directory"].as<std::string>();
-        mProjectFilePath = path;
-        
-        std::map<StoreCode, std::map<Hour, CountData>> tmpCountingData;
-        std::map<StoreCode, std::map<Hour, AggregateData>> tmpAggregateStoreData;
+		mProjectFilePath = path;
+		AssetManager::mFileWatcher.Start(mAssetDir);
+		AssetManager::Clear();
+		AssetManager::LoadDirectory(mAssetDir);
 
-        if (node["Counting Data"])
-        {
-            for (const auto& storeNode : node["Counting Data"])
-            {
-                StoreCode storeCode = storeNode.first.as<StoreCode>(); // Assuming StoreCode is a type that can be converted from YAML.
-                for (const auto& hourNode : storeNode.second)
-                {
-                    Hour hour = hourNode.first.as<Hour>(); // Assuming Hour is a type that can be converted from YAML.
-                    CountData countData;
-                    YAML::convert<CountData>::decode(node["Counting Data"][storeCode][hour], countData); // Decode CountData from YAML.
-                    tmpCountingData[storeCode][hour] = countData;
-                }
-            }
-        }
+		std::map<StoreCode, std::map<Hour, CountData>> tmpCountingData;
+		std::map<StoreCode, std::map<Hour, AggregateData>> tmpAggregateStoreData;
 
-        // Load Aggregate Data
-        if (node["Aggregate Data"])
-        {
-            for (const auto& storeNode : node["Aggregate Data"])
-            {
-                StoreCode storeCode = storeNode.first.as<StoreCode>(); // StoreCode key
-                const YAML::Node& hoursNode = storeNode.second;
+		if (node["Counting Data"])
+		{
+			for (const auto& storeNode : node["Counting Data"])
+			{
+				StoreCode storeCode = storeNode.first.as<StoreCode>(); // Assuming StoreCode is a type that can be converted from YAML.
+				for (const auto& hourNode : storeNode.second)
+				{
+					Hour hour = hourNode.first.as<Hour>(); // Assuming Hour is a type that can be converted from YAML.
+					CountData countData;
+					YAML::convert<CountData>::decode(node["Counting Data"][storeCode][hour], countData); // Decode CountData from YAML.
+					tmpCountingData[storeCode][hour] = countData;
+				}
+			}
+		}
 
-                for (const auto& hourNode : hoursNode)
-                {
-                    Hour hour = hourNode.first.as<Hour>(); // Hour key
-                    const YAML::Node& dataNode = hourNode.second;
+		// Load Aggregate Data
+		if (node["Aggregate Data"])
+		{
+			for (const auto& storeNode : node["Aggregate Data"])
+			{
+				StoreCode storeCode = storeNode.first.as<StoreCode>(); // StoreCode key
+				const YAML::Node& hoursNode = storeNode.second;
 
-                    AggregateData aggregateData;
-                    YAML::convert<AggregateData>::decode(dataNode, aggregateData); // Correctly decode from already-accessed node
-                    tmpAggregateStoreData[storeCode][hour] = aggregateData;
-                }
-            }
-        }
+				for (const auto& hourNode : hoursNode)
+				{
+					Hour hour = hourNode.first.as<Hour>(); // Hour key
+					const YAML::Node& dataNode = hourNode.second;
 
-        mCountingData = tmpCountingData;
-        mAggregateStoreData = tmpAggregateStoreData;
+					AggregateData aggregateData;
+					YAML::convert<AggregateData>::decode(dataNode, aggregateData); // Correctly decode from already-accessed node
+					tmpAggregateStoreData[storeCode][hour] = aggregateData;
+				}
+			}
+		}
+
+		mCountingData = tmpCountingData;
+		mAggregateStoreData = tmpAggregateStoreData;
 		ifs.close();
-    }
+	}
 
-    void Project::SaveProject()
-    {
-        YAML::Emitter emitter;
+	void Project::SaveProject()
+	{
+		YAML::Emitter emitter;
 
-        emitter << YAML::BeginMap;
+		emitter << YAML::BeginMap;
 
-        emitter << YAML::Key << "Project Name" << YAML::Value << mName;
-        emitter << YAML::Key << "Project Directory" << YAML::Value << mProjectDir.string();
-        emitter << YAML::Key << "Asset Directory" << YAML::Value << mAssetDir.string();
+		emitter << YAML::Key << "Project Name" << YAML::Value << mName;
+		emitter << YAML::Key << "Project Directory" << YAML::Value << mProjectDir.string();
+		emitter << YAML::Key << "Asset Directory" << YAML::Value << mAssetDir.string();
 
-        emitter << YAML::Key << "Counting Data" << YAML::Value << YAML::BeginMap;
-        //std::map<StoreCode, std::map<Hour, CountData>> mCountingData;
-        for (const auto& [storeCode, hourData] : mCountingData)
-        {
-            emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
-            for (const auto& [hour, data] : hourData)
-            {
-                emitter << YAML::Key << hour;
-                emitter << YAML::Value << YAML::convert<CountData>::encode(data);
+		emitter << YAML::Key << "Counting Data" << YAML::Value << YAML::BeginMap;
+		//std::map<StoreCode, std::map<Hour, CountData>> mCountingData;
+		for (const auto& [storeCode, hourData] : mCountingData)
+		{
+			emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
+			for (const auto& [hour, data] : hourData)
+			{
+				emitter << YAML::Key << hour;
+				emitter << YAML::Value << YAML::convert<CountData>::encode(data);
 			}
 			emitter << YAML::EndMap;
 		}
 
-        emitter << YAML::EndMap;
+		emitter << YAML::EndMap;
 
-        emitter << YAML::Key << "Aggregate Data" << YAML::Value << YAML::BeginMap;
+		emitter << YAML::Key << "Aggregate Data" << YAML::Value << YAML::BeginMap;
 
-        for (const auto& [storeCode, hourData] : mAggregateStoreData)
-        {
-            emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
+		for (const auto& [storeCode, hourData] : mAggregateStoreData)
+		{
+			emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
 
-            for (const auto& [hour, data] : hourData)
-            {
+			for (const auto& [hour, data] : hourData)
+			{
 				emitter << YAML::Key << hour;
 				emitter << YAML::Value << YAML::convert<AggregateData>::encode(data);
-            }
-            emitter << YAML::EndMap;
-        }
-        emitter << YAML::EndMap;
+			}
+			emitter << YAML::EndMap;
+		}
+		emitter << YAML::EndMap;
 
-        emitter << YAML::EndMap;
-        emitter << YAML::EndMap;
+		emitter << YAML::EndMap;
+		emitter << YAML::EndMap;
 
-        std::ofstream file(mProjectFilePath);
-        file << emitter.c_str();
+		std::ofstream file(mProjectFilePath);
+		file << emitter.c_str();
 		file.close();
+	}
 
+	void Project::SaveBackup()
+	{
+		auto now = std::chrono::system_clock::now();
+		auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(
+			now.time_since_epoch()).count();
+		YAML::Emitter emitter;
 
+		emitter << YAML::BeginMap;
 
-    }
+		emitter << YAML::Key << "Project Name" << YAML::Value << mName;
+		emitter << YAML::Key << "Project Directory" << YAML::Value << mProjectDir.string();
+		emitter << YAML::Key << "Asset Directory" << YAML::Value << mAssetDir.string();
 
-    void Project::SaveBackup()
-    {
-        auto now = std::chrono::system_clock::now();
-        auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(
-            now.time_since_epoch()).count();
-        YAML::Emitter emitter;
+		emitter << YAML::Key << "Counting Data" << YAML::Value << YAML::BeginMap;
+		//std::map<StoreCode, std::map<Hour, CountData>> mCountingData;
+		for (const auto& [storeCode, hourData] : mCountingData)
+		{
+			emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
+			for (const auto& [hour, data] : hourData)
+			{
+				emitter << YAML::Key << hour;
+				emitter << YAML::Value << YAML::convert<CountData>::encode(data);
+			}
+			emitter << YAML::EndMap;
+		}
 
-        emitter << YAML::BeginMap;
+		emitter << YAML::EndMap;
 
-        emitter << YAML::Key << "Project Name" << YAML::Value << mName;
-        emitter << YAML::Key << "Project Directory" << YAML::Value << mProjectDir.string();
-        emitter << YAML::Key << "Asset Directory" << YAML::Value << mAssetDir.string();
+		emitter << YAML::Key << "Aggregate Data" << YAML::Value << YAML::BeginMap;
 
-        emitter << YAML::Key << "Counting Data" << YAML::Value << YAML::BeginMap;
-        //std::map<StoreCode, std::map<Hour, CountData>> mCountingData;
-        for (const auto& [storeCode, hourData] : mCountingData)
-        {
-            emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
-            for (const auto& [hour, data] : hourData)
-            {
-                emitter << YAML::Key << hour;
-                emitter << YAML::Value << YAML::convert<CountData>::encode(data);
-            }
-            emitter << YAML::EndMap;
-        }
+		for (const auto& [storeCode, hourData] : mAggregateStoreData)
+		{
+			emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
 
-        emitter << YAML::EndMap;
+			for (const auto& [hour, data] : hourData)
+			{
+				emitter << YAML::Key << hour;
+				emitter << YAML::Value << YAML::convert<AggregateData>::encode(data);
+			}
+			emitter << YAML::EndMap;
+		}
+		emitter << YAML::EndMap;
 
-        emitter << YAML::Key << "Aggregate Data" << YAML::Value << YAML::BeginMap;
-
-        for (const auto& [storeCode, hourData] : mAggregateStoreData)
-        {
-            emitter << YAML::Key << storeCode << YAML::Value << YAML::BeginMap;
-
-            for (const auto& [hour, data] : hourData)
-            {
-                emitter << YAML::Key << hour;
-                emitter << YAML::Value << YAML::convert<AggregateData>::encode(data);
-            }
-            emitter << YAML::EndMap;
-        }
-        emitter << YAML::EndMap;
-        
-
-        emitter << YAML::EndMap;
-        emitter << YAML::EndMap;
-        std::filesystem::create_directories(mProjectFilePath.parent_path()/"Backup");
-        auto newPath = mProjectFilePath.parent_path() / "Backup" / std::to_string(timestamp);
-        newPath.replace_extension(".FrEX");
-        std::ofstream file(newPath);
-        file << emitter.c_str();
-        file.close();
-    }
-
+		emitter << YAML::EndMap;
+		emitter << YAML::EndMap;
+		std::filesystem::create_directories(mProjectFilePath.parent_path() / "Backup");
+		auto newPath = mProjectFilePath.parent_path() / "Backup" / std::to_string(timestamp);
+		newPath.replace_extension(".FrEX");
+		std::ofstream file(newPath);
+		file << emitter.c_str();
+		file.close();
+	}
 }
-

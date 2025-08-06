@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 12, 2024
+\date       May 12, 2025
 \brief      Declares the Console Panel class which creates the interface for a
 			console panel.
 
@@ -54,21 +54,19 @@ namespace FrameExtractor
 		template<typename... Args>
 		void AddLog(spdlog::format_string_t<Args...> fmt, Args &&...args)
 		{
-			
-			Items.push_back({ Strdup(Log(fmt, std::forward<Args>(args)...).c_str()), 0});
+			Items.push_back({ Strdup(Log(fmt, std::forward<Args>(args)...).c_str()), 0 });
 		}
 
 		template <typename T>
 		void AddLog(const T& value)
 		{
-			Items.push_back({ Strdup(Log(value).c_str()), 0});
+			Items.push_back({ Strdup(Log(value).c_str()), 0 });
 		}
 
 		template<typename... Args>
 		void AddLogInfo(spdlog::format_string_t<Args...> fmt, Args &&...args)
 		{
 			Items.push_back({ Strdup(Log(fmt, std::forward<Args>(args)...).c_str()), 1 });
-
 		}
 
 		template <typename T>
@@ -77,12 +75,10 @@ namespace FrameExtractor
 			Items.push_back({ Strdup(Log(value).c_str()), 1 });
 		}
 
-
 		template<typename... Args>
 		void AddLogTrace(spdlog::format_string_t<Args...> fmt, Args &&...args)
 		{
 			Items.push_back({ Strdup(Log(fmt, std::forward<Args>(args)...).c_str()), 2 });
-
 		}
 
 		template <typename T>
@@ -95,7 +91,6 @@ namespace FrameExtractor
 		void AddLogWarn(spdlog::format_string_t<Args...> fmt, Args &&...args)
 		{
 			Items.push_back({ Strdup(Log(fmt, std::forward<Args>(args)...).c_str()), 3 });
-
 		}
 
 		template <typename T>
@@ -116,13 +111,12 @@ namespace FrameExtractor
 			Items.push_back({ Strdup(Log(value).c_str()), 4 });
 		}
 
-
 		void ExecCommand(const char* command_line);
 
-        // In C++11 you'd be better off using lambdas for this sort of forwarding callbacks
-        static int TextEditCallbackStub(ImGuiInputTextCallbackData* data);
+		// In C++11 you'd be better off using lambdas for this sort of forwarding callbacks
+		static int TextEditCallbackStub(ImGuiInputTextCallbackData* data);
 
-        int TextEditCallback(ImGuiInputTextCallbackData* data);
+		int TextEditCallback(ImGuiInputTextCallbackData* data);
 
 		virtual void OnImGuiRender(float dt) override;
 		virtual const char* GetName() const override { return "Console"; }
@@ -141,7 +135,6 @@ namespace FrameExtractor
 		bool                  AutoScroll;
 		bool                  ScrollToBottom;
 	};
-
 }
 
 #endif

@@ -25,7 +25,6 @@ namespace glm
 {
 	/// @addtogroup gtx_bit
 	/// @{
-
 	/// @see gtx_bit
 	template<typename genIUType>
 	GLM_FUNC_DECL genIUType highestBitValue(genIUType Value);
@@ -91,6 +90,4 @@ namespace glm
 	/// @}
 } //namespace glm
 
-
 #include "bit.inl"
-

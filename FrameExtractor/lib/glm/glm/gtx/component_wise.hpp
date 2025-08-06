@@ -28,7 +28,6 @@ namespace glm
 {
 	/// @addtogroup gtx_component_wise
 	/// @{
-
 	/// Convert an integer vector to a normalized float vector.
 	/// If the parameter value type is already a floating qualifier type, the value is passed through.
 	/// @see gtx_component_wise
@@ -61,7 +60,7 @@ namespace glm
 	template<typename genType>
 	GLM_FUNC_DECL typename genType::value_type compMax(genType const& v);
 
-    /// Find the minimum float between single vector components.
+	/// Find the minimum float between single vector components.
 	/// @see gtx_component_wise
 	template<typename genType>
 	GLM_FUNC_DECL typename genType::value_type fcompMin(genType const& v);

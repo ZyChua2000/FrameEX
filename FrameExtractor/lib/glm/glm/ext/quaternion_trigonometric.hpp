@@ -32,7 +32,6 @@ namespace glm
 {
 	/// @addtogroup ext_quaternion_trigonometric
 	/// @{
-
 	/// Returns the quaternion rotation angle.
 	///
 	/// @param x A normalized quaternion.

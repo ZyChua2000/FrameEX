@@ -23,7 +23,6 @@ namespace glm
 {
 	/// @addtogroup ext_matrix_uint3x2
 	/// @{
-
 	/// Unsigned integer 3x2 matrix.
 	///
 	/// @see ext_matrix_uint3x2

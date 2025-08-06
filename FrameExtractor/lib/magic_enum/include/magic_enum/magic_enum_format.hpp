@@ -40,12 +40,14 @@
 #  define MAGIC_ENUM_DEFAULT_ENABLE_ENUM_FORMAT_AUTO_DEFINE
 #endif
 
-namespace magic_enum::customize {
-  // customize enum to enable/disable automatic std::format
-  template <typename E>
-  constexpr bool enum_format_enabled() noexcept {
-    return MAGIC_ENUM_DEFAULT_ENABLE_ENUM_FORMAT;
-  }
+namespace magic_enum::customize
+{
+	// customize enum to enable/disable automatic std::format
+	template <typename E>
+	constexpr bool enum_format_enabled() noexcept
+	{
+		return MAGIC_ENUM_DEFAULT_ENABLE_ENUM_FORMAT;
+	}
 } // magic_enum::customize
 
 #if defined(__cpp_lib_format)
@@ -55,25 +57,33 @@ namespace magic_enum::customize {
 #endif
 
 template <typename E>
-struct std::formatter<E, std::enable_if_t<std::is_enum_v<std::decay_t<E>> && magic_enum::customize::enum_format_enabled<E>(), char>> : std::formatter<std::string_view, char> {
-  template <class FormatContext>
-  auto format(E e, FormatContext& ctx) const {
-    static_assert(std::is_same_v<char, string_view::value_type>, "formatter requires string_view::value_type type same as char.");
-    using D = std::decay_t<E>;
+struct std::formatter<E, std::enable_if_t<std::is_enum_v<std::decay_t<E>>&& magic_enum::customize::enum_format_enabled<E>(), char>> : std::formatter<std::string_view, char>
+{
+	template <class FormatContext>
+	auto format(E e, FormatContext& ctx) const
+	{
+		static_assert(std::is_same_v<char, string_view::value_type>, "formatter requires string_view::value_type type same as char.");
+		using D = std::decay_t<E>;
 
-    if constexpr (magic_enum::detail::supported<D>::value) {
-      if constexpr (magic_enum::detail::subtype_v<D> == magic_enum::detail::enum_subtype::flags) {
-        if (const auto name = magic_enum::enum_flags_name<D>(e); !name.empty()) {
-          return formatter<std::string_view, char>::format(std::string_view{name.data(), name.size()}, ctx);
-        }
-      } else {
-        if (const auto name = magic_enum::enum_name<D>(e); !name.empty()) {
-          return formatter<std::string_view, char>::format(std::string_view{name.data(), name.size()}, ctx);
-        }
-      }
-    }
-    return formatter<std::string_view, char>::format(std::to_string(magic_enum::enum_integer<D>(e)), ctx);
-  }
+		if constexpr (magic_enum::detail::supported<D>::value)
+		{
+			if constexpr (magic_enum::detail::subtype_v<D> == magic_enum::detail::enum_subtype::flags)
+			{
+				if (const auto name = magic_enum::enum_flags_name<D>(e); !name.empty())
+				{
+					return formatter<std::string_view, char>::format(std::string_view{ name.data(), name.size() }, ctx);
+				}
+			}
+			else
+			{
+				if (const auto name = magic_enum::enum_name<D>(e); !name.empty())
+				{
+					return formatter<std::string_view, char>::format(std::string_view{ name.data(), name.size() }, ctx);
+				}
+			}
+		}
+		return formatter<std::string_view, char>::format(std::to_string(magic_enum::enum_integer<D>(e)), ctx);
+	}
 };
 
 #endif
@@ -83,25 +93,33 @@ struct std::formatter<E, std::enable_if_t<std::is_enum_v<std::decay_t<E>> && mag
 #include <fmt/format.h>
 
 template <typename E>
-struct fmt::formatter<E, std::enable_if_t<std::is_enum_v<std::decay_t<E>> && magic_enum::customize::enum_format_enabled<E>(), char>> : fmt::formatter<std::string_view> {
-  template <class FormatContext>
-  auto format(E e, FormatContext& ctx) const {
-    static_assert(std::is_same_v<char, string_view::value_type>, "formatter requires string_view::value_type type same as char.");
-    using D = std::decay_t<E>;
+struct fmt::formatter<E, std::enable_if_t<std::is_enum_v<std::decay_t<E>>&& magic_enum::customize::enum_format_enabled<E>(), char>> : fmt::formatter<std::string_view>
+{
+	template <class FormatContext>
+	auto format(E e, FormatContext& ctx) const
+	{
+		static_assert(std::is_same_v<char, string_view::value_type>, "formatter requires string_view::value_type type same as char.");
+		using D = std::decay_t<E>;
 
-    if constexpr (magic_enum::detail::supported<D>::value) {
-      if constexpr (magic_enum::detail::subtype_v<D> == magic_enum::detail::enum_subtype::flags) {
-        if (const auto name = magic_enum::enum_flags_name<D>(e); !name.empty()) {
-          return formatter<std::string_view, char>::format(std::string_view{name.data(), name.size()}, ctx);
-        }
-      } else {
-        if (const auto name = magic_enum::enum_name<D>(e); !name.empty()) {
-          return formatter<std::string_view, char>::format(std::string_view{name.data(), name.size()}, ctx);
-        }
-      }
-    }
-    return formatter<std::string_view, char>::format(std::to_string(magic_enum::enum_integer<D>(e)), ctx);
-  }
+		if constexpr (magic_enum::detail::supported<D>::value)
+		{
+			if constexpr (magic_enum::detail::subtype_v<D> == magic_enum::detail::enum_subtype::flags)
+			{
+				if (const auto name = magic_enum::enum_flags_name<D>(e); !name.empty())
+				{
+					return formatter<std::string_view, char>::format(std::string_view{ name.data(), name.size() }, ctx);
+				}
+			}
+			else
+			{
+				if (const auto name = magic_enum::enum_name<D>(e); !name.empty())
+				{
+					return formatter<std::string_view, char>::format(std::string_view{ name.data(), name.size() }, ctx);
+				}
+			}
+		}
+		return formatter<std::string_view, char>::format(std::to_string(magic_enum::enum_integer<D>(e)), ctx);
+	}
 };
 
 #endif

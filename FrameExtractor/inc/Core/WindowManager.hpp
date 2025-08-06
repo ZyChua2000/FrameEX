@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 10, 2024
+\date       May 10, 2025
 \brief      Declares the Window Manager class which handles the application window
 
  /******************************************************************************/
@@ -16,7 +16,6 @@
 
 namespace FrameExtractor
 {
-
 	struct WindowProperties
 	{
 		std::string mTitle = "Window";
@@ -30,14 +29,13 @@ namespace FrameExtractor
 		WindowManager(const WindowProperties& properties = WindowProperties());
 		~WindowManager();
 
-
 		void Update();
 
 		inline uint32_t GetWidth() const { return mData.mWidth; }
 		inline uint32_t GetHeight() const { return mData.mWidth; }
 		inline uint32_t GetWindowPosX() const { return mData.mPosX; }
 		inline uint32_t GetWindowPosY() const { return mData.mPosY; }
-		inline std::pair<uint32_t,uint32_t> GetWindowPos() const { return { mData.mPosX, mData.mPosY }; }
+		inline std::pair<uint32_t, uint32_t> GetWindowPos() const { return { mData.mPosX, mData.mPosY }; }
 		inline void* GetNativeWindow() const { return mWindow; }
 
 	private:
@@ -58,7 +56,6 @@ namespace FrameExtractor
 		};
 
 		WindowData mData;
-		
 	};
 }
 

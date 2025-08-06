@@ -40,21 +40,21 @@ namespace glm
 		// -- Data --
 
 #		if GLM_LANG & GLM_LANG_CXXMS_FLAG
-			union
-			{
+		union
+		{
 #				ifdef GLM_FORCE_QUAT_DATA_WXYZ
-					struct { T w, x, y, z; };
+			struct { T w, x, y, z; };
 #				else
-					struct { T x, y, z, w; };
+			struct { T x, y, z, w; };
 #				endif
 
-				typename detail::storage<4, T, detail::is_aligned<Q>::value>::type data;
-			};
+			typename detail::storage<4, T, detail::is_aligned<Q>::value>::type data;
+		};
 #		else
 #			ifdef GLM_FORCE_QUAT_DATA_WXYZ
-				T w, x, y, z;
+		T w, x, y, z;
 #			else
-				T x, y, z, w;
+		T x, y, z, w;
 #			endif
 #		endif
 
@@ -63,9 +63,9 @@ namespace glm
 		typedef length_t length_type;
 
 		/// Return the count of components of a quaternion
-		GLM_FUNC_DECL static GLM_CONSTEXPR length_type length(){return 4;}
+		GLM_FUNC_DECL static GLM_CONSTEXPR length_type length() { return 4; }
 
-		GLM_FUNC_DECL GLM_CONSTEXPR T & operator[](length_type i);
+		GLM_FUNC_DECL GLM_CONSTEXPR T& operator[](length_type i);
 		GLM_FUNC_DECL GLM_CONSTEXPR T const& operator[](length_type i) const;
 
 		// -- Implicit basic constructors --
@@ -94,8 +94,8 @@ namespace glm
 
 		/// Explicit conversion operators
 #		if GLM_HAS_EXPLICIT_CONVERSION_OPERATORS
-			GLM_FUNC_DECL explicit operator mat<3, 3, T, Q>() const;
-			GLM_FUNC_DECL explicit operator mat<4, 4, T, Q>() const;
+		GLM_FUNC_DECL explicit operator mat<3, 3, T, Q>() const;
+		GLM_FUNC_DECL explicit operator mat<4, 4, T, Q>() const;
 #		endif
 
 		/// Create a quaternion from two normalized axis

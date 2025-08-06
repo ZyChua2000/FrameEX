@@ -5,9 +5,9 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       June 23, 2024
+\date       June 23, 2025
 \brief      Defines the Dynamic Task struct which represents a task that can
-            be a template reference
+			be a template reference
  /******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
@@ -21,8 +21,10 @@
 namespace YAML
 {
 	template<>
-	struct convert<FrameExtractor::Date> {
-		static Node encode(const FrameExtractor::Date& date) {
+	struct convert<FrameExtractor::Date>
+	{
+		static Node encode(const FrameExtractor::Date& date)
+		{
 			Node node;
 			auto ymd = date.to_chrono();
 			node["year"] = int(ymd.year());
@@ -31,7 +33,8 @@ namespace YAML
 			return node;
 		}
 
-		static bool decode(const Node& node, FrameExtractor::Date& ymd) {
+		static bool decode(const Node& node, FrameExtractor::Date& ymd)
+		{
 			if (!node.IsMap() || !node["year"] || !node["month"] || !node["day"])
 				return false;
 
@@ -42,12 +45,13 @@ namespace YAML
 			ymd = std::chrono::year{ year } / std::chrono::month{ month } / std::chrono::day{ day };
 			return true;
 		}
-
 	};
 
 	template<>
-	struct convert<FrameExtractor::Time> {
-		static Node encode(const FrameExtractor::Time& time) {
+	struct convert<FrameExtractor::Time>
+	{
+		static Node encode(const FrameExtractor::Time& time)
+		{
 			Node node;
 			auto t = time.to_chrono();
 			node["hours"] = t.hours().count();
@@ -56,7 +60,8 @@ namespace YAML
 			return node;
 		}
 
-		static bool decode(const Node& node, FrameExtractor::Time& t) {
+		static bool decode(const Node& node, FrameExtractor::Time& t)
+		{
 			if (!node.IsMap() || !node["hours"] || !node["minutes"] || !node["seconds"])
 				return false;
 
@@ -80,18 +85,22 @@ namespace FrameExtractor
 		mInputType = other.mInputType ? new IOType(*other.mInputType) : nullptr;
 		mTab = other.mTab ? new DataSpecification(*other.mTab) : nullptr;
 
-		if (other.mNodeCategories) {
+		if (other.mNodeCategories)
+		{
 			mNodeCategories = new std::vector<DataSpecification*>();
 			mNodeCategories->reserve(other.mNodeCategories->size());
-			for (auto* cat : *other.mNodeCategories) {
+			for (auto* cat : *other.mNodeCategories)
+			{
 				mNodeCategories->push_back(cat ? new DataSpecification(*cat) : nullptr);
 			}
 		}
 
-		if (other.mFieldSpecs) {
+		if (other.mFieldSpecs)
+		{
 			mFieldSpecs = new std::vector<DataSpecification*>();
 			mFieldSpecs->reserve(other.mFieldSpecs->size());
-			for (auto* field : *other.mFieldSpecs) {
+			for (auto* field : *other.mFieldSpecs)
+			{
 				mFieldSpecs->push_back(field ? new DataSpecification(*field) : nullptr);
 			}
 		}
@@ -122,16 +131,17 @@ namespace FrameExtractor
 		if (mTab)
 			delete mTab;
 
-		if (mNodeCategories) {
+		if (mNodeCategories)
+		{
 			for (auto& cat : *mNodeCategories) delete cat;
 			delete mNodeCategories;
 		}
 
-		if (mFieldSpecs) {
+		if (mFieldSpecs)
+		{
 			for (auto& field : *mFieldSpecs) delete field;
 			delete mFieldSpecs;
 		}
-
 
 		// Transfer ownership
 		mOutputType = other.mOutputType;
@@ -161,18 +171,19 @@ namespace FrameExtractor
 		if (mTab)
 			delete mTab;
 
-		if (mNodeCategories) {
+		if (mNodeCategories)
+		{
 			for (auto& cat : *mNodeCategories)
 				delete cat;
 			delete mNodeCategories;
 		}
 
-		if (mFieldSpecs) {
+		if (mFieldSpecs)
+		{
 			for (auto& field : *mFieldSpecs)
 				delete field;
 			delete mFieldSpecs;
 		}
-
 
 		// Deep copy individual pointers (check for nullptr)
 		mOutputType = other.mOutputType ? new IOType(*other.mOutputType) : nullptr;
@@ -180,26 +191,32 @@ namespace FrameExtractor
 		mTab = other.mTab ? new DataSpecification(*other.mTab) : nullptr;
 
 		// Deep copy vector of pointers: mNodeCategories
-		if (other.mNodeCategories) {
+		if (other.mNodeCategories)
+		{
 			mNodeCategories = new std::vector<DataSpecification*>();
 			mNodeCategories->reserve(other.mNodeCategories->size());
-			for (auto* cat : *other.mNodeCategories) {
+			for (auto* cat : *other.mNodeCategories)
+			{
 				mNodeCategories->push_back(cat ? new DataSpecification(*cat) : nullptr);
 			}
 		}
-		else {
+		else
+		{
 			mNodeCategories = nullptr;
 		}
 
 		// Deep copy vector of pointers: mFieldSpecs
-		if (other.mFieldSpecs) {
+		if (other.mFieldSpecs)
+		{
 			mFieldSpecs = new std::vector<DataSpecification*>();
 			mFieldSpecs->reserve(other.mFieldSpecs->size());
-			for (auto* field : *other.mFieldSpecs) {
+			for (auto* field : *other.mFieldSpecs)
+			{
 				mFieldSpecs->push_back(field ? new DataSpecification(*field) : nullptr);
 			}
 		}
-		else {
+		else
+		{
 			mFieldSpecs = nullptr;
 		}
 
@@ -231,7 +248,6 @@ namespace FrameExtractor
 			}
 		}
 	}
-
 
 	DynamicTask::DynamicTask(DynamicTaskSpecs& specs)
 	{
@@ -307,11 +323,13 @@ namespace FrameExtractor
 		int count = 0;
 		for (const auto& key : keys)
 		{
-			try {
+			try
+			{
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 				count++;
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to add Page as key not found", mTaskName);
 				return;
 			}
@@ -332,10 +350,12 @@ namespace FrameExtractor
 		auto* PagePtr = &mPages;
 		for (const auto& key : keys)
 		{
-			try {
+			try
+			{
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to add Page as key not found", mTaskName);
 				return;
 			}
@@ -354,16 +374,17 @@ namespace FrameExtractor
 		auto* PagePtr = &mPages;
 		for (const auto& key : keys)
 		{
-			try {
+			try
+			{
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
 		}
 		return *PagePtr;
-
 	}
 
 	rttr::variant& DynamicTask::GetTab(std::vector<rttr::variant>& keys)
@@ -376,11 +397,13 @@ namespace FrameExtractor
 		auto* PagePtr = &mPages;
 		for (const auto& key : keys)
 		{
-			try {
+			try
+			{
 				if (key == keys.back()) break;
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
@@ -399,23 +422,24 @@ namespace FrameExtractor
 		auto* PagePtr = &mPages;
 		for (int i = 0; i < indices.size() - 1; i++)
 		{
-			try {
+			try
+			{
 				auto it = PagePtr->begin();
 				std::advance(it, indices[i]);
 				auto key = it->first;
 				// Use the key to access the next level of the map
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
 		}
 
 		auto it = PagePtr->begin();
-		std::advance(it, indices[indices.size()-1]);
+		std::advance(it, indices[indices.size() - 1]);
 		return it->second.get_value<std::vector<TaskData>>();
-
 	}
 
 	void DynamicTask::RemoveTab(std::vector<int>& indices)
@@ -428,13 +452,15 @@ namespace FrameExtractor
 		auto* PagePtr = &mPages;
 		for (int i = 0; i < indices.size() - 1; i++)
 		{
-			try {
+			try
+			{
 				auto it = PagePtr->begin();
 				std::advance(it, indices[i]);
 				auto key = it->first;
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to remove Page as key not found", mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
@@ -443,7 +469,6 @@ namespace FrameExtractor
 		std::advance(it, indices[indices.size() - 1]);
 		PagePtr->erase(it);
 	}
-
 
 	DynamicTask GenerateCountingTask()
 	{
@@ -459,7 +484,6 @@ namespace FrameExtractor
 		std::vector<DynamicTask> Descriptions;
 		Descriptions.push_back(Description);
 
-
 		DynamicTask frameSkipTask;
 		frameSkipTask.mTaskName = "Frame Skips";
 
@@ -467,8 +491,6 @@ namespace FrameExtractor
 
 		return task;
 	}
-
-
 
 	TaskData GenerateTaskData(DataSpecification& specs)
 	{
@@ -485,7 +507,6 @@ namespace FrameExtractor
 		case DataType::Date: output.mFieldData = *reinterpret_cast<Date*>(specs.mDefault);				return output;
 		default:																						return output;
 		}
-
 	}
 
 	DynamicTask GenerateTask(std::filesystem::path path)
@@ -543,7 +564,6 @@ namespace FrameExtractor
 			if (config["Tab"]["Type"])
 			{
 				task.mSpecs->mTab->mType = new DataType(magic_enum::enum_cast<DataType>(config["Tab"]["Type"].as<std::string>()).value());
-
 			}
 			if (config["Tab"]["Name"])
 			{
@@ -566,14 +586,16 @@ namespace FrameExtractor
 			}
 		}
 
-		if (config["TypeName"]) {
+		if (config["TypeName"])
+		{
 			task.mTaskName = config["TypeName"].as<std::string>();
 		}
 
-		if (config["Fields"]) {
-
+		if (config["Fields"])
+		{
 			task.mSpecs->mFieldSpecs = new std::vector<DataSpecification*>();
-			for (const auto& field : config["Fields"]) {
+			for (const auto& field : config["Fields"])
+			{
 				DataSpecification* dataspecs = new DataSpecification();
 				dataspecs->mName = new std::string(field.first.as<std::string>());
 
@@ -600,7 +622,6 @@ namespace FrameExtractor
 				task.mSpecs->mFieldSpecs->push_back(dataspecs);
 			}
 		}
-
 
 		task.GenerateFromSpecs();
 		return task;
@@ -652,7 +673,6 @@ namespace FrameExtractor
 						std::cout << std::endl;
 					}
 				}
-
 			}
 		}
 
@@ -692,7 +712,6 @@ namespace FrameExtractor
 			else if (task.mFieldData.is_type<float>())
 			{
 				std::cout << "Data: " << task.mFieldData.get_value<float>() << std::endl << std::endl;
-
 			}
 			else if (task.mFieldData.is_type<DynamicTask>())
 			{
@@ -708,7 +727,6 @@ namespace FrameExtractor
 					DumpTask(element, tab + 1);
 				}
 			}
-
 		}*/
 	}
 
@@ -721,14 +739,16 @@ namespace FrameExtractor
 		auto* PagePtr = &mTask->mPages;
 		for (int i = 0; i < mIndices.size() - 1; i++)
 		{
-			try {
+			try
+			{
 				auto it = PagePtr->begin();
 				std::advance(it, mIndices[i]);
 				auto key = it->first;
 				// Use the key to access the next level of the map
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTask->mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
@@ -737,7 +757,6 @@ namespace FrameExtractor
 		auto it = PagePtr->begin();
 		std::advance(it, mIndices[mIndices.size() - 1]);
 		return it->second.get_value<std::vector<TaskData>>();
-
 	}
 	std::pair<std::vector<rttr::variant>, std::vector<TaskData>> DynamicTaskInterface::DeleteCurrentLeaf()
 	{
@@ -749,7 +768,8 @@ namespace FrameExtractor
 		std::vector<rttr::variant> keyPath;
 		for (int i = 0; i < mIndices.size() - 1; i++)
 		{
-			try {
+			try
+			{
 				auto it = PagePtr->begin();
 				std::advance(it, mIndices[i]);
 				auto key = it->first;
@@ -757,7 +777,8 @@ namespace FrameExtractor
 				// Use the key to access the next level of the map
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTask->mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
@@ -771,7 +792,6 @@ namespace FrameExtractor
 		PagePtr->erase(it);
 		if (mIndices[mIndices.size() - 1] != 0) mIndices[mIndices.size() - 1]--;
 
-		
 		BackCheckPath(keyPath);
 		return { keyPathRet, retData };
 	}
@@ -786,7 +806,8 @@ namespace FrameExtractor
 		std::vector<rttr::variant> keyPath;
 		for (int i = 0; i < mIndices.size() - 1; i++)
 		{
-			try {
+			try
+			{
 				auto it = PagePtr->begin();
 				std::advance(it, mIndices[i]);
 				auto key = it->first;
@@ -794,7 +815,8 @@ namespace FrameExtractor
 				// Use the key to access the next level of the map
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTask->mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
@@ -809,7 +831,7 @@ namespace FrameExtractor
 		if (mIndices[mIndices.size() - 1] != 0 && mIndices[mIndices.size() - 1] >= idx) mIndices[mIndices.size() - 1]--;
 
 		BackCheckPath(keyPath);
-		return {keyPathRet, retData };
+		return { keyPathRet, retData };
 	}
 
 	// 3, 3, 2 ,4 , 1
@@ -825,7 +847,8 @@ namespace FrameExtractor
 		std::vector<rttr::variant> keyPath;
 		for (int i = 0; i < layer; i++)
 		{
-			try {
+			try
+			{
 				auto it = PagePtr->begin();
 				std::advance(it, mIndices[i]);
 				auto key = it->first;
@@ -833,7 +856,8 @@ namespace FrameExtractor
 				// Use the key to access the next level of the map
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTask->mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
@@ -850,7 +874,6 @@ namespace FrameExtractor
 		BackCheckPath(keyPath);
 
 		return { keyPathRet, retData };
-
 	}
 	void DynamicTaskInterface::AddLayer(std::vector<rttr::variant> keys, const rttr::variant& value)
 	{
@@ -862,14 +885,16 @@ namespace FrameExtractor
 		auto* PagePtr = &mTask->mPages;
 		for (int key = 0; key < keys.size() - 1; key++)
 		{
-			try {
+			try
+			{
 				auto it = PagePtr->begin();
 				std::advance(it, mIndices[key]);
 				auto key = it->first;
 				// Use the key to access the next level of the map
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to add layer as key not found", mTask->mTaskName);
 				return;
 			}
@@ -879,7 +904,6 @@ namespace FrameExtractor
 	}
 	void DynamicTaskInterface::AddLeaf(rttr::variant key)
 	{
-
 		if (mIndices.size() != mTask->mSpecs->MaxDepth())
 		{
 			mIndices.resize(mTask->mSpecs->MaxDepth(), 0);
@@ -887,14 +911,16 @@ namespace FrameExtractor
 		auto* PagePtr = &mTask->mPages;
 		for (int i = 0; i < mIndices.size() - 1; i++)
 		{
-			try {
+			try
+			{
 				auto it = PagePtr->begin();
 				std::advance(it, mIndices[i]);
 				auto key = it->first;
 				// Use the key to access the next level of the map
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTask->mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
@@ -902,14 +928,13 @@ namespace FrameExtractor
 		PagePtr->emplace(key, mTask->GenerateFromSpecs());
 	}
 
-
 	// layer is implied, going from backwards
 	// e.g. if my vector<int> is {3, 3, 2, 4, 1}, size: 5
 	// my vector<rttr::variant> is {"key1", "key2"} -> "key2" is added to index 4, "key 1" is added to index 3
 	// Starting index = size(int) - size(key)
 	void DynamicTaskInterface::AddLeaf(std::vector<rttr::variant>& keys)
 	{
-		int startingIndex = mIndices.size() - keys.size();
+		int startingIndex = static_cast<int>(mIndices.size() - keys.size());
 		if (startingIndex < 0 || startingIndex >= mIndices.size())
 		{
 			FRAMEEX_CORE_ERROR("Dynamic Task {} failed to add leaf as starting index is out of bounds", mTask->mTaskName);
@@ -918,26 +943,30 @@ namespace FrameExtractor
 		auto* PagePtr = &mTask->mPages;
 		for (int i = 0; i < startingIndex; i++)
 		{
-			try {
+			try
+			{
 				auto it = PagePtr->begin();
 				std::advance(it, mIndices[i]);
 				auto key = it->first;
 				// Use the key to access the next level of the map
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTask->mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
 		}
 
-		for (int i = startingIndex; i < mIndices.size()-1; i++)
+		for (int i = startingIndex; i < mIndices.size() - 1; i++)
 		{
-			try {
+			try
+			{
 				PagePtr->emplace(keys[i - startingIndex], ReflectionMap());
 				PagePtr = &PagePtr->at(keys[i - startingIndex]).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTask->mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
@@ -949,22 +978,24 @@ namespace FrameExtractor
 	ReflectionMap& DynamicTaskInterface::GetLayer(int layer)
 	{
 		auto* PagePtr = &mTask->mPages;
-		for (int i = 0; i < layer-1; i++)
+		for (int i = 0; i < layer - 1; i++)
 		{
-			try {
+			try
+			{
 				auto it = PagePtr->begin();
 				std::advance(it, mIndices[i]);
 				auto key = it->first;
 				// Use the key to access the next level of the map
 				PagePtr = &PagePtr->at(key).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTask->mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
 		}
 		auto IT = PagePtr->begin();
-		std::advance(IT, mIndices[layer-1]);
+		std::advance(IT, mIndices[layer - 1]);
 		return IT->second.get_value<ReflectionMap>();
 	}
 
@@ -973,11 +1004,13 @@ namespace FrameExtractor
 		auto* PagePtr = &mTask->mPages;
 		for (int i = 0; i < vars.size(); i++)
 		{
-			try {
+			try
+			{
 				// Use the key to access the next level of the map
 				PagePtr = &PagePtr->at(vars[i]).get_value<ReflectionMap>();
 			}
-			catch (const std::out_of_range&) {
+			catch (const std::out_of_range&)
+			{
 				FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTask->mTaskName);
 				throw std::out_of_range("Key not found in Page");
 			}
@@ -987,17 +1020,19 @@ namespace FrameExtractor
 			PagePtr = &mTask->mPages;
 			for (int i = 0; i < vars.size() - 1; i++)
 			{
-				try {
+				try
+				{
 					// Use the key to access the next level of the map
 					PagePtr = &PagePtr->at(vars[i]).get_value<ReflectionMap>();
 				}
-				catch (const std::out_of_range&) {
+				catch (const std::out_of_range&)
+				{
 					FRAMEEX_CORE_ERROR("Dynamic Task {} failed to get Page as key not found", mTask->mTaskName);
 					throw std::out_of_range("Key not found in Page");
 				}
 			}
 			PagePtr->erase(vars.back());
-			if (mIndices[vars.size()-1] != 0) mIndices[vars.size()-1]--;
+			if (mIndices[vars.size() - 1] != 0) mIndices[vars.size() - 1]--;
 		}
 		if (!vars.empty())
 			vars.pop_back();
@@ -1007,6 +1042,4 @@ namespace FrameExtractor
 			BackCheckPath(vars);
 		}
 	}
-
-
 }

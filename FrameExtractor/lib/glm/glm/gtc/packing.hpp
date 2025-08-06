@@ -25,7 +25,6 @@ namespace glm
 {
 	/// @addtogroup gtc_packing
 	/// @{
-
 	/// First, converts the normalized floating-point value v into a 8-bit integer value.
 	/// Then, the results are packed into the returned 8-bit unsigned integer.
 	///
@@ -444,7 +443,6 @@ namespace glm
 	/// @see uint32 packF2x11_1x10(vec3 const& v)
 	GLM_FUNC_DECL vec3 unpackF2x11_1x10(uint32 p);
 
-
 	/// First, converts the first two components of the normalized floating-point value v into 11-bit signless floating-point values.
 	/// Then, converts the third component of the normalized floating-point value v into a 10-bit signless floating-point value.
 	/// Then, the results are packed into the returned 32-bit unsigned integer.
@@ -599,8 +597,6 @@ namespace glm
 	/// @see gtc_packing
 	/// @see uint8 packUnorm2x3_1x2(vec3 const& v)
 	GLM_FUNC_DECL vec3 unpackUnorm2x3_1x2(uint8 p);
-
-
 
 	/// Convert each component from an integer vector into a packed integer.
 	///

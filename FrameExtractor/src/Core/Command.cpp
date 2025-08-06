@@ -5,7 +5,7 @@
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 13, 2024
+\date       May 13, 2025
 \brief      Declares the Command Design Pattern
 
  /******************************************************************************/
@@ -26,7 +26,8 @@ namespace FrameExtractor
 	}
 	void CommandHistory::undo()
 	{
-		if (!undoStack.empty()) {
+		if (!undoStack.empty())
+		{
 			auto command = std::move(undoStack.back());
 			undoStack.pop_back();
 			command->undo();
@@ -35,7 +36,8 @@ namespace FrameExtractor
 	}
 	void CommandHistory::redo()
 	{
-		if (!redoStack.empty()) {
+		if (!redoStack.empty())
+		{
 			auto command = std::move(redoStack.back());
 			redoStack.pop_back();
 			command->execute();
@@ -44,11 +46,11 @@ namespace FrameExtractor
 	}
 	void CommandHistory::TrimStack(std::deque<std::shared_ptr<ICommand>>& stack)
 	{
-		while (stack.size() > MAX_HISTORY) {
+		while (stack.size() > MAX_HISTORY)
+		{
 			stack.pop_front();  // Remove the oldest command
 		}
 	}
-
 
 	void CommandHistory::markSaved()
 	{
@@ -72,6 +74,4 @@ namespace FrameExtractor
 	{
 		return !undoStack.empty();
 	}
-
 }
-

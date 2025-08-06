@@ -10,25 +10,25 @@ namespace glm
 	GLM_FUNC_QUALIFIER void axisAngle(mat<4, 4, T, Q> const& m, vec<3, T, Q>& axis, T& angle)
 	{
 		T const epsilon =
-		    std::numeric_limits<T>::epsilon() * static_cast<T>(1e2);
+			std::numeric_limits<T>::epsilon() * static_cast<T>(1e2);
 
-        bool const nearSymmetrical =
-            abs(m[1][0] - m[0][1]) < epsilon &&
-            abs(m[2][0] - m[0][2]) < epsilon &&
-            abs(m[2][1] - m[1][2]) < epsilon;
+		bool const nearSymmetrical =
+			abs(m[1][0] - m[0][1]) < epsilon &&
+			abs(m[2][0] - m[0][2]) < epsilon &&
+			abs(m[2][1] - m[1][2]) < epsilon;
 
-		if(nearSymmetrical)
+		if (nearSymmetrical)
 		{
-            bool const nearIdentity =
-                abs(m[1][0] + m[0][1]) < epsilon &&
-                abs(m[2][0] + m[0][2]) < epsilon &&
-                abs(m[2][1] + m[1][2]) < epsilon &&
-                abs(m[0][0] + m[1][1] + m[2][2] - T(3.0)) < epsilon;
+			bool const nearIdentity =
+				abs(m[1][0] + m[0][1]) < epsilon &&
+				abs(m[2][0] + m[0][2]) < epsilon &&
+				abs(m[2][1] + m[1][2]) < epsilon &&
+				abs(m[0][0] + m[1][1] + m[2][2] - T(3.0)) < epsilon;
 			if (nearIdentity)
 			{
 				angle = static_cast<T>(0.0);
 				axis = vec<3, T, Q>(
-				    static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0));
+					static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0));
 				return;
 			}
 			angle = pi<T>();
@@ -38,9 +38,9 @@ namespace glm
 			T xy = (m[1][0] + m[0][1]) * static_cast<T>(0.25);
 			T xz = (m[2][0] + m[0][2]) * static_cast<T>(0.25);
 			T yz = (m[2][1] + m[1][2]) * static_cast<T>(0.25);
-			if((xx > yy) && (xx > zz))
+			if ((xx > yy) && (xx > zz))
 			{
-				if(xx < epsilon)
+				if (xx < epsilon)
 				{
 					axis.x = static_cast<T>(0.0);
 					axis.y = static_cast<T>(0.7071);
@@ -55,7 +55,7 @@ namespace glm
 			}
 			else if (yy > zz)
 			{
-				if(yy < epsilon)
+				if (yy < epsilon)
 				{
 					axis.x = static_cast<T>(0.7071);
 					axis.y = static_cast<T>(0.0);
@@ -87,7 +87,7 @@ namespace glm
 		}
 
 		T const angleCos = (m[0][0] + m[1][1] + m[2][2] - static_cast<T>(1)) * static_cast<T>(0.5);
-		if(angleCos >= static_cast<T>(1.0))
+		if (angleCos >= static_cast<T>(1.0))
 		{
 			angle = static_cast<T>(0.0);
 		}
@@ -100,8 +100,8 @@ namespace glm
 			angle = acos(angleCos);
 		}
 
-        axis = glm::normalize(glm::vec<3, T, Q>(
-            m[1][2] - m[2][1], m[2][0] - m[0][2], m[0][1] - m[1][0]));
+		axis = glm::normalize(glm::vec<3, T, Q>(
+			m[1][2] - m[2][1], m[2][0] - m[0][2], m[0][1] - m[1][0]));
 	}
 
 	template<typename T, qualifier Q>
@@ -113,10 +113,10 @@ namespace glm
 		vec<3, T, Q> n = normalize(axis);
 
 		return mat<4, 4, T, Q>(
-			t * n.x * n.x + c,          t * n.x * n.y + n.z * s,    t * n.x * n.z - n.y * s,    static_cast<T>(0.0),
-			t * n.x * n.y - n.z * s,    t * n.y * n.y + c,          t * n.y * n.z + n.x * s,    static_cast<T>(0.0),
-			t * n.x * n.z + n.y * s,    t * n.y * n.z - n.x * s,    t * n.z * n.z + c,          static_cast<T>(0.0),
-			static_cast<T>(0.0),        static_cast<T>(0.0),        static_cast<T>(0.0),        static_cast<T>(1.0));
+			t * n.x * n.x + c, t * n.x * n.y + n.z * s, t * n.x * n.z - n.y * s, static_cast<T>(0.0),
+			t * n.x * n.y - n.z * s, t * n.y * n.y + c, t * n.y * n.z + n.x * s, static_cast<T>(0.0),
+			t * n.x * n.z + n.y * s, t * n.y * n.z - n.x * s, t * n.z * n.z + c, static_cast<T>(0.0),
+			static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0));
 	}
 
 	template<typename T, qualifier Q>

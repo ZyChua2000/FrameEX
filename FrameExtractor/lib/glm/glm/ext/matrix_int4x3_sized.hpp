@@ -24,7 +24,6 @@ namespace glm
 {
 	/// @addtogroup ext_matrix_int4x3_sized
 	/// @{
-
 	/// 8 bit signed integer 4x3 matrix.
 	///
 	/// @see ext_matrix_int4x3_sized

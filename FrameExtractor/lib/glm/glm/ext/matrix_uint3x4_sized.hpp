@@ -24,7 +24,6 @@ namespace glm
 {
 	/// @addtogroup ext_matrix_uint3x4_sized
 	/// @{
-
 	/// 8 bit unsigned integer 3x4 matrix.
 	///
 	/// @see ext_matrix_uint3x4_sized
