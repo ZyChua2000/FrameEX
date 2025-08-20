@@ -195,7 +195,6 @@ copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
     <ClInclude Include="inc\Graphics\Video.hpp" />
     <ClInclude Include="inc\Template\DataSpecification.hpp" />
     <ClInclude Include="inc\Template\DynamicTask.hpp" />
-    <ClInclude Include="inc\Template\TaskManager.hpp" />
     <ClInclude Include="inc\Template\TemplateDataType.hpp" />
     <ClInclude Include="inc\Template\TemplateEnums.hpp" />
     <ClInclude Include="lib\OpenXLSX\inc\OpenXLSX.hpp" />
@@ -707,7 +706,6 @@ copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"</Command>
     <ClCompile Include="src\Graphics\Video.cpp" />
     <ClCompile Include="src\Template\DataSpecification.cpp" />
     <ClCompile Include="src\Template\DynamicTask.cpp" />
-    <ClCompile Include="src\Template\TaskManager.cpp" />
     <ClCompile Include="src\Template\TemplateDataType.cpp" />
   </ItemGroup>
   <ItemGroup>
