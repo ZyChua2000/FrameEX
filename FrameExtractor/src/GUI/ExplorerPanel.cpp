@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       ExplorerPanel.cpp
 \author     Chua Zheng Yang
@@ -9,16 +9,20 @@
 \brief      Defines the Explorer Panel class which creates the interface for a
 			exploring files
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
+
+ // Third-party includes
+#include <imgui.h>
+#include <imgui_toggle.h>
+
+ // Project includes
 #include <GUI/ExplorerPanel.hpp>
 #include <GUI/ImGuiManager.hpp>
 #include <GUI/GuiResourcesManager.hpp>
 #include <Core/LoggerManager.hpp>
 #include <Core/AssetManager.hpp>
-#include <imgui.h>
-#include <imgui_toggle.h>
 #include <Graphics/Video.hpp>
 
 namespace FrameExtractor
@@ -52,7 +56,7 @@ namespace FrameExtractor
 		}
 		else
 		{
-		//	DrawAssets();
+			DrawAssets();
 		}
 
 		ImGui::EndChild();
@@ -64,11 +68,23 @@ namespace FrameExtractor
 		if (!mCache.contains(path))
 		{
 			Video video(path);
-			video.Decode(0);
-			mCache[path].mMaxFrames = video.GetMaxFrames();
-			mCache[path].mTexture = video.GetFrame();
+			video.Load();
+			if (video.IsLoaded())
+			{
+				video.Decode(0);
+				mCache[path].mMaxFrames = video.GetMaxFrames();
+				mCache[path].mTexture = video.GetFrame();
+				video.Unload();
+				return mCache[path];
+			}
+			video.Load();
+			video.Unload();
+			return { nullptr, 0 };
 		}
-		return mCache[path];
+		else
+		{
+			return mCache[path];
+		}
 	}
 	void ExplorerPanel::DrawDirectory()
 	{
@@ -117,6 +133,7 @@ namespace FrameExtractor
 		}
 
 		if (std::filesystem::exists(mCurrentPath))
+		{
 			for (auto& entry : std::filesystem::directory_iterator(mCurrentPath))
 			{
 				const std::filesystem::path& path = entry.path();
@@ -131,14 +148,15 @@ namespace FrameExtractor
 				}
 				else if (extension == ".mp4")
 				{
-					if (!mCache.contains(entry))
+					auto Cache = GetCache(entry);
+					if (Cache.mTexture)
 					{
-						Video video(entry);
-						video.Decode(0);
-						mCache[entry].mTexture = video.GetFrame();
-						mCache[entry].mMaxFrames = video.GetMaxFrames();
+						screenID = Cache.mTexture->GetTextureID();
 					}
-					screenID = static_cast<uint64_t>(mCache[entry].mTexture->GetTextureID());
+					else
+					{
+						screenID = static_cast<uint64_t>(Resource(Icon::FILE_ICON)->GetTextureID());
+					}
 				}
 				else
 				{
@@ -154,7 +172,7 @@ namespace FrameExtractor
 				{
 					if (ImGui::BeginDragDropSource())
 					{
-						ImGui::SetDragDropPayload("IMPORTVIDEO", entry.path().string().c_str(), entry.path().string().size() + 1);
+						ImGui::SetDragDropPayload("IMPORT_VIDEO_FILENAME", entry.path().string().c_str(), entry.path().string().size() + 1);
 						ImGui::EndDragDropSource();
 					}
 				}
@@ -176,6 +194,7 @@ namespace FrameExtractor
 
 				ImGui::PopID();
 			}
+		}
 		ImGui::PopStyleColor();
 		ImGui::Columns(1);
 	}
@@ -201,15 +220,17 @@ namespace FrameExtractor
 
 			if (metaData.mAssetType == AssetType::Video)
 			{
-				if (!mCache.contains(path))
+				auto Cache = GetCache(path);
+				if (Cache.mTexture)
 				{
-					AssetManager::GetAsset<Video>(handle)->Decode(0);
-					mCache[path].mTexture = AssetManager::GetAsset<Video>(handle)->GetFrame();
-					mCache[path].mMaxFrames = AssetManager::GetAsset<Video>(handle)->GetMaxFrames();
+					screenID = Cache.mTexture->GetTextureID();
 				}
-				screenID = static_cast<uint64_t>(mCache[path].mTexture->GetTextureID());
+				else
+				{
+					screenID = static_cast<uint64_t>(Resource(Icon::FILE_ICON)->GetTextureID());
+				}
 			}
-			else if (metaData.mAssetType == AssetType::Video)
+			else if (metaData.mAssetType == AssetType::Texture)
 			{
 				screenID = AssetManager::GetAsset<Texture>(handle)->GetTextureID();
 			}
@@ -223,7 +244,7 @@ namespace FrameExtractor
 			{
 				if (ImGui::BeginDragDropSource())
 				{
-					ImGui::SetDragDropPayload("IMPORTVIDEO", path.string().c_str(), path.string().size() + 1);
+					ImGui::SetDragDropPayload("IMPORT_VIDEO_HANDLE", &handle, sizeof(handle));
 					ImGui::EndDragDropSource();
 				}
 			}

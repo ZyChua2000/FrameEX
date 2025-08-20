@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       ProjectPanel.hpp
 \author     Chua Zheng Yang
@@ -9,19 +9,28 @@
 \brief      Declares the Project Panel class which has an interface for all the
 			videos involved in the project.
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #ifndef ProjectPanel_HPP
 #define ProjectPanel_HPP
+ // Standard Library includes
 #include <string>
 #include <vector>
 #include <filesystem>
+
+// Project includes
 #include <GUI/IPanel.hpp>
 #include <Core/Project.hpp>
 namespace FrameExtractor
 {
 	class ExplorerPanel;
 	class ViewportPanel;
+
+	/*!***********************************************************************
+		\brief
+			Class that represents the Project Panel in the GUI.
+			It contains an interface for all the assets involved in the project.
+	*************************************************************************/
 	class ProjectPanel : public IPanel
 	{
 	public:

@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       Command.cpp
 \author     Chua Zheng Yang
@@ -8,8 +8,10 @@
 \date       May 13, 2025
 \brief      Declares the Command Design Pattern
 
- /******************************************************************************/
+ ******************************************************************************/
 #include <FrameExtractorPCH.hpp>
+
+// Project Includes
 #include "Core/Command.hpp"
 namespace FrameExtractor
 {

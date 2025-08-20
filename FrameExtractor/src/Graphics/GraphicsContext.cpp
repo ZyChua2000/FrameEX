@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       GraphicsContext.cpp
 \author     Chua Zheng Yang
@@ -9,18 +9,20 @@
 \brief      Defines the Graphics Context class which handles the context on which
 			the graphics API will run on.
 
- /******************************************************************************/
+ ******************************************************************************/
 #include <FrameExtractorPCH.hpp>
-
+ // Third-party includes
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
-
-#include <Core/LoggerManager.hpp>
-#include <Graphics/GraphicsContext.hpp>
 extern "C"
 {
 #include <libavutil/avutil.h>
 }
+
+// Project includes
+#include <Core/LoggerManager.hpp>
+#include <Graphics/GraphicsContext.hpp>
+
 
 namespace FrameExtractor
 {

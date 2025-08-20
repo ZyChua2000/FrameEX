@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       ConsolePanel.cpp
 \author     Chua Zheng Yang
@@ -9,10 +9,12 @@
 \brief      Defines the Console Panel class which creates the interface for a
 			console panel.
 
- /******************************************************************************/
+ ******************************************************************************/
 #include "FrameExtractorPCH.hpp"
-#include "GUI/ConsolePanel.hpp"
+ // Standard Library includes
 #include <format>
+ // Project includes
+#include "GUI/ConsolePanel.hpp"
 namespace FrameExtractor
 {
 	ConsolePanel::ConsolePanel()

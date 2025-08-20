@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       ToolsPanel.hpp
 \author     Chua Zheng Yang
@@ -8,25 +8,66 @@
 \date       May 10, 2025
 \brief      Declares the Tools Panel class which has all the tools.
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #ifndef ToolsPanel_HPP
 #define ToolsPanel_HPP
+ // Standard Library includes
 #include <string>
+
+// Third-party includes
 #include <imgui.h>
+
+// Project includes
 #include <GUI/IPanel.hpp>
 #include <Core/Project.hpp>
 namespace FrameExtractor
 {
 	class ExplorerPanel;
 
+	/*!***********************************************************************
+		\brief
+			Class that represents the Tools Panel in the GUI, which contains
+			various tools for data extraction and manipulation.
+	*************************************************************************/
 	class ToolsPanel : public IPanel
 	{
 	public:
+
+		/*!***********************************************************************
+			\brief
+				Constructor for the ToolsPanel class.
+			\param[in] project
+				The project associated with this tools panel.
+		*************************************************************************/
 		ToolsPanel(Project* project);
+
+		/*!***********************************************************************
+			\brief
+				Default destructor for the ToolsPanel class.
+		*************************************************************************/
 		~ToolsPanel() override;
+
+		/*!***********************************************************************
+			\brief
+				Renders the ImGui interface for the Tools Panel.
+			\param[in] dt
+				The delta time since the last frame.
+		*************************************************************************/
 		virtual void OnImGuiRender(float dt) override;
+
+		/*!***********************************************************************
+			\brief
+				Returns the name of the panel.
+			\return
+				The name of the panel as a string.
+		*************************************************************************/
 		virtual const char* GetName() const override;
+
+		/*!***********************************************************************
+			\brief
+				Callback function that is called when the panel is attached.
+		*************************************************************************/
 		virtual void OnAttach() override;
 	private:
 		struct PageNumber

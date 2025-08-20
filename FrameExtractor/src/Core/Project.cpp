@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       Project.cpp
 \author     Chua Zheng Yang
@@ -9,13 +9,15 @@
 \brief      Defines the Project class that contains all data and settings
 			related to the project.
 
- /******************************************************************************/
+ ******************************************************************************/
 #include <FrameExtractorPCH.hpp>
-#include <Core/Project.hpp>
-#include <Core/LoggerManager.hpp>
+ // Third-party includes
 #define YAML_CPP_STATIC_DEFINE
 #include <yaml-cpp/yaml.h>
-#include <Template/TaskManager.hpp>
+ // Project includes
+#include <Core/Project.hpp>
+#include <Core/LoggerManager.hpp>
+
 namespace YAML
 {
 	template<>
@@ -327,6 +329,7 @@ namespace FrameExtractor
 	Project::Project()
 	{
 		mDynamicTask = GenerateTask("resources\\presets\\TaskType\\Counting\\DiorCounting.yaml");
+		AssetManager::mAssetDirectory = &mAssetDir;
 	}
 
 	Project::~Project()
@@ -381,9 +384,46 @@ namespace FrameExtractor
 		mProjectDir = node["Project Directory"].as<std::string>();
 		mAssetDir = node["Asset Directory"].as<std::string>();
 		mProjectFilePath = path;
-		AssetManager::mFileWatcher.Start(mAssetDir);
 		AssetManager::Clear();
-		AssetManager::LoadDirectory(mAssetDir);
+
+
+		std::unordered_set<MetaData> cache_metaDatas;
+		std::unordered_set<std::filesystem::path> cache_existingPaths;
+		if (node["Metadata"])
+		{
+			for (const auto& handle : node["Metadata"])
+			{
+				AssetHandle handleValue = handle.first.as<uint64_t>();
+				MetaData metadata;
+				metadata.mPath = mAssetDir/ handle.second["Path"].as<std::string>();
+				if (std::filesystem::exists(metadata.mPath) == false)
+				{
+					continue;
+				}
+				metadata.mAssetType = magic_enum::enum_cast<AssetType>(handle.second["Asset Type"].as<std::string>()).value_or(AssetType::Unknown);
+				metadata.mHandle = handleValue;
+				AssetManager::RegisterAsset(metadata);
+				cache_existingPaths.insert(metadata.mPath);
+			}
+		}
+		AssetManager::AddOnDirectory(mAssetDir, cache_existingPaths);
+		AssetManager::mFileWatcher.Start(mAssetDir);
+
+		if (node["AssetsInProject"])
+		{
+			for (const auto& handle : node["AssetsInProject"])
+			{
+				AssetHandle assetHandle = handle.as<uint64_t>();
+				if (AssetManager::GetAssets().find(assetHandle) != AssetManager::GetAssets().end())
+				{
+					mVideosInProject.insert(assetHandle);
+				}
+				else
+				{
+					FRAMEEX_CORE_ERROR("Asset with handle {} not found in project", static_cast<uint64_t>(assetHandle));
+				}
+			}
+		}
 
 		std::map<StoreCode, std::map<Hour, CountData>> tmpCountingData;
 		std::map<StoreCode, std::map<Hour, AggregateData>> tmpAggregateStoreData;
@@ -437,6 +477,26 @@ namespace FrameExtractor
 		emitter << YAML::Key << "Project Name" << YAML::Value << mName;
 		emitter << YAML::Key << "Project Directory" << YAML::Value << mProjectDir.string();
 		emitter << YAML::Key << "Asset Directory" << YAML::Value << mAssetDir.string();
+
+
+		emitter << YAML::Key << "Metadata" << YAML::Value << YAML::BeginMap;
+		for (const auto& [handle, metadata] : AssetManager::GetMetaDatas())
+		{
+			emitter << YAML::Key << handle;
+			emitter << YAML::Value << YAML::BeginMap;
+			emitter << YAML::Key << "Path" << YAML::Value << std::filesystem::relative(metadata.mPath, mAssetDir).string();
+			emitter << YAML::Key << "Asset Type" << YAML::Value << magic_enum::enum_name<AssetType>(metadata.mAssetType);
+			emitter << YAML::EndMap; // End of metadata for this handle
+		}
+		emitter << YAML::EndMap;
+
+		emitter << YAML::Key << "AssetsInProject" << YAML::Value << YAML::BeginSeq;
+		for (const auto& handle : mVideosInProject)
+		{
+			emitter << handle;
+		}
+		emitter << YAML::EndSeq;
+
 
 		emitter << YAML::Key << "Counting Data" << YAML::Value << YAML::BeginMap;
 		//std::map<StoreCode, std::map<Hour, CountData>> mCountingData;

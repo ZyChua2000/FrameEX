@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+﻿/******************************************************************************/
 /*!
 \file       ViewportPanel.cpp
 \author     Chua Zheng Yang
@@ -8,8 +8,9 @@
 \date       May 10, 2025
 \brief      Defines the Viewport Panel class.
 
- /******************************************************************************/
+ ******************************************************************************/
 #include "FrameExtractorPCH.hpp"
+ // Project includes
 #include <Core/LoggerManager.hpp>
 #include <Core/Command.hpp>
 #include "GUI/ViewportPanel.hpp"
@@ -27,7 +28,7 @@ namespace FrameExtractor
 
 	ViewportPanel::~ViewportPanel()
 	{
-		if (mVideo) delete mVideo;
+
 	}
 
 	void ViewportPanel::OnImGuiRender(float dt)
@@ -61,8 +62,9 @@ namespace FrameExtractor
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_NAME"))
 				{
-					const char* droppedItem = static_cast<const char*>(payload->Data);
-					SetVideo({ droppedItem });
+					IM_ASSERT(payload->DataSize == sizeof(AssetHandle));
+					AssetHandle handle = *static_cast<const AssetHandle*>(payload->Data);
+					SetVideo( handle );
 				}
 			}
 		}
@@ -73,8 +75,9 @@ namespace FrameExtractor
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_NAME"))
 				{
-					const char* droppedItem = static_cast<const char*>(payload->Data);
-					SetVideo({ droppedItem });
+					IM_ASSERT(payload->DataSize == sizeof(AssetHandle));
+					AssetHandle handle = *static_cast<const AssetHandle*>(payload->Data);
+					SetVideo( handle );
 				}
 			}
 		}
@@ -637,11 +640,12 @@ namespace FrameExtractor
 			return;
 		}
 	}
-	void ViewportPanel::SetVideo(std::filesystem::path path)
+	void ViewportPanel::SetVideo(AssetHandle handle)
 	{
 		if (mVideo)
-			delete mVideo;
-		mVideo = new Video(path);
+			mVideo->Unload();
+		mVideo = AssetManager::GetAsset<Video>(handle);
+		mVideo->Load();
 		mVideo->DecodeTime(1.0f / 60, mSpeedMultiplier);
 		DTTrack = 0.f;
 		mFrameNumber = 0;

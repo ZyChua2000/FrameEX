@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       DynamicTask.cpp
 \author     Chua Zheng Yang
@@ -8,14 +8,18 @@
 \date       June 23, 2025
 \brief      Defines the Dynamic Task struct which represents a task that can
 			be a template reference
- /******************************************************************************/
+ ******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
-#include <Template/DynamicTask.hpp>
+
+ // Third-party includes
 #define YAML_CPP_STATIC_DEFINE
 #include <yaml-cpp/yaml.h>
-#include <Core/LoggerManager.hpp>
 #include <magic_enum/magic_enum.hpp>
+
+ // Project includes
+#include <Template/DynamicTask.hpp>
+#include <Core/LoggerManager.hpp>
 #include <Template/TemplateDataType.hpp>
 
 namespace YAML

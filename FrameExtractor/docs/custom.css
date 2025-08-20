@@ -1,0 +1,184 @@
+/* =========================
+   Custom Doxygen Theme
+   IMGUI-inspired colors
+   ========================= */
+
+:root {
+  --bg-color: #252131;
+  --text-color: #F4F1DE;
+  --main-color: #DA115E;
+  --accent-color: #792359;
+  --highlight-color: #C7EF00;
+  --panel-color: #2f2a40;
+}
+
+/* General page background and text */
+body, div.contents {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+/* Links */
+a {
+  color: var(--main-color);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--highlight-color);
+  text-decoration: underline;
+}
+
+/* Top navigation bar */
+#top {
+  background-color: var(--main-color);
+  color: var(--text-color);
+  border-bottom: 2px solid var(--accent-color);
+}
+#top a {
+  color: var(--text-color);
+  font-weight: bold;
+}
+#top a:hover {
+  color: var(--highlight-color);
+}
+
+/* Tabs */
+.tablist, .tabs {
+  background: var(--panel-color);
+  border-bottom: 2px solid var(--accent-color);
+}
+.tablist li, .tabs li {
+  display: inline-block;
+  margin: 0;
+  padding: 8px 14px;
+}
+.tablist a, .tabs a {
+  color: var(--text-color);
+  font-weight: bold;
+}
+.tablist a:hover, .tabs a:hover {
+  color: var(--highlight-color);
+}
+.tablist li.current a, .tabs li.current a {
+  color: var(--highlight-color);
+  border-bottom: 2px solid var(--highlight-color);
+}
+
+/* Side navigation tree */
+div#nav-tree, div#nav-path {
+  background-color: var(--panel-color);
+  border-right: 1px solid var(--accent-color);
+}
+div#nav-tree a, div#nav-path a {
+  color: var(--text-color);
+}
+div#nav-tree a:hover, div#nav-path a:hover {
+  color: var(--highlight-color);
+}
+
+/* Code blocks */
+div.fragment, pre.fragment {
+  background-color: var(--panel-color);
+  border: 1px solid var(--accent-color);
+  border-radius: 6px;
+  color: var(--highlight-color);
+  padding: 6px 10px;
+  font-family: Consolas, monospace;
+}
+
+/* Syntax highlighting */
+span.keyword { color: var(--highlight-color); font-weight: bold; }
+span.comment { color: #7f8c8d; font-style: italic; }
+span.string  { color: #f39c12; }
+
+/* Tables */
+table.doxtable {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid var(--accent-color);
+}
+table.doxtable th {
+  background-color: var(--accent-color);
+  color: var(--text-color);
+  padding: 6px;
+}
+table.doxtable td {
+  border: 1px solid var(--accent-color);
+  padding: 6px;
+}
+
+/* Section headers */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--highlight-color);
+  font-weight: bold;
+}
+
+/* Member declarations and details */
+.memitem {
+  background: var(--panel-color);
+  border: 1px solid var(--accent-color);
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 6px;
+}
+.memname {
+  color: var(--main-color);
+  font-weight: bold;
+}
+
+/* Search box */
+#MSearchBox {
+  background-color: var(--panel-color);
+  border: 1px solid var(--accent-color);
+  color: var(--text-color);
+}
+#MSearchField {
+  background: transparent;
+  color: var(--text-color);
+  border: none;
+}
+#MSearchResultsWindow {
+  background: var(--panel-color);
+  border: 1px solid var(--accent-color);
+  color: var(--text-color);
+}
+
+/* Index and navigation links */
+div.qindex, div.navtab {
+  background: var(--panel-color);
+  border: 1px solid var(--accent-color);
+  padding: 6px;
+  border-radius: 4px;
+}
+div.qindex a, div.navtab a {
+  color: var(--main-color);
+}
+div.qindex a:hover, div.navtab a:hover {
+  color: var(--highlight-color);
+}
+
+/* Footer */
+#nav-path, #nav-path a {
+  color: var(--text-color);
+}
+#nav-path a:hover {
+  color: var(--highlight-color);
+}
+address.footer {
+  background: var(--panel-color);
+  border-top: 1px solid var(--accent-color);
+  color: var(--text-color);
+  padding: 8px;
+  text-align: center;
+}
+
+/* Tooltips */
+.ttc {
+  background: var(--panel-color);
+  border: 1px solid var(--accent-color);
+  color: var(--text-color);
+  padding: 6px;
+  border-radius: 4px;
+}

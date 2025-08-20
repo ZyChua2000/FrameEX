@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       AssetManager.hpp
 \author     Chua Zheng Yang
@@ -8,8 +8,10 @@
 \date       July 17, 2025
 \brief      Defines the Asset Manager class
 
-/******************************************************************************/
+******************************************************************************/
 #include <FrameExtractorPCH.hpp>
+
+// Project includes
 #include "Core/AssetManager.hpp"
 namespace FrameExtractor
 {
@@ -26,26 +28,34 @@ namespace FrameExtractor
 	std::unordered_map<AssetHandle, Ref<Asset>> AssetManager::mAssets;
 	std::unordered_map<AssetHandle, MetaData> AssetManager::mMetaData;
 	std::unordered_map<std::string, AssetManager::AssetLoaderFunc> AssetManager::mLoaderRegistry;
+	std::filesystem::path* AssetManager::mAssetDirectory = nullptr;
+
+	std::queue<std::filesystem::path> AssetManager::mAssetRegisterQueue;
+	std::queue<std::filesystem::path> AssetManager::mAssetReloadQueue;
+	std::queue<std::filesystem::path> AssetManager::mAssetRemoveQueue;
+	std::mutex AssetManager::mAssetQueueMutex;
+
 	FileWatcher AssetManager::mFileWatcher;
 
 	void AssetManager::Init()
 	{
 		RegisterAssetLoader();
-
+		
 		mFileWatcher.SetCallback([&](const std::filesystem::path& file, filewatch::Event event)
 		{
+			std::lock_guard<std::mutex> lock(mAssetQueueMutex);
 			switch (event)
 			{
 			case filewatch::Event::added:
-				LoadNewAsset(file);
+				mAssetRegisterQueue.push(*mAssetDirectory / file);
 				FRAMEEX_CORE_INFO("New asset added: {}", file.string());
 				break;
 			case filewatch::Event::modified:
-				ReloadAsset(file);
+				mAssetReloadQueue.push(*mAssetDirectory / file);
 				FRAMEEX_CORE_INFO("Asset modified: {}", file.string());
 				break;
 			case filewatch::Event::removed:
-				UnloadAsset(file);
+				mAssetRemoveQueue.push(*mAssetDirectory / file);
 				FRAMEEX_CORE_INFO("Asset removed: {}", file.string());
 				break;
 			default:
@@ -53,6 +63,62 @@ namespace FrameExtractor
 			}
 		});
 	}
+
+	void AssetManager::Update()
+	{
+		std::lock_guard<std::mutex> lock(mAssetQueueMutex);
+		while (!mAssetRegisterQueue.empty())
+		{
+			RegisterAsset(mAssetRegisterQueue.front());
+			mAssetRegisterQueue.pop();
+		}
+		while (!mAssetReloadQueue.empty())
+		{
+			ReloadAsset(mAssetReloadQueue.front());
+			mAssetReloadQueue.pop();
+		}
+		while (!mAssetRemoveQueue.empty())
+		{
+			RemoveAsset(mAssetRemoveQueue.front());
+			mAssetRemoveQueue.pop();
+		}
+	}
+
+	void AssetManager::RegisterAsset(const MetaData& data)
+	{
+		std::string extension = data.mPath.extension().string();
+
+		auto loaderIt = mLoaderRegistry.find(extension);
+		if (loaderIt == mLoaderRegistry.end())
+		{
+			FRAMEEX_CORE_ERROR("Unsupported asset type: {}", extension);
+			return;
+		}
+		mAssets[data.mHandle] = loaderIt->second(data.mPath);
+		mMetaData[data.mHandle] = data;
+	}
+
+	void AssetManager::RegisterAsset(const std::filesystem::path& path)
+	{
+		std::string extension = path.extension().string();
+
+		auto loaderIt = mLoaderRegistry.find(extension);
+		if (loaderIt == mLoaderRegistry.end())
+		{
+			FRAMEEX_CORE_ERROR("Unsupported asset type: {}", extension);
+			return;
+		}
+
+		MetaData data{
+		.mPath = path,
+		.mHandle = AssetHandle(),
+		.mAssetType = DetermineAssetType(extension) // Need a function for this
+		};
+
+		mAssets[data.mHandle] = loaderIt->second(path);
+		mMetaData[data.mHandle] = data;
+	}
+
 	void AssetManager::LoadNewAsset(const std::filesystem::path& path)
 	{
 		std::string extension = path.extension().string();
@@ -72,6 +138,7 @@ namespace FrameExtractor
 
 		mAssets[data.mHandle] = loaderIt->second(path);
 		mMetaData[data.mHandle] = data;
+		mAssets[data.mHandle]->Load();
 	}
 
 	void AssetManager::LoadAsset(std::filesystem::path path, AssetHandle handle, AssetType type)
@@ -112,8 +179,6 @@ namespace FrameExtractor
 		if (it != mAssets.end())
 		{
 			it->second->Unload();
-			mAssets.erase(it);
-			mMetaData.erase(handle);
 		}
 		else
 		{
@@ -127,8 +192,33 @@ namespace FrameExtractor
 			if (mMetaData[it->first].mPath == path)
 			{
 				it->second->Unload();
-				it = mAssets.erase(it);
+				return;
+			}
+		}
+	}
+	void AssetManager::RemoveAsset(AssetHandle handle)
+	{
+		auto it = mAssets.find(handle);
+		if (it != mAssets.end())
+		{
+			it->second->Unload();
+			mMetaData.erase(handle);
+			mAssets.erase(it);
+		}
+		else
+		{
+			FRAMEEX_CORE_ERROR("Asset with handle {} not found", static_cast<uint64_t>(handle));
+		}
+	}
+	void AssetManager::RemoveAsset(const std::filesystem::path& path)
+	{
+		for (auto it = mAssets.begin(); it != mAssets.end(); it++)
+		{
+			if (mMetaData[it->first].mPath == path)
+			{
+				it->second->Unload();
 				mMetaData.erase(it->first);
+				it = mAssets.erase(it);
 				return;
 			}
 		}
@@ -165,18 +255,40 @@ namespace FrameExtractor
 		}
 		FRAMEEX_CORE_ERROR("Asset with path {} not found", path.string());
 	}
-	void AssetManager::LoadDirectory(const std::filesystem::path& directory)
+	void AssetManager::AddOnDirectory(const std::filesystem::path& directory, const std::unordered_set<std::filesystem::path>& excludedPaths)
 	{
-		if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory))
+		if (!std::filesystem::exists(directory))
 		{
-			FRAMEEX_CORE_ERROR("Directory does not exist or is not a directory: {}", directory.string());
+			FRAMEEX_CORE_ERROR("Directory does not exist: {}", directory.string());
 			return;
 		}
 		for (const auto& entry : std::filesystem::directory_iterator(directory))
 		{
 			if (entry.is_regular_file())
 			{
-				LoadNewAsset(entry.path());
+				if (excludedPaths.find(entry.path()) == excludedPaths.end())
+				{
+					RegisterAsset(entry.path());
+				}
+			}
+			else if (entry.is_directory())
+			{
+				LoadDirectory(entry.path()); // Recursively load assets in subdirectories
+			}
+		}
+	}
+	void AssetManager::LoadDirectory(const std::filesystem::path& directory)
+	{
+		if (!std::filesystem::exists(directory))
+		{
+			FRAMEEX_CORE_ERROR("Directory does not exist: {}", directory.string());
+			return;
+		}
+		for (const auto& entry : std::filesystem::directory_iterator(directory))
+		{
+			if (entry.is_regular_file())
+			{
+				RegisterAsset(entry.path());
 			}
 			else if (entry.is_directory())
 			{

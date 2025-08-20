@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       ConsolePanel.hpp
 \author     Chua Zheng Yang
@@ -9,7 +9,7 @@
 \brief      Declares the Console Panel class which creates the interface for a
 			console panel.
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #ifndef ConsolePanel_HPP
 #define ConsolePanel_HPP
@@ -21,12 +21,33 @@
 
 namespace FrameExtractor
 {
+	/*!***********************************************************************
+		\brief
+			Class that represents a console panel in the GUI.
+	*************************************************************************/
 	class ConsolePanel : public IPanel
 	{
 	public:
+		/*!***********************************************************************
+			\brief
+				Default constructor for ConsolePanel class.
+		*************************************************************************/
 		ConsolePanel();
+
+		/*!***********************************************************************
+			\brief
+				Constructor that initializes the console panel with a project.
+			\param[in] project
+				The project associated with the console panel.
+		*************************************************************************/
 		~ConsolePanel() override;
+
+		/*!***********************************************************************
+			\brief
+				Clears the console log.
+		*************************************************************************/
 		void ClearLog();
+
 
 		template<typename... Args>
 		std::string Log(spdlog::format_string_t<Args...> fmt, Args &&...args)

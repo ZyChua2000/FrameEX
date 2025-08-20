@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       GUIResourcesManager.hpp
 \author     Chua Zheng Yang
@@ -8,13 +8,19 @@
 \date       May 22, 2025
 \brief      Declares the Resources Manager that contains all resources needed for
 			GUI.
-
- /******************************************************************************/
+ ******************************************************************************/
+ // Standard Library includes
 #include <unordered_map>
+
+// Project includes
 #include <Core/Core.hpp>
 #include <Graphics/Texture.hpp>
 namespace FrameExtractor
 {
+	/*!***********************************************************************
+		\brief
+			Enum that contains all the icons used in the GUI.
+	*************************************************************************/
 	enum Icon
 	{
 		//Keys
@@ -48,19 +54,50 @@ namespace FrameExtractor
 		TOTAL_ICONS
 	};
 
+	/*!***********************************************************************
+		\brief
+			Class that manages all GUI resources such as icons.
+	*************************************************************************/
 	class GUIResourcesManager
 	{
 	public:
+
 		GUIResourcesManager(const GUIResourcesManager&) = delete;
+
+		/*!***********************************************************************
+			\brief
+				Default destructor for GUIResourcesManager class.
+		*************************************************************************/
 		~GUIResourcesManager() {};
 
+		/*!***********************************************************************
+			\brief
+				Gets the singleton instance of GUIResourcesManager.
+			\return
+				Reference to the singleton instance of GUIResourcesManager.
+		*************************************************************************/
 		static GUIResourcesManager& GetInstance()
 		{
 			static GUIResourcesManager instance;
 			return instance;
 		}
+
+		/*!***********************************************************************
+			\brief
+				Gets the icon texture for a specific icon.
+			\param[in] icon
+				The icon to get the texture for.
+			\return
+				Reference to the texture of the specified icon.
+		*************************************************************************/
 		Ref<Texture> GetIcon(Icon icon) { return mIcons[icon]; }
 	private:
+
+		/*!***********************************************************************
+			\brief
+				Default constructor for GUIResourcesManager class.
+				Loads all the icons used in the GUI.
+		*************************************************************************/
 		GUIResourcesManager()
 		{
 			mIcons[Icon::CTRL_ICON] = MakeRef<Texture>("resources/icons/Ctrl.png");
@@ -89,6 +126,11 @@ namespace FrameExtractor
 			mIcons[Icon::ADDFILE_ICON] = MakeRef<Texture>("resources/icons/addfile.png");
 			mIcons[Icon::CLEAR_ICON] = MakeRef<Texture>("resources/icons/clear.png");
 			mIcons[Icon::SETTINGS_ICON] = MakeRef<Texture>("resources/icons/settings.png");
+
+			for (auto& icon : mIcons)
+			{
+				icon.second->Load();
+			}
 		}
 		std::unordered_map<Icon, Ref<Texture>> mIcons;
 	};

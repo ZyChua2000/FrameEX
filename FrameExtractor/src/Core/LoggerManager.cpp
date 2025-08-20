@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       LoggerManager.cpp
 \author     Chua Zheng Yang
@@ -8,12 +8,16 @@
 \date       May 11, 2025
 \brief      Defines the Logger Manager class which handles the logs
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
-#include <Core\LoggerManager.hpp>
+
+ // Standard Library includes
 #include <spdlog\sinks\stdout_color_sinks.h>
 #include <spdlog\sinks\ostream_sink.h>
+ // Project includes
+#include <Core\LoggerManager.hpp>
+
 namespace FrameExtractor
 {
 	spdlog::logger* LoggerManager::sEngineLogger;

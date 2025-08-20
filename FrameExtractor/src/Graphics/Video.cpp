@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       Video.cpp
 \author     Chua Zheng Yang
@@ -8,21 +8,24 @@
 \date       May 11, 2025
 \brief      Defines the Video class that represents a loaded video
 
- /******************************************************************************/
+ ******************************************************************************/
 #include <FrameExtractorPCH.hpp>
-#include <Core/LoggerManager.hpp>
-#include <Graphics/Video.hpp>
+ // Third-party includes
 #include <GLFW/glfw3.h>
 extern "C"
 {
 #include <libavutil/imgutils.h>
 }
 #include <FileWatch.hpp>
+
+// Project includes
+#include <Core/LoggerManager.hpp>
+#include <Graphics/Video.hpp>
 namespace FrameExtractor
 {
 	Video::Video(const std::filesystem::path& path)
 	{
-		Load(path);
+		mPath = path;
 	}
 	Video::~Video()
 	{
@@ -30,6 +33,10 @@ namespace FrameExtractor
 		{
 			Unload();
 		}
+	}
+	void Video::Load()
+	{
+		Load(mPath);
 	}
 	void Video::Load(const std::filesystem::path& path)
 	{
@@ -127,6 +134,7 @@ namespace FrameExtractor
 		packet = av_packet_alloc();
 
 		AVRational& fps = videoStream->avg_frame_rate;
+		mFPS = static_cast<float>(fps.num) / fps.den; // Convert to milliseconds for FPS
 		mMaxFrames = (uint32_t)(videoStream->duration * av_q2d(videoStream->time_base) * (static_cast<float>(fps.num) / fps.den));
 		mTexture = MakeRef<Texture>(mWidth, mHeight);
 		mPath = path;

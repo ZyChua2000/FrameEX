@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       LoggerManager.hpp
 \author     Chua Zheng Yang
@@ -8,10 +8,11 @@
 \date       May 11, 2025
 \brief      Declares the Core structure of the engine
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #ifndef CORE_HPP
 #define CORE_HPP
+ // Standard Library includes
 #include <memory>
 
 namespace FrameExtractor
@@ -37,20 +38,6 @@ namespace FrameExtractor
 	template <typename ClassObject>
 	using WeakRef = std::weak_ptr<ClassObject>;
 
-	template <typename classObject>
-	class RefDraft
-	{
-	public:
-		RefDraft(classObject* pointer) : rawPointer(pointer), refCount(1) {}
-		RefDraft(const RefDraft& other) : rawPointer(other.rawPointer), refCount(other.refCount) { refCount++; }
-		RefDraft& operator=(const RefDraft& other) { rawPointer = other.rawPointer; refCount = other.refCount; refCount++; return *this; }
-		~RefDraft() { refCount--; if (refCount == 0) delete rawPointer; }
-		classObject* operator->() { return rawPointer; }
-		classObject& operator*() { return *rawPointer; }
-	private:
-		classObject* rawPointer;
-		unsigned int refCount;
-	};
 }
 
 #endif

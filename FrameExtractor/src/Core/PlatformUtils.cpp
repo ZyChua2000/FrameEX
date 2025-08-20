@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       PlatformUtils.cpp
 \author     Chua Zheng Yang
@@ -8,14 +8,16 @@
 \date       May 16, 2025
 \brief      Defines the Platform specific utilities
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
-#include <Core/PlatformUtils.hpp>
-#include <Core/ApplicationManager.hpp>
+ // Third-party includes
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
+// Project includes
+#include <Core/PlatformUtils.hpp>
+#include <Core/ApplicationManager.hpp>
 namespace FrameExtractor
 {
 	// Windows Implementation

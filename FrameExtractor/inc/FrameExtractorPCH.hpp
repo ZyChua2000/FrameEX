@@ -8,7 +8,7 @@
 \date   	May 10, 2025
 \brief		Declares all pre-compiled headers for Frame Extractor
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #ifndef FRAMEEXTRACTOR_PCH_HPP
 #define FRAMEEXTRACTOR_PCH_HPP

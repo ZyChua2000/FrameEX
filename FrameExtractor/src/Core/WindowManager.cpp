@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       WindowManager.hpp
 \author     Chua Zheng Yang
@@ -8,11 +8,12 @@
 \date       May 10, 2025
 \brief      Defines the Window Manager class which handles the application window
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
+ // Third-party includes
 #include <GLFW/glfw3.h>
-
+ // Project includes
 #include <Core/LoggerManager.hpp>
 #include <Core/WindowManager.hpp>
 #include <Core/ApplicationManager.hpp>

@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       LoggerManager.hpp
 \author     Chua Zheng Yang
@@ -8,13 +8,19 @@
 \date       May 11, 2025
 \brief      Declares the Logger Manager class which handles the logs
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #ifndef LoggerManager_HPP
 #define LoggerManager_HPP
 
+ // Standard Library includes
+#include <filesystem>
+
+ // Third-party includes
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
+
+// Project includes
 #include <GUI/ConsolePanel.hpp>
 
 #define ENGINE_LOGLEVEL_INFO spdlog::level::info
@@ -26,7 +32,6 @@
 #define FRAMEEX_ENABLE_ASSERTS
 
 #ifdef FRAMEEX_ENABLE_ASSERTS
-#include <filesystem>
 #define FRAMEEX_INTERNAL_ASSERT_IMPL(type, check, msg, ...) { if(!(check)) { BOREALIS##type##ERROR(msg, __VA_ARGS__); BOREALIS_DEBUGBREAK(); } }
 #define FRAMEEX_INTERNAL_ASSERT_WITH_MSG(type, check, ...) BOREALIS_INTERNAL_ASSERT_IMPL(type, check, "Assertion failed: {0}", __VA_ARGS__)
 #define FRAMEEX_INTERNAL_ASSERT_NO_MSG(type, check) BOREALIS_INTERNAL_ASSERT_IMPL(type, check, "Assertion '{0}' failed at {1}:{2}", BOREALIS_STRINGIFY_MACRO(check), std::filesystem::path(__FILE__).filename().string(), __LINE__)
@@ -45,15 +50,57 @@
 namespace FrameExtractor
 {
 	class ConsolePanel;
+
+	/*!***********************************************************************
+		\brief
+			Class that manages the logging system for the application.
+	*************************************************************************/
 	class LoggerManager
 	{
 	public:
+
+		/*!***********************************************************************
+			\brief
+				Initializes the logger with the specified log level.
+			\param[in] level
+				The log level to set for the logger.
+		*************************************************************************/
 		static void Init(spdlog::level::level_enum = ENGINE_LOGLEVEL_TRACE);
+
+		/*!***********************************************************************
+			\brief
+				Initializes the logger with the specified log level and file path.
+			\param[in] level
+				The log level to set for the logger.
+			\param[in] filePath
+				The file path to write the logs to.
+		*************************************************************************/
 		static void Shutdown();
+
+		/*!***********************************************************************
+			\brief
+				Returns a reference to the engine logger.
+			\return
+				A reference to the engine logger.
+		*************************************************************************/
 		inline static spdlog::logger*& GetEngineLogger() { return sEngineLogger; }
+
+		/*!***********************************************************************
+			\brief
+				Sets the log level for the engine logger.
+			\param[in] level
+				The log level to set for the engine logger.
+		*************************************************************************/
 		void SetEngineLogLevel(spdlog::level::level_enum level);
+
+		/*!***********************************************************************
+			\brief
+				Sets the console panel for logging.
+			\param[in] console
+				A pointer to the ConsolePanel instance to set.
+		*************************************************************************/
 		static void SetConsole(ConsolePanel* console) { mCP = console; };
-		static ConsolePanel* mCP;
+		static ConsolePanel* mCP; // Pointer to the ConsolePanel instance for logging
 
 	private:
 		static spdlog::logger* sEngineLogger; // The Logger

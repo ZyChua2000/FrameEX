@@ -8,7 +8,7 @@
 \date   	May 10, 2025
 \brief		Defines the Entry Point of the program.
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
 #include <Core/PlatformUtils.hpp>
@@ -23,7 +23,6 @@ int main()
 #if not(defined(_DEB) || defined(SHOW_CONSOLE))|| defined(HIDE_CONSOLE)
 	FrameExtractor::HideTerminal();
 #endif
-
 	FrameExtractor::ApplicationManager* app = new FrameExtractor::ApplicationManager("Frame Extractor");
 	app->Run();
 	app->Free();

@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       GUIUtils.cpp
 \author     Chua Zheng Yang
@@ -8,12 +8,15 @@
 \date       May 20, 2025
 \brief      Defines Utility functions for GUI
 
- /******************************************************************************/
+******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
+ // Third-party includes
+#include <imgui.h>
+
+// Project includes
 #include <GUI/GUIUtils.hpp>
 #include <Core/Command.hpp>
-#include <imgui.h>
 #include <Template/DataSpecification.hpp>
 namespace FrameExtractor
 {

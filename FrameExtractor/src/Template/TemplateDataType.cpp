@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       TemplateDataType.cpp
 \author     Chua Zheng Yang
@@ -7,10 +7,13 @@
 \par		email: chuazhengyang2000\@gmail.com
 \date       July 3, 2025
 \brief      Defines the Data Types required for templating purposes
- /******************************************************************************/
+ ******************************************************************************/
 #include <FrameExtractorPCH.hpp>
-#include <Template/TemplateDataType.hpp>
+ // Third-party includes
 #include <rttr/registration>
+
+// Project includes
+#include <Template/TemplateDataType.hpp>
 
 using namespace rttr;
 

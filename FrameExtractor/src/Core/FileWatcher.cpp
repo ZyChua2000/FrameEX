@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       FileWatcher.cpp
 \author     Chua Zheng Yang
@@ -8,9 +8,10 @@
 \date       August 4, 2025
 \brief      Defines the FileWatcher class that keeps track of changes in a directory
 
-/******************************************************************************/
+******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
+// Project includes
 #include <Core/FileWatcher.hpp>
 namespace FrameExtractor
 {

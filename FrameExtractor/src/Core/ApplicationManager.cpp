@@ -1,16 +1,15 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
-\file       ApplicationManager.hpp
-\author     Chua Zheng Yang
-\par		email: 2202829\@sit.singaporetech.edu.sg
+\file		ApplicationManager.cpp
+\author 	Chua Zheng Yang
 \par    	email: zhengyang.chua\@hendrickscorp.com
 \par		email: chuazhengyang2000\@gmail.com
-\date       May 10, 2025
-\brief      Defines the Application Manager class which handles the application
-
- /******************************************************************************/
-
+\date   	May 10, 2025
+\brief		Defines the Application Manager class which handles the application
+******************************************************************************/
 #include <FrameExtractorPCH.hpp>
+
+ // Project includes
 #include <Core/LoggerManager.hpp>
 #include <Core/ApplicationManager.hpp>
 #include <Core/AssetManager.hpp>
@@ -37,6 +36,9 @@ namespace FrameExtractor
 			mImGuiManager->Update(deltaTime);
 			mImGuiManager->Render();
 			mWindowManager->Update();
+			AssetManager::Update();
+
+
 			const float targetFrameTimeMs = 1000.0f / 60.0f;
 
 			ULONGLONG frameEndTickCount = GetTickCount64();

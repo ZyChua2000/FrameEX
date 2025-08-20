@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       Texture.cpp
 \author     Chua Zheng Yang
@@ -8,15 +8,18 @@
 \date       May 11, 2025
 \brief      Defines the Texture class that represents a loaded texture
 
- /******************************************************************************/
+ ******************************************************************************/
 #include <FrameExtractorPCH.hpp>
 
+ // Third-party includes
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <Core/LoggerManager.hpp>
-#include <Graphics/Texture.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+// Project includes
+#include <Core/LoggerManager.hpp>
+#include <Graphics/Texture.hpp>
 namespace FrameExtractor
 {
 	Texture::Texture()
@@ -38,7 +41,7 @@ namespace FrameExtractor
 	{
 		if (mRendererID)
 			Unload();
-		Load(path);
+		mPath = path;
 	}
 	// Fill with solid red (255, 0, 0)
 	Texture::Texture(uint32_t width, uint32_t height) : mWidth(width), mHeight(height)
@@ -55,6 +58,10 @@ namespace FrameExtractor
 	{
 		if (mRendererID)
 			Unload();
+	}
+	void Texture::Load()
+	{
+		Load(mPath);
 	}
 	void Texture::Load(const std::filesystem::path& path)
 	{

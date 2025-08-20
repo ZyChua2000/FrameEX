@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       ToolsPanel.cpp
 \author     Chua Zheng Yang
@@ -8,8 +8,11 @@
 \date       May 10, 2025
 \brief      Defines the Tools Panel class which contains all the tools
 
- /******************************************************************************/
+ ******************************************************************************/
 #include "FrameExtractorPCH.hpp"
+ // Third-party includes
+#include <magic_enum/magic_enum.hpp>
+ // Project includes
 #include "GUI/ToolsPanel.hpp"
 #include <Core/LoggerManager.hpp>
 #include <Core/Command.hpp>
@@ -19,7 +22,6 @@
 #include <GUI/GUIUtils.hpp>
 #include <GUI/GuiResourcesManager.hpp>
 #include <Core/ExcelSerialiser.hpp>
-#include <magic_enum/magic_enum.hpp>
 #define ERROR_DATEFMT 1
 #define ERROR_MISSINGFIELD 2
 #define ERROR_NONE -1

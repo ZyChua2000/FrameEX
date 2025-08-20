@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       Project.hpp
 \author     Chua Zheng Yang
@@ -9,15 +9,19 @@
 \brief      Declares the Project class that contains all data and settings
 			related to the project.
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #ifndef Project_HPP
 #define Project_HPP
+
+ // Standard Library includes
 #include <filesystem>
 #include <map>
 #include <array>
 #include <vector>
 #include <set>
+
+// Project includes
 #include <Template/DynamicTask.hpp>
 #include <Core/FileWatcher.hpp>
 #include <Core/AssetManager.hpp>
@@ -96,17 +100,71 @@ namespace FrameExtractor
 		// Entrance Num, Data(time to time)
 	};
 
+
+	/*!***********************************************************************
+		\brief
+			Class that contains all data and settings related to a project
+			instance.
+	*************************************************************************/
 	class Project
 	{
 	public:
+		/*!***********************************************************************
+			\brief
+				Default constructor for Project.
+		*************************************************************************/
 		Project();
+
+		/*!***********************************************************************
+			\brief
+				Destructor for Project.
+		*************************************************************************/
 		~Project();
 
+		/*!***********************************************************************
+			\brief
+				Checks if a project is loaded.
+			\return
+				True if a project is loaded, false otherwise.
+		*************************************************************************/
 		inline bool IsProjectLoaded() const { return !mProjectDir.empty(); }
+
+		/*!***********************************************************************
+			\brief
+				Creates a new project with the given name and directory.
+			\param[in] name
+				The name of the project.
+			\param[in] dir
+				The directory where the project will be created.
+		*************************************************************************/
 		void CreateProject(std::string name, std::filesystem::path dir);
+
+		/*!***********************************************************************
+			\brief
+				Loads a project from the specified path.
+			\param[in] path
+				The path to the project file.
+		*************************************************************************/
 		void LoadProject(std::filesystem::path path);
+
+		/*!***********************************************************************
+			\brief
+				Saves the current project to its file.
+		*************************************************************************/
 		void SaveProject();
+
+		/*!***********************************************************************
+			\brief
+				Saves a backup of the current project.
+		*************************************************************************/
 		void SaveBackup();
+
+		/*!***********************************************************************
+			\brief
+				Retrieves the Asset Directory of the project.
+			\return
+				The path to the asset directory.
+		*************************************************************************/
 		inline std::filesystem::path GetAssetsDir() const { return mAssetDir; }
 
 		using StoreCode = std::string;
@@ -114,14 +172,14 @@ namespace FrameExtractor
 
 		std::map<StoreCode, std::map<Hour, CountData>> mCountingData;
 		std::map<StoreCode, std::map<Hour, AggregateData>> mAggregateStoreData;
-		std::set<std::filesystem::path> mVideosInProject;
+		std::set<AssetHandle> mVideosInProject;
 		DynamicTask mDynamicTask;
 	private:
 		std::string mName;
-		std::filesystem::path mProjectDir;
-		std::filesystem::path mAssetDir;
+		std::filesystem::path mProjectDir;		// Directory where the project is stored
+		std::filesystem::path mAssetDir;		// Directory where assets are stored
 		std::filesystem::path mExportDir;
-		std::filesystem::path mProjectFilePath;
+		std::filesystem::path mProjectFilePath; // Path to the project file
 	};
 }
 

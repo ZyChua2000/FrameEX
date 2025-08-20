@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       TemplateEnums.hpp
 \author     Chua Zheng Yang
@@ -8,13 +8,17 @@
 \date       June 23, 2025
 \brief      Declares the Enums involved for Templating System
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #ifndef TEMPLATE_ENUMS_HPP
 #define TEMPLATE_ENUMS_HPP
-#include <string>
+
 namespace FrameExtractor
 {
+	/*!***********************************************************************
+		\brief
+			Enumeration for different data types used in the templating system.
+	*************************************************************************/
 	enum class DataType
 	{
 		None,
@@ -28,6 +32,10 @@ namespace FrameExtractor
 		Complex
 	};
 
+	/*!***********************************************************************
+		\brief
+			Enumeration for different input/output types used in the templating system.
+	*************************************************************************/
 	enum class IOType
 	{
 		None,

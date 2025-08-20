@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       ToolsPanel.cpp
 \author     Chua Zheng Yang
@@ -9,13 +9,16 @@
 \brief      Defines the Project Panel class which has an interface for all the
 			videos involved in the project.
 
- /******************************************************************************/
+ ******************************************************************************/
 #include "FrameExtractorPCH.hpp"
+
+ // Project includes
 #include "GUI/ProjectPanel.hpp"
 #include <Core/LoggerManager.hpp>
 #include <GUI/ExplorerPanel.hpp>
 #include <GUI/ViewportPanel.hpp>
 #include <GUI/ImGuiManager.hpp>
+#include <GUI/GuiResourcesManager.hpp>
 #include <Core/Command.hpp>
 namespace FrameExtractor
 {
@@ -38,8 +41,6 @@ namespace FrameExtractor
 		{
 			ImGui::Begin("Project###ProjectWindow");
 		}
-		ImGui::End();
-		return;
 		ImVec2 windowSize = ImGui::GetContentRegionAvail();
 		ImGui::BeginChild("ScrollableRegion", {}, ImGuiChildFlags_Border);
 
@@ -58,11 +59,11 @@ namespace FrameExtractor
 		if (ImGui::BeginDragDropTarget())
 		{
 			// Accept the dragged payload
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("IMPORTVIDEO"))
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("IMPORT_VIDEO_HANDLE"))
 			{
-				const char* droppedItem = static_cast<const char*>(payload->Data);
-
-				videosInProject.insert(droppedItem);
+				IM_ASSERT(payload->DataSize == sizeof(AssetHandle));
+				AssetHandle handle = *static_cast<const AssetHandle*>(payload->Data);
+				videosInProject.insert(handle);
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -89,15 +90,17 @@ namespace FrameExtractor
 		float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 		int deletionTrack = 0;
 		int distance = 0;
-		std::filesystem::path deletionMark{};
-		for (const auto& entry : videosInProject)
+		const AssetHandle* deletionMark = nullptr;
+		for (const auto& handle : videosInProject)
 		{
+			auto metadata = AssetManager::GetMetaData(handle);
+			auto entry = metadata.mPath;
 			std::string fileName = entry.filename().string();
 			std::string filePath = entry.string();
 
 			if (ImGui::Button(("-##ProjectList" + filePath).c_str(), { lineHeight, lineHeight }))
 			{
-				deletionMark = entry;
+				deletionMark = &handle;
 				distance = deletionTrack;
 			}
 
@@ -118,38 +121,46 @@ namespace FrameExtractor
 			{
 				if (ImGui::IsMouseDoubleClicked(0))
 					// Double-click logic
-					VpPanel->SetVideo(entry);
+					VpPanel->SetVideo(handle);
 
 				float printedThumbnailSize = (float)128 * ImGuiManager::styleMultiplier;
 
 				ImGui::BeginTooltip();
-				ImGui::Image((ImTextureID)ExPanel->GetCache(entry).mTexture->GetTextureID(), { printedThumbnailSize ,printedThumbnailSize });
+				auto cache = ExPanel->GetCache(entry);
+				if (cache.mTexture)
+				{
+					ImGui::Image((ImTextureID)ExPanel->GetCache(entry).mTexture->GetTextureID(), { printedThumbnailSize ,printedThumbnailSize });
+
+				}
+				else
+				{
+					ImGui::Image((ImTextureID)Resource(Icon::FILE_ICON)->GetTextureID(), {printedThumbnailSize ,printedThumbnailSize});
+				}
 				ImGui::EndTooltip();
 			}
 			if (ImGui::BeginDragDropSource())
 			{
-				ImGui::SetDragDropPayload("ITEM_NAME", filePath.c_str(), filePath.size() + 1);
+				ImGui::SetDragDropPayload("ITEM_NAME", &handle, sizeof(handle));
 				ImGui::EndDragDropSource();
 			}
 			deletionTrack++;
 		}
-		if (!deletionMark.empty())
+		if (deletionMark != nullptr)
 		{
-			if (std::filesystem::absolute(VpPanel->GetVideoPath()) == std::filesystem::absolute(deletionMark))
+
+			if (distance == 0)
 			{
-				if (distance == 0)
-				{
-					if (videosInProject.size() > 1)
-						VpPanel->SetVideo(*(++videosInProject.begin()));
-				}
-				else
-				{
-					auto it = videosInProject.begin();
-					std::advance(it, distance - 1);
-					VpPanel->SetVideo(*it);
-				}
+				if (videosInProject.size() > 1)
+					VpPanel->SetVideo(*(++videosInProject.begin()));
 			}
-			videosInProject.erase(deletionMark);
+			else
+			{
+				auto it = videosInProject.begin();
+				std::advance(it, distance - 1);
+				VpPanel->SetVideo(*it);
+			}
+			
+			videosInProject.erase(*deletionMark);
 			if (videosInProject.empty())
 			{
 				VpPanel->ClearVideo();
@@ -164,37 +175,16 @@ namespace FrameExtractor
 		return "Project";
 	}
 
-	static void AddDirectoryRecursive(const std::filesystem::directory_entry& currEntry, std::set<std::filesystem::path>& videosInProject)
-	{
-		if (currEntry.is_directory())
-		{
-			for (auto& entry : std::filesystem::directory_iterator(currEntry))
-			{
-				AddDirectoryRecursive(entry, videosInProject);
-			}
-		}
-		else if (currEntry.path().filename().extension() == ".mp4")
-		{
-			videosInProject.insert(currEntry.path());
-		}
-	}
-
 	void ProjectPanel::OnAttach()
 	{
 		if (!mProject->IsProjectLoaded())
 		{
 			return;
 		}
-		for (auto& entry : std::filesystem::directory_iterator(mProject->GetAssetsDir()))
-		{
-			AddDirectoryRecursive(entry, mProject->mVideosInProject);
-		}
+
 	}
 	void ProjectPanel::OnLoad()
 	{
-		for (auto& entry : std::filesystem::directory_iterator(mProject->GetAssetsDir()))
-		{
-			AddDirectoryRecursive(entry, mProject->mVideosInProject);
-		}
+
 	}
 }

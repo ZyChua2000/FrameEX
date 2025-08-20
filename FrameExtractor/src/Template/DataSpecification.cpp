@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       DataSpecifications.cpp
 \author     Chua Zheng Yang
@@ -7,9 +7,11 @@
 \par		email: chuazhengyang2000\@gmail.com
 \date       June 23, 2025
 \brief      Defines the Data Specifications that specifies what the data entails
- /******************************************************************************/
+ ******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
+
+ // Project includes
 #include <Template/DataSpecification.hpp>
 #include <Template/TemplateDataType.hpp>
 

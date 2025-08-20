@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+﻿/******************************************************************************/
 /*!
 \file       ImGuiManager.cpp
 \author     Chua Zheng Yang
@@ -9,18 +9,22 @@
 \brief      Defines the ImGui Manager class which manages the overall ImGui
 			interface and its components.
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
 
+ // Third-party includes
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
 #include <backends/imgui_impl_glfw.cpp>
 #include <backends/imgui_impl_opengl3.cpp>
-
 #include <imgui.h>
-
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
+#include <GLFW/glfw3.h>
+#define YAML_CPP_STATIC_DEFINE
+#include <yaml-cpp/yaml.h>
+
+// Project includes
 #include <Core/ApplicationManager.hpp>
 #include <Core/Command.hpp>
 #include <Core/LoggerManager.hpp>
@@ -32,9 +36,7 @@
 #include <GUI/ProjectPanel.hpp>
 #include <GUI/ConsolePanel.hpp>
 #include <GUI/ExplorerPanel.hpp>
-#include <GLFW/glfw3.h>
-#define YAML_CPP_STATIC_DEFINE
-#include <yaml-cpp/yaml.h>
+
 
 namespace YAML
 {

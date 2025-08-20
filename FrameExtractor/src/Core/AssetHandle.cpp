@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       AssetHandle.cpp
 \author     Chua Zheng Yang
@@ -8,12 +8,15 @@
 \date       July 17, 2025
 \brief      Defines the Asset Handle class
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #include <FrameExtractorPCH.hpp>
-#include <Core/AssetHandle.hpp>
+ // Standard Library includes
 #include <random>
 #include <limits>
+ // Project includes
+#include <Core/AssetHandle.hpp>
+
 namespace FrameExtractor
 {
 	static std::random_device sRandomDevice;

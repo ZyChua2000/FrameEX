@@ -1,4 +1,4 @@
-/******************************************************************************
+/******************************************************************************/
 /*!
 \file       ExcelSerialiser.cpp
 \author     Chua Zheng Yang
@@ -8,13 +8,16 @@
 \date       May 15, 2025
 \brief      Defines the Excel Serialiser class which serialises Data
 
- /******************************************************************************/
+ ******************************************************************************/
 
 #include "FrameExtractorPCH.hpp"
-#include "Core/ExcelSerialiser.hpp"
-#include <OpenXLSX.hpp>
-#include <Core/LoggerManager.hpp>
+ // Standard Library includes
 #include <regex>
+ // Third-party includes
+#include <OpenXLSX.hpp>
+// Project includes
+#include "Core/ExcelSerialiser.hpp"
+#include <Core/LoggerManager.hpp>
 static const std::unordered_map<std::string, int> formatToId = {
 	{ "D/M/YYYY", 14 },
 	{ "D-MON-YY", 15 },
