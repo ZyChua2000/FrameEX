@@ -14,8 +14,10 @@
  // Third-party includes
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION // This line is necessary to include the implementation of stb_image
 #include <stb_image.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION // This line is necessary to include the implementation of stb_image_write
+#include <stb_image_write.h>
 
 // Project includes
 #include <Core/LoggerManager.hpp>
@@ -94,6 +96,41 @@ namespace FrameExtractor
 		glBindTexture(GL_TEXTURE_2D, 0);
 		stbi_image_free(data);
 	}
+	void Texture::SaveImageToPath(const std::filesystem::path& path, SaveImageFunction saveFunc) const
+	{
+		if (mRendererID && IsLoaded())
+		{
+			glBindTexture(GL_TEXTURE_2D, mRendererID);
+			std::vector<unsigned char> pixels(mWidth * mHeight * mChannels);
+			glGetTexImage(GL_TEXTURE_2D, 0, (mChannels == 3) ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+			(this->*saveFunc)(path.string().c_str(), mWidth, mHeight, mChannels, pixels.data(), mWidth * mChannels);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		else
+		{
+			FRAMEEX_CORE_ERROR("Texture not loaded or invalid renderer ID. Cannot save to file: {0}", path.string());
+		}
+	}
+
+	void Texture::SaveToFilePNG(const char* filename, int width, int height, int channels, const void* data, int stride) const
+	{
+		stbi_write_png(filename, width, height, channels, data, stride);
+	}
+	void Texture::SaveToFileJPEG(const char* filename, int width, int height, int channels, const void* data, int quality) const
+	{
+		stbi_write_jpg(filename, width, height, channels, data, 100); // 100 is the quality level for JPEG
+	}
+
+	void Texture::SaveToFileBMP(const char* filename, int width, int height, int channels, const void* data, int quality) const
+	{
+		stbi_write_bmp(filename, width, height, channels, data);
+	}
+
+	void Texture::SaveToFileTGA(const char* filename, int width, int height, int channels, const void* data, int quality) const
+	{
+		stbi_write_tga(filename, width, height, channels, data);
+	}
+
 	void Texture::Unload()
 	{
 		glDeleteTextures(1, &mRendererID);
@@ -103,6 +140,28 @@ namespace FrameExtractor
 	{
 		glBindTexture(GL_TEXTURE_2D, mRendererID);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, mWidth, mHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+	}
+
+	void Texture::SaveToFile(const std::filesystem::path& path, OutputFormat format) const
+	{
+		switch (format)
+		{
+			case OutputFormat::PNG:
+				SaveImageToPath(path, &Texture::SaveToFilePNG);
+				return;
+			case OutputFormat::JPEG:
+				SaveImageToPath(path, &Texture::SaveToFileJPEG);
+				return;
+			case OutputFormat::BMP:
+				SaveImageToPath(path, &Texture::SaveToFileBMP);
+				return;
+			case OutputFormat::TGA:
+				SaveImageToPath(path, &Texture::SaveToFileTGA);
+				return;
+			default:
+				FRAMEEX_CORE_ERROR("Unsupported output format for texture saving: {0}", static_cast<int>(format));
+				return;
+		}
 	}
 
 	Ref<Texture> Texture::GetInvisibleTexture()

@@ -126,12 +126,79 @@ namespace FrameExtractor
 
 		/*!***********************************************************************
 			\brief
+				Enumeration for different output formats when saving the texture.
+		*************************************************************************/
+		enum class OutputFormat
+		{
+			PNG,
+			JPEG,
+			BMP,
+			TGA
+		};
+
+		/*!***********************************************************************
+			\brief
+				Saves the texture to a file.
+			\param[in] path
+				The path to save the texture to.
+			\param[in] format
+				The format to save the texture in (PNG, JPEG, etc.).
+		*************************************************************************/
+		void SaveToFile(const std::filesystem::path& path, OutputFormat format = OutputFormat::JPEG) const;
+
+		/*!***********************************************************************
+			\brief
 				Gets the width of the texture.
 			\return
 				The width of the texture.
 		*************************************************************************/
 		static Ref<Texture> GetInvisibleTexture();
 	private:
+
+		/*!***********************************************************************
+			\brief
+				Saves the texture to a file.
+			\param[in] path
+				The path to save the texture to.
+		*************************************************************************/
+		void SaveToFilePNG(const char* filename, int width, int height, int channels, const void* data, int stride) const;
+
+		/*!***********************************************************************
+			\brief
+				Saves the texture to a file.
+			\param[in] path
+				The path to save the texture to.
+		*************************************************************************/
+		void SaveToFileJPEG(const char* filename, int width, int height, int channels, const void* data, int quality) const;
+
+		/*!***********************************************************************
+			\brief
+				Saves the texture to a file.
+			\param[in] path
+				The path to save the texture to.
+		*************************************************************************/
+		void SaveToFileBMP(const char* filename, int width, int height, int channels, const void* data, int quality) const;
+
+		/*!***********************************************************************
+			\brief
+				Saves the texture to a file.
+			\param[in] path
+				The path to save the texture to.
+		*************************************************************************/
+		void SaveToFileTGA(const char* filename, int width, int height, int channels, const void* data, int quality) const;
+
+
+		using SaveImageFunction = void(Texture::*)(const char* filename, int width, int height, int channels, const void* data, int stride) const;
+		/*!***********************************************************************
+			\brief
+				Saves the texture to a file using the specified save function.
+			\param[in] path
+				The path to save the texture to.
+			\param[in] saveFunc
+				The function to use for saving the image.
+		*************************************************************************/
+		void SaveImageToPath(const std::filesystem::path& path, SaveImageFunction saveFunc) const;
+
 		uint32_t mRendererID = 0;		//<- Renderer ID for OpenGL texture
 		uint32_t mWidth = 0;			//<- Width of the texture
 		uint32_t mHeight = 0;			//<- Height of the texture
