@@ -29,11 +29,19 @@ namespace FrameExtractor
 
 	WindowManager::WindowManager(const WindowProperties& properties)
 	{
+
+		if (!sGLFWInitialized)
+		{
+			int success = glfwInit();
+			FRAMEEX_CORE_ASSERT(success, "Failed to initialize GLFW!");
+			sGLFWInitialized = true;
+		}
 		Init(properties);
 	}
 	WindowManager::~WindowManager()
 	{
 		Shutdown();
+		glfwTerminate();
 	}
 	void WindowManager::Update()
 	{
@@ -47,13 +55,6 @@ namespace FrameExtractor
 		mData.mTitle = properties.mTitle.c_str();
 		glfwSwapInterval(1);
 
-		if (!sGLFWInitialized)
-		{
-			int success = glfwInit();
-			FRAMEEX_CORE_ASSERT(success, "Failed to initialize GLFW!");
-			sGLFWInitialized = true;
-		}
-
 		{
 			//lock the version of opengl to 4.1
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -61,7 +62,7 @@ namespace FrameExtractor
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 			mWindow = (void*)(glfwCreateWindow(mData.mWidth, mData.mHeight, mData.mTitle, nullptr, nullptr));
-			mContext = new GraphicsContext((GLFWwindow*)mWindow);
+			mContext = MakeScope<GraphicsContext>((GLFWwindow*)mWindow);
 			mContext->Init();
 		}
 
@@ -91,6 +92,5 @@ namespace FrameExtractor
 	void WindowManager::Shutdown()
 	{
 		glfwDestroyWindow((GLFWwindow*)mWindow);
-		delete mContext;
 	}
 }

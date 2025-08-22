@@ -23,50 +23,7 @@
 #include <Template/TemplateEnums.hpp>
 namespace FrameExtractor
 {
-	struct VariantLess
-	{
-		bool operator()(const rttr::variant& lhs, const rttr::variant& rhs) const
-		{
-			// Compare types first
-			if (lhs.get_type() != rhs.get_type())
-				return lhs.get_type().get_name().to_string() < rhs.get_type().get_name().to_string();
-
-			// Then compare the values based on type
-			if (lhs.can_convert<int>())
-			{
-				return lhs.to_int() < rhs.to_int();
-			}
-			else if (lhs.can_convert<std::string>())
-			{
-				return lhs.to_string() < rhs.to_string();
-			}
-			else if (lhs.can_convert<double>())
-			{
-				return lhs.to_double() < rhs.to_double();
-			}
-			else if (lhs.can_convert<float>())
-			{
-				return lhs.to_float() < rhs.to_float();
-			}
-			else if (lhs.can_convert<bool>())
-			{
-				return lhs.to_bool() < rhs.to_bool();
-			}
-			else if (lhs.can_convert<FrameExtractor::Time>())
-			{
-				return lhs.get_value<FrameExtractor::Time>().to_string() < rhs.get_value<FrameExtractor::Time>().to_string();
-			}
-			else if (lhs.can_convert<FrameExtractor::Date>())
-			{
-				return lhs.get_value<FrameExtractor::Date>().to_string() < rhs.get_value<FrameExtractor::Date>().to_string();
-			}
-
-			// Fallback: compare memory address as last resort
-			return lhs.get_value<std::uintptr_t>() < rhs.get_value<std::uintptr_t>();
-		}
-	};
-
-	using ReflectionMap = std::map<rttr::variant, rttr::variant, VariantLess>;
+	using ReflectionMap = std::map<rttr::variant, rttr::variant>;
 
 	/*!***********************************************************************
 		\brief
@@ -124,13 +81,14 @@ namespace FrameExtractor
 	*************************************************************************/
 	struct DynamicTaskSpecs
 	{
-		IOType* mOutputType = nullptr;
-		IOType* mInputType = nullptr;
-		DataSpecification* mTab = nullptr;
-		std::vector<DataSpecification*>* mNodeCategories = nullptr;
-		std::vector<DataSpecification*>* mFieldSpecs = nullptr;
-		rttr::variant* mImportFormat = nullptr;
-		rttr::variant* mExportFormat = nullptr;
+		Scope<IOType> mOutputType = nullptr;
+		Scope<IOType> mInputType = nullptr;
+		Scope<DataSpecification> mTab = nullptr;
+		Scope<std::vector<Ref<DataSpecification>>> mNodeCategories = nullptr;
+		Scope<std::vector<Ref<DataSpecification>>> mFieldSpecs = nullptr;
+		Scope<std::vector<Ref<AdditionalSpecification>>> mAdditionalSpecs = nullptr;
+		Scope<rttr::variant> mImportFormat = nullptr;
+		Scope<rttr::variant> mExportFormat = nullptr;
 
 		/*!***********************************************************************
 			\brief
@@ -181,7 +139,7 @@ namespace FrameExtractor
 				Transfers ownership of resources from the source object to the new
 				object without performing deep copies. This constructor is noexcept.
 		*************************************************************************/
-		DynamicTaskSpecs(DynamicTaskSpecs&& other) noexcept;
+		DynamicTaskSpecs(DynamicTaskSpecs&& other) noexcept = default;
 
 		/*!***********************************************************************
 			\brief
@@ -189,7 +147,7 @@ namespace FrameExtractor
 			\details
 				Cleans up resources used by the DynamicTaskSpecs object.
 		*************************************************************************/
-		~DynamicTaskSpecs();
+		~DynamicTaskSpecs() = default;
 
 		/*!***********************************************************************
 			\brief
@@ -201,7 +159,7 @@ namespace FrameExtractor
 				Transfers ownership of resources from the source object to this object without performing deep copies.
 				This operator is noexcept.
 		*************************************************************************/
-		DynamicTaskSpecs& operator=(DynamicTaskSpecs&& other) noexcept;
+		DynamicTaskSpecs& operator=(DynamicTaskSpecs&& other) noexcept = default;
 
 		/*!***********************************************************************
 			\brief
@@ -222,7 +180,8 @@ namespace FrameExtractor
 	{
 		std::string mTaskName;
 		ReflectionMap mPages;
-		DynamicTaskSpecs* mSpecs = nullptr;
+		ReflectionMap mAdditionalPages;
+		Scope<DynamicTaskSpecs> mSpecs = nullptr;
 
 		/*!***********************************************************************
 			\brief
@@ -263,7 +222,7 @@ namespace FrameExtractor
 				Transfers ownership of resources from the source object to the new
 				object without performing deep copies. This constructor is noexcept.
 		*************************************************************************/
-		DynamicTask(DynamicTask&& other) noexcept;
+		DynamicTask(DynamicTask&& other) noexcept = default;
 
 		/*!***********************************************************************
 			\brief
@@ -277,7 +236,7 @@ namespace FrameExtractor
 			\return
 				A reference to this object after the assignment.
 		*************************************************************************/
-		DynamicTask& operator=(DynamicTask&& other) noexcept;
+		DynamicTask& operator=(DynamicTask&& other) noexcept = default;
 
 		/*!***********************************************************************
 			\brief
@@ -297,7 +256,7 @@ namespace FrameExtractor
 			\details
 				Cleans up resources used by the DynamicTask object.
 		*************************************************************************/
-		~DynamicTask();
+		~DynamicTask() = default;
 
 		/*!***********************************************************************
 			\brief
@@ -491,6 +450,11 @@ namespace FrameExtractor
 				The vector of TaskData associated with the current task.
 		*************************************************************************/
 		std::vector<TaskData>& GetData();
+
+		ReflectionMap& GetAdditionalData()
+		{
+			return mTask->mAdditionalPages;
+		}
 
 		/*!***********************************************************************
 			\brief

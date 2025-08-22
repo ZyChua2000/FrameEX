@@ -14,92 +14,89 @@
  // Project includes
 #include <Template/DataSpecification.hpp>
 #include <Template/TemplateDataType.hpp>
-
+#include <rttr/variant.h>
 namespace FrameExtractor
 {
-	void* ConstructDefaultByType(DataType type, void* DefaultData)
+	Scope<rttr::variant> ConstructDefaultByType(DataType type, rttr::variant* DefaultData)
 	{
 		switch (type)
 		{
-		case DataType::Bool: return new bool(*reinterpret_cast<bool*>(DefaultData));
-		case DataType::Int: return new int(*reinterpret_cast<int*>(DefaultData));
-		case DataType::Float: return new float(*reinterpret_cast<float*>(DefaultData));
-		case DataType::Double: return new double(*reinterpret_cast<double*>(DefaultData));
-		case DataType::String: return new std::string(*reinterpret_cast<std::string*>(DefaultData));
-		case DataType::Date: return new Date(*reinterpret_cast<Date*>(DefaultData));
-		case DataType::Time: return new Time(*reinterpret_cast<Time*>(DefaultData));
-		default: return nullptr;
+		case DataType::Bool:   return MakeScope<rttr::variant>(*reinterpret_cast<bool*>(DefaultData));
+		case DataType::Int:    return MakeScope<rttr::variant>(*reinterpret_cast<int*>(DefaultData));
+		case DataType::Float:  return MakeScope<rttr::variant>(*reinterpret_cast<float*>(DefaultData));
+		case DataType::Double: return MakeScope<rttr::variant>(*reinterpret_cast<double*>(DefaultData));
+		case DataType::String: return MakeScope<rttr::variant>(*reinterpret_cast<std::string*>(DefaultData));
+		case DataType::Date:   return MakeScope<rttr::variant>(*reinterpret_cast<Date*>(DefaultData));
+		case DataType::Time:   return MakeScope<rttr::variant>(*reinterpret_cast<Time*>(DefaultData));
+		default:               return nullptr;
 		}
 	}
 
 	DataSpecification::DataSpecification(const DataSpecification& other)
 	{
 		if (other.mName)
-			mName = new std::string(*other.mName);
+			mName = MakeScope<std::string>(*other.mName);
+
 		if (other.mType)
 		{
-			mType = new DataType(*other.mType);
+			mType = MakeScope<DataType>(*other.mType);
+
 			if (other.mDefault)
+				mDefault = ConstructDefaultByType(*other.mType, other.mDefault.get());
+		}
+	}
+
+	DataSpecification& DataSpecification::operator=(const DataSpecification& other)
+	{
+		if (this != &other)
+		{
+			mName = other.mName ? MakeScope<std::string>(*other.mName) : nullptr;
+			mType = other.mType ? MakeScope<DataType>(*other.mType) : nullptr;
+			mDefault = other.mDefault ? ConstructDefaultByType(*other.mType, other.mDefault.get()) : nullptr;
+		}
+		return *this;
+	}
+
+	AdditionalSpecification::AdditionalSpecification(const AdditionalSpecification& other)
+	{
+		if (other.mName)
+			mName = MakeRef<std::string>(*other.mName);
+
+		if (other.mType)
+			mType = MakeScope<DataType>(*other.mType);
+
+		if (other.mData)
+		{
+			mData = MakeScope<std::vector<Ref<DataSpecification>>>();
+			for (const auto& dataSpec : *other.mData)
 			{
-				mDefault = ConstructDefaultByType(*other.mType, other.mDefault);
+				// Deep copy each DataSpecification
+				mData->push_back(dataSpec ? MakeRef<DataSpecification>(*dataSpec) : nullptr);
 			}
 		}
 	}
-	DataSpecification::DataSpecification(DataSpecification&& other) noexcept
+
+	AdditionalSpecification& AdditionalSpecification::operator=(const AdditionalSpecification& other)
 	{
-		mName = other.mName;
-		mType = other.mType;
-		mDefault = other.mDefault;
-
-		other.mName = nullptr;
-		other.mType = nullptr;
-		other.mDefault = nullptr;
-	}
-	DataSpecification::~DataSpecification()
-	{
-		if (mName) delete mName;
-		if (mType) delete mType;
-		if (mDefault) delete mDefault;
-	}
-	DataSpecification& DataSpecification::operator=(DataSpecification&& other) noexcept
-	{
-		if (this == &other) return *this;
-
-		// Clean up current
-		if (mName)
-			delete mName;
-		if (mType)
-			delete mType;
-		if (mDefault)
-			delete mDefault;
-
-		mName = other.mName;
-		mType = other.mType;
-		mDefault = other.mDefault;
-
-		other.mName = nullptr;
-		other.mType = nullptr;
-		other.mDefault = nullptr;
-
-		return *this;
-	}
-	DataSpecification& DataSpecification::operator=(const DataSpecification& other)
-	{
-		if (this == &other) return *this;
-
-		// Clean up current
-		if (mName)
-			delete mName;
-		if (mType)
-			delete mType;
-		if (mDefault)
-			delete mDefault;
-
-		mName = other.mName ? new std::string(*other.mName) : nullptr;
-		mType = other.mType ? new DataType(*other.mType) : nullptr;
-		if (other.mType && other.mDefault)
+		if (this != &other)
 		{
-			mDefault = ConstructDefaultByType(*other.mType, other.mDefault);
+			// Copy mName and mType
+			mName = other.mName ? MakeRef<std::string>(*other.mName) : nullptr;
+			mType = other.mType ? MakeScope<DataType>(*other.mType) : nullptr;
+
+			// Deep copy mData
+			if (other.mData)
+			{
+				mData = MakeScope<std::vector<Ref<DataSpecification>>>();
+				for (const auto& dataSpec : *other.mData)
+				{
+					mData->push_back(dataSpec ? MakeRef<DataSpecification>(*dataSpec) : nullptr);
+				}
+			}
+			else
+			{
+				mData.reset(); // clear if other.mData is null
+			}
 		}
 		return *this;
 	}

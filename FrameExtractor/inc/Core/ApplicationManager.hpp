@@ -81,12 +81,12 @@ namespace FrameExtractor
 			\brief
 				Gets the Window Manager instance.
 		*****************************************************************/
-		inline WindowManager* GetWindowManager() { return mWindowManager; }
+		inline WindowManager* GetWindowManager() { return mWindowManager.get(); }
 	private:
-		static ApplicationManager* sInstance;		//<- Singleton instance of ApplicationManager
-		WindowManager* mWindowManager = nullptr;	//<- Window manager instance
-		ImGuiManager* mImGuiManager = nullptr;		//<- ImGui manager instance
-		bool mIsRunning = true;						//<- Flag to check if the application is running
+		static ApplicationManager* sInstance;			//<- Singleton instance of ApplicationManager
+		Scope<WindowManager> mWindowManager = nullptr;	//<- Window manager instance
+		Scope<ImGuiManager> mImGuiManager = nullptr;	//<- ImGui manager instance
+		bool mIsRunning = true;							//<- Flag to check if the application is running
 	};
 }
 

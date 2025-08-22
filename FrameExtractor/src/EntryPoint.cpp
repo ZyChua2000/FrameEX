@@ -13,17 +13,19 @@
 #include <FrameExtractorPCH.hpp>
 #include <Core/PlatformUtils.hpp>
 #include <Core/ApplicationManager.hpp>
-
  // Manual flags
  //#define HIDE_CONSOLE
  //#define SHOW_CONSOLE
-
+#include <crtdbg.h>
 int main()
 {
 #if not(defined(_DEB) || defined(SHOW_CONSOLE))|| defined(HIDE_CONSOLE)
 	FrameExtractor::HideTerminal();
 #endif
+#ifdef _DEBUG
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
 	FrameExtractor::ApplicationManager* app = new FrameExtractor::ApplicationManager("Frame Extractor");
 	app->Run();
-	app->Free();
+	delete app;
 }

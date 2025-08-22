@@ -6,7 +6,7 @@ NodeCategory:
   Date:
     Type: Date
   StoreCode:
-    Type: Time
+    Type: String
 Fields:
   Customers:
     Type: Int
@@ -32,6 +32,95 @@ Fields:
   Re-entry Others:
     Type: String
     Default: "TEST"
+Additional Fields:
+  Frame Skip:
+    Type: Vector
+    Data:
+      TimeStart:
+        Type: Time
+      TimeEnd: 
+        Type: Time
+  Frame Blank:
+    Type: Singular
+    Data:
+      StartEnd:
+        Type: Bool
+        TrueText: Start
+        FalseText: End
+      Timestamp:
+        Type: Time
+  Corrupted Video:
+    Type: Vector
+    Data:
+      Video Name:
+        Type: String
+  Re-entry Customer Description:
+    Type: Vector
+    Data:
+      Gender:
+        Type: Bool
+        TrueText: M
+        FalseText: F
+      Timestamp:
+        Type: Time
+      Description:
+        Type: String
+  Suspected Staff Description:
+    Type: Vector
+    Data:
+      Gender:
+        Type: Bool
+      Timestamp:
+        Type: Time
+      Description:
+        Type: String     
+  Re-entry Suspected Staff Description:
+    Type: Vector
+    Data:
+      Gender:
+        Type: Bool
+      Timestamp:
+        Type: Time
+      Description:
+        Type: String     
+  Children Description:
+    Type: Vector
+    Data:
+      Gender:
+        Type: Bool
+      Timestamp:
+        Type: Time
+      Description:
+        Type: String
+  Re-entry Children Description:
+    Type: Vector
+    Data:
+      Gender:
+        Type: Bool
+      Timestamp:
+        Type: Time
+      Description:
+        Type: String  
+  Others Description:
+    Type: Vector
+    Data:
+      Gender:
+        Type: Bool
+      Timestamp:
+        Type: Time
+      Description:
+        Type: String
+  Re-entry Others Description:
+    Type: Vector
+    Data:
+      Gender:
+        Type: Bool
+      Timestamp:
+        Type: Time
+      Description:
+        Type: String
+  Additional Notes:
+    Type: TextBox             
 Output: Excel
 ExportList:
   ColumnHeaders:

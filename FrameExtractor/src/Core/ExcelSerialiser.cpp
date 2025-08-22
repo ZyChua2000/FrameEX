@@ -342,11 +342,11 @@ namespace FrameExtractor
 		std::map<std::string, DataSpecification> mSpecsMapping;
 		auto& excelImport = Task.mSpecs->mImportFormat->get_value<ExcelImport>();
 		Task.mPages.clear();
-		for (auto fieldSpecs : *Task.mSpecs->mFieldSpecs)
+		for (auto& fieldSpecs : *Task.mSpecs->mFieldSpecs)
 		{
 			mSpecsMapping[*fieldSpecs->mName] = *fieldSpecs;
 		}
-		for (auto categorySpecs : *Task.mSpecs->mNodeCategories)
+		for (auto& categorySpecs : *Task.mSpecs->mNodeCategories)
 		{
 			mSpecsMapping[*categorySpecs->mName] = *categorySpecs;
 		}
@@ -371,7 +371,7 @@ namespace FrameExtractor
 						}
 						else
 						{
-							dataMapping[varName] = specs.mDefault ? *reinterpret_cast<int*>(specs.mDefault) : 0; // Default value
+							dataMapping[varName] = specs.mDefault ? specs.mDefault->get_value<int>() : 0; // Default value
 						}
 						break;
 					case DataType::Bool:
@@ -381,7 +381,7 @@ namespace FrameExtractor
 						}
 						else
 						{
-							dataMapping[varName] = specs.mDefault ? *reinterpret_cast<bool*>(specs.mDefault) : false; // Default value
+							dataMapping[varName] = specs.mDefault ? specs.mDefault->get_value<bool>() : false; // Default value
 						}
 						break;
 					case DataType::Float:
@@ -391,7 +391,7 @@ namespace FrameExtractor
 						}
 						else
 						{
-							dataMapping[varName] = specs.mDefault ? *reinterpret_cast<float*>(specs.mDefault) : 0.0f; // Default value
+							dataMapping[varName] = specs.mDefault ? specs.mDefault->get_value<float>() : 0.0f; // Default value
 						}
 						break;
 					case DataType::Double:
@@ -401,7 +401,7 @@ namespace FrameExtractor
 						}
 						else
 						{
-							dataMapping[varName] = specs.mDefault ? *reinterpret_cast<double*>(specs.mDefault) : 0.0; // Default value
+							dataMapping[varName] = specs.mDefault ? specs.mDefault->get_value<double>() : 0.0; // Default value
 						}
 						break;
 					case DataType::String:
@@ -411,7 +411,7 @@ namespace FrameExtractor
 						}
 						else
 						{
-							dataMapping[varName] = specs.mDefault ? *reinterpret_cast<std::string*>(specs.mDefault) : std::string(); // Default value
+							dataMapping[varName] = specs.mDefault ? specs.mDefault->get_value<std::string>() : std::string(); // Default value
 						}
 						break;
 					case DataType::Date:
@@ -427,7 +427,7 @@ namespace FrameExtractor
 						}
 						else
 						{
-							dataMapping[varName] = specs.mDefault ? *reinterpret_cast<Date*>(specs.mDefault) : Date(); // Default value
+							dataMapping[varName] = specs.mDefault ? specs.mDefault->get_value<Date>() : Date(); // Default value
 						}
 						break;
 					case DataType::Time:
@@ -442,7 +442,7 @@ namespace FrameExtractor
 						}
 						else
 						{
-							dataMapping[varName] = specs.mDefault ? *reinterpret_cast<Time*>(specs.mDefault) : Time(); // Default value
+							dataMapping[varName] = specs.mDefault ? specs.mDefault->get_value<Time>() : Time(); // Default value
 						}
 						break;
 					}
@@ -450,7 +450,7 @@ namespace FrameExtractor
 			}
 			std::vector<rttr::variant> keys;
 			// Add dataMapping to Task
-			for (auto cat : *Task.mSpecs->mNodeCategories)
+			for (auto& cat : *Task.mSpecs->mNodeCategories)
 			{
 				if (dataMapping.contains(*cat->mName))
 				{
@@ -464,7 +464,7 @@ namespace FrameExtractor
 
 			std::vector<TaskData> datas;
 
-			for (auto field : *Task.mSpecs->mFieldSpecs)
+			for (auto& field : *Task.mSpecs->mFieldSpecs)
 			{
 				if (dataMapping.contains(*field->mName))
 				{

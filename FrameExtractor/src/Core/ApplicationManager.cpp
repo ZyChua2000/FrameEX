@@ -62,14 +62,12 @@ namespace FrameExtractor
 	{
 		mIsRunning = true;
 		LoggerManager::Init();
-		mWindowManager = new WindowManager(WindowProperties(name));
-		mImGuiManager = new ImGuiManager();
+		mWindowManager = MakeScope<WindowManager>(WindowProperties(name));
+		mImGuiManager =  MakeScope<ImGuiManager>();
 		AssetManager::Init();
 	}
 	void ApplicationManager::Free()
 	{
-		delete mImGuiManager;
-		delete mWindowManager;
 		LoggerManager::Shutdown();
 	}
 }

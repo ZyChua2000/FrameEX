@@ -178,41 +178,46 @@ namespace FrameExtractor
 	}
 	void Video::DecodeTime(float dt, float speedFactor)
 	{
-		time_per_frame = 1.0f / mFPS;  // Standard time per frame based on FPS
+		// Standard time per frame based on FPS
+		float time_per_frame = 1.0f / mFPS;
+		time_per_frame /= speedFactor; // Adjust for speed factor
 
-		// Adjust the time per frame based on the speed factor (this reduces the time interval between frames)
-		time_per_frame /= speedFactor; // If speedFactor = 2, then time_per_frame is halved, i.e., 2x speed
-
-		// Increment last frame time by dt (with speed factor applied)
+		// Increment the last frame timer
 		last_frame_time += dt;
 
-		// Skip frames and only process frames when enough time has passed
+		// Only process if enough time has passed for the next frame
 		while (last_frame_time >= time_per_frame)
 		{
-			// Read frames from the stream
-			while (av_read_frame(formatContext, packet) >= 0)
+			// Read one packet at a time
+			if (av_read_frame(formatContext, packet) >= 0)
 			{
 				if (packet->stream_index == videoStream->index)
 				{
-					avcodec_send_packet(codecContext, packet);
-
-					// Process only the first frame (skip subsequent frames within the same time slot)
-					if (avcodec_receive_frame(codecContext, frame) == 0)
+					// Send packet to decoder
+					if (avcodec_send_packet(codecContext, packet) == 0)
 					{
-						// Convert frame to the desired format
-						sws_scale(swsContext, frame->data, frame->linesize, 0, mHeight, RGBframe->data, RGBframe->linesize);
+						// Receive frame from decoder
+						if (avcodec_receive_frame(codecContext, frame) == 0)
+						{
+							// Convert to RGB (or your target format)
+							sws_scale(
+								swsContext,
+								frame->data, frame->linesize,
+								0, mHeight,
+								RGBframe->data, RGBframe->linesize
+							);
 
-						// Update the texture with the new frame data
-						mTexture->Update(RGBframe->data[0]);
-
-						// Break to stop after processing just one frame (to skip others)
-						break;
+							// Update texture
+							mTexture->Update(RGBframe->data[0]);
+						}
 					}
 				}
+
+				// Always unref packet regardless of whether frame was decoded
 				av_packet_unref(packet);
 			}
 
-			// Reduce last_frame_time by time_per_frame for the next frame's calculation
+			// Subtract the frame interval for next frame calculation
 			last_frame_time -= time_per_frame;
 		}
 	}

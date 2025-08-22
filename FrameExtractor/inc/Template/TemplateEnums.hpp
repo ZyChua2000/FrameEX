@@ -29,6 +29,9 @@ namespace FrameExtractor
 		Date,
 		Time,
 		String,
+		TextBox,
+		Singular,
+		Vector,
 		Complex
 	};
 

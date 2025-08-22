@@ -85,225 +85,127 @@ namespace FrameExtractor
 {
 	DynamicTaskSpecs::DynamicTaskSpecs(const DynamicTaskSpecs& other)
 	{
-		mOutputType = other.mOutputType ? new IOType(*other.mOutputType) : nullptr;
-		mInputType = other.mInputType ? new IOType(*other.mInputType) : nullptr;
-		mTab = other.mTab ? new DataSpecification(*other.mTab) : nullptr;
+		mOutputType = other.mOutputType ? MakeScope<IOType>(*other.mOutputType) : nullptr;
+		mInputType = other.mInputType ? MakeScope<IOType>(*other.mInputType) : nullptr;
+		mTab = other.mTab ? MakeScope<DataSpecification>(*other.mTab) : nullptr;
+		mImportFormat = other.mImportFormat ? MakeScope<rttr::variant>(*other.mImportFormat) : nullptr;
+		mExportFormat = other.mExportFormat ? MakeScope<rttr::variant>(*other.mExportFormat) : nullptr;
 
 		if (other.mNodeCategories)
 		{
-			mNodeCategories = new std::vector<DataSpecification*>();
+			mNodeCategories = MakeScope<std::vector<Ref<DataSpecification>>>();
 			mNodeCategories->reserve(other.mNodeCategories->size());
-			for (auto* cat : *other.mNodeCategories)
+			for (const auto& cat : *other.mNodeCategories)
 			{
-				mNodeCategories->push_back(cat ? new DataSpecification(*cat) : nullptr);
+				mNodeCategories->push_back(cat ? MakeScope<DataSpecification> (*cat) : nullptr);
 			}
 		}
 
 		if (other.mFieldSpecs)
 		{
-			mFieldSpecs = new std::vector<DataSpecification*>();
+			mFieldSpecs = MakeScope<std::vector<Ref<DataSpecification>>>();
 			mFieldSpecs->reserve(other.mFieldSpecs->size());
-			for (auto* field : *other.mFieldSpecs)
+			for (const auto& field : *other.mFieldSpecs)
 			{
-				mFieldSpecs->push_back(field ? new DataSpecification(*field) : nullptr);
+				mFieldSpecs->push_back(field ? MakeScope<DataSpecification>(*field) : nullptr);
 			}
 		}
-	}
-	DynamicTaskSpecs::DynamicTaskSpecs(DynamicTaskSpecs&& other) noexcept
-	{
-		mOutputType = other.mOutputType;
-		mInputType = other.mInputType;
-		mTab = other.mTab;
-		mNodeCategories = other.mNodeCategories;
-		mFieldSpecs = other.mFieldSpecs;
 
-		other.mOutputType = nullptr;
-		other.mInputType = nullptr;
-		other.mTab = nullptr;
-		other.mNodeCategories = nullptr;
-		other.mFieldSpecs = nullptr;
-	}
-	DynamicTaskSpecs& DynamicTaskSpecs::operator=(DynamicTaskSpecs&& other) noexcept
-	{
-		if (this == &other) return *this;
-
-		// Clean up current
-		if (mOutputType)
-			delete mOutputType;
-		if (mInputType)
-			delete mInputType;
-		if (mTab)
-			delete mTab;
-
-		if (mNodeCategories)
+		if (other.mAdditionalSpecs)
 		{
-			for (auto& cat : *mNodeCategories) delete cat;
-			delete mNodeCategories;
+			mAdditionalSpecs = MakeScope<std::vector<Ref<AdditionalSpecification>>>();
+			mAdditionalSpecs->reserve(other.mAdditionalSpecs->size());
+			for (const auto& additionalSpec : *other.mAdditionalSpecs)
+			{
+				mAdditionalSpecs->push_back(additionalSpec ? MakeScope<AdditionalSpecification>(*additionalSpec) : nullptr);
+			}
 		}
-
-		if (mFieldSpecs)
-		{
-			for (auto& field : *mFieldSpecs) delete field;
-			delete mFieldSpecs;
-		}
-
-		// Transfer ownership
-		mOutputType = other.mOutputType;
-		mInputType = other.mInputType;
-		mTab = other.mTab;
-		mNodeCategories = other.mNodeCategories;
-		mFieldSpecs = other.mFieldSpecs;
-
-		other.mOutputType = nullptr;
-		other.mInputType = nullptr;
-		other.mTab = nullptr;
-		other.mNodeCategories = nullptr;
-		other.mFieldSpecs = nullptr;
-
-		return *this;
+		
 	}
+
 	DynamicTaskSpecs& DynamicTaskSpecs::operator=(const DynamicTaskSpecs& other)
 	{
-		// Prevent self-assignment
-		if (this == &other) return *this;
-
-		// Clean up existing resources
-		if (mOutputType)
-			delete mOutputType;
-		if (mInputType)
-			delete mInputType;
-		if (mTab)
-			delete mTab;
-
-		if (mNodeCategories)
+		if (this != &other)
 		{
-			for (auto& cat : *mNodeCategories)
-				delete cat;
-			delete mNodeCategories;
-		}
+			mOutputType = other.mOutputType ? MakeScope<IOType>(*other.mOutputType) : nullptr;
+			mInputType = other.mInputType ? MakeScope<IOType>(*other.mInputType) : nullptr;
+			mTab = other.mTab ? MakeScope<DataSpecification>(*other.mTab) : nullptr;
+			mImportFormat = other.mImportFormat ? MakeScope<rttr::variant>(*other.mImportFormat) : nullptr;
+			mExportFormat = other.mExportFormat ? MakeScope<rttr::variant>(*other.mExportFormat) : nullptr;
+			
 
-		if (mFieldSpecs)
-		{
-			for (auto& field : *mFieldSpecs)
-				delete field;
-			delete mFieldSpecs;
-		}
-
-		// Deep copy individual pointers (check for nullptr)
-		mOutputType = other.mOutputType ? new IOType(*other.mOutputType) : nullptr;
-		mInputType = other.mInputType ? new IOType(*other.mInputType) : nullptr;
-		mTab = other.mTab ? new DataSpecification(*other.mTab) : nullptr;
-
-		// Deep copy vector of pointers: mNodeCategories
-		if (other.mNodeCategories)
-		{
-			mNodeCategories = new std::vector<DataSpecification*>();
-			mNodeCategories->reserve(other.mNodeCategories->size());
-			for (auto* cat : *other.mNodeCategories)
+			if (other.mNodeCategories)
 			{
-				mNodeCategories->push_back(cat ? new DataSpecification(*cat) : nullptr);
+				mNodeCategories = MakeScope<std::vector<Ref<DataSpecification>>>();
+				for (const auto& cat : *other.mNodeCategories)
+				{
+					mNodeCategories->push_back(MakeScope<DataSpecification>(*cat));
+				}
+			}
+			else
+			{
+				mNodeCategories.reset(); // clear if other.mData is null
+			}
+
+			if (other.mFieldSpecs)
+			{
+				mFieldSpecs = MakeScope<std::vector<Ref<DataSpecification>>>();
+				for (const auto& field : *other.mFieldSpecs)
+				{
+					mFieldSpecs->push_back(MakeScope<DataSpecification>(*field));
+				}
+			}
+			else
+			{
+				mFieldSpecs.reset(); // clear if other.mData is null
+			}
+
+			if (other.mAdditionalSpecs)
+			{
+				mAdditionalSpecs = MakeScope<std::vector<Ref<AdditionalSpecification>>>();
+				for (const auto& additionalSpec : *other.mAdditionalSpecs)
+				{
+					mAdditionalSpecs->push_back(MakeScope<AdditionalSpecification>(*additionalSpec));
+				}
+			}
+			else
+			{
+				mAdditionalSpecs.reset(); // clear if other.mData is null
 			}
 		}
-		else
-		{
-			mNodeCategories = nullptr;
-		}
-
-		// Deep copy vector of pointers: mFieldSpecs
-		if (other.mFieldSpecs)
-		{
-			mFieldSpecs = new std::vector<DataSpecification*>();
-			mFieldSpecs->reserve(other.mFieldSpecs->size());
-			for (auto* field : *other.mFieldSpecs)
-			{
-				mFieldSpecs->push_back(field ? new DataSpecification(*field) : nullptr);
-			}
-		}
-		else
-		{
-			mFieldSpecs = nullptr;
-		}
-
 		return *this;
-	}
-	DynamicTaskSpecs::~DynamicTaskSpecs()
-	{
-		if (mOutputType) delete mOutputType;
-		if (mInputType) delete mInputType;
-		if (mTab) delete mTab;
-		if (mNodeCategories)
-		{
-			for (auto& category : *mNodeCategories)
-			{
-				if (category)
-				{
-					delete category;
-				}
-			}
-		}
-		if (mFieldSpecs)
-		{
-			for (auto& field : *mFieldSpecs)
-			{
-				if (field)
-				{
-					delete field;
-				}
-			}
-		}
 	}
 
 	DynamicTask::DynamicTask(DynamicTaskSpecs& specs)
 	{
-		mSpecs = new DynamicTaskSpecs(specs);
+		mSpecs = MakeScope<DynamicTaskSpecs>(specs);
 	}
 	DynamicTask::DynamicTask(const DynamicTask& other)
 	{
 		if (other.mSpecs)
-			mSpecs = new DynamicTaskSpecs(*other.mSpecs);
+			mSpecs = MakeScope<DynamicTaskSpecs>(*other.mSpecs);
 		mTaskName = other.mTaskName;
+		mPages = other.mPages;
+		mAdditionalPages = other.mAdditionalPages;
 	}
-	DynamicTask::DynamicTask(DynamicTask&& other) noexcept
-	{
-		mSpecs = other.mSpecs;
-		mTaskName = other.mTaskName;
 
-		other.mSpecs = nullptr;
-		other.mTaskName = "";
-	}
-	DynamicTask& DynamicTask::operator=(DynamicTask&& other) noexcept
-	{
-		if (this == &other) return *this;
-
-		// Clean up current
-		if (mSpecs)
-			delete mSpecs;
-
-		// Transfer ownership
-		mSpecs = other.mSpecs;
-		mTaskName = other.mTaskName;
-
-		other.mSpecs = nullptr;
-		other.mTaskName = "";
-
-		return *this;
-	}
 	DynamicTask& DynamicTask::operator=(const DynamicTask& other)
 	{
 		// Prevent self-assignment
 		if (this == &other) return *this;
 		if (mSpecs)
-			delete mSpecs;
-		// Deep copy individual pointers (check for nullptr)
-		mSpecs = other.mSpecs ? new DynamicTaskSpecs(*other.mSpecs) : nullptr;
+			mSpecs.reset();
+		// Deep copy unique_ptr
+		if (other.mSpecs)
+			mSpecs = MakeScope<DynamicTaskSpecs>(*other.mSpecs);
+		else
+			mSpecs = nullptr;
+
 		mTaskName = other.mTaskName;
+		mPages = other.mPages; // Assuming ReflectionMap has a proper copy assignment operator
+		mAdditionalPages = other.mAdditionalPages; // Assuming ReflectionMap has a proper copy assignment operator
 
 		return *this;
-	}
-	DynamicTask::~DynamicTask()
-	{
-		if (mSpecs)
-			delete mSpecs;
 	}
 
 	std::vector<TaskData> DynamicTask::GenerateFromSpecs()
@@ -502,27 +404,27 @@ namespace FrameExtractor
 		output.mFieldName = *specs.mName;
 		switch (*specs.mType)
 		{
-		case DataType::Bool: output.mFieldData = *reinterpret_cast<bool*>(specs.mDefault);				return output;
-		case DataType::Int: output.mFieldData = *reinterpret_cast<int*>(specs.mDefault);				return output;
-		case DataType::Float: output.mFieldData = *reinterpret_cast<float*>(specs.mDefault);			return output;
-		case DataType::Double: output.mFieldData = *reinterpret_cast<double*>(specs.mDefault);			return output;
-		case DataType::String: output.mFieldData = *reinterpret_cast<std::string*>(specs.mDefault);		return output;
-		case DataType::Time: output.mFieldData = *reinterpret_cast<Time*>(specs.mDefault);				return output;
-		case DataType::Date: output.mFieldData = *reinterpret_cast<Date*>(specs.mDefault);				return output;
-		default:																						return output;
+		case DataType::Bool: output.mFieldData		= specs.mDefault->get_value<bool>();			return output;
+		case DataType::Int: output.mFieldData		= specs.mDefault->get_value<int>();				return output;
+		case DataType::Float: output.mFieldData		= specs.mDefault->get_value<float>();			return output;
+		case DataType::Double: output.mFieldData	= specs.mDefault->get_value<double>();			return output;
+		case DataType::String: output.mFieldData	= specs.mDefault->get_value<std::string>();		return output;
+		case DataType::Time: output.mFieldData		= specs.mDefault->get_value<Time>();			return output;
+		case DataType::Date: output.mFieldData		= specs.mDefault->get_value<Date>();			return output;
+		default:																					return output;
 		}
 	}
 
 	DynamicTask GenerateTask(std::filesystem::path path)
 	{
 		DynamicTask task;
-		task.mSpecs = new DynamicTaskSpecs;
+		task.mSpecs = MakeScope<DynamicTaskSpecs>();
 		YAML::Node config = YAML::LoadFile(path.string());
 
 		if (config["Input"])
 		{
-			task.mSpecs->mInputType = new IOType(magic_enum::enum_cast<IOType>(config["Input"].as<std::string>()).value());
-			task.mSpecs->mImportFormat = new rttr::variant(ExcelImport{});
+			task.mSpecs->mInputType = MakeScope<IOType>(magic_enum::enum_cast<IOType>(config["Input"].as<std::string>()).value());
+			task.mSpecs->mImportFormat = MakeScope<rttr::variant>(ExcelImport{});
 			auto& fmt = task.mSpecs->mImportFormat->get_value<ExcelImport>();
 			if (config["ImportList"]["Settings"])
 			{
@@ -539,12 +441,12 @@ namespace FrameExtractor
 
 		if (config["Output"])
 		{
-			task.mSpecs->mOutputType = new IOType(magic_enum::enum_cast<IOType>(config["Output"].as<std::string>()).value());
+			task.mSpecs->mOutputType = MakeScope<IOType>(magic_enum::enum_cast<IOType>(config["Output"].as<std::string>()).value());
 		}
 
 		if (*task.mSpecs->mOutputType == IOType::Excel)
 		{
-			task.mSpecs->mExportFormat = new rttr::variant(ExcelExport{});
+			task.mSpecs->mExportFormat = MakeScope<rttr::variant>(ExcelExport{});
 			auto& fmt = task.mSpecs->mExportFormat->get_value<ExcelExport>();
 			if (config["ExportList"]["ColumnHeaders"])
 			{
@@ -564,28 +466,28 @@ namespace FrameExtractor
 
 		if (config["Tab"])
 		{
-			task.mSpecs->mTab = new DataSpecification();
+			task.mSpecs->mTab = MakeScope<DataSpecification>();
 			if (config["Tab"]["Type"])
 			{
-				task.mSpecs->mTab->mType = new DataType(magic_enum::enum_cast<DataType>(config["Tab"]["Type"].as<std::string>()).value());
+				task.mSpecs->mTab->mType = MakeScope<DataType>(magic_enum::enum_cast<DataType>(config["Tab"]["Type"].as<std::string>()).value());
 			}
 			if (config["Tab"]["Name"])
 			{
-				task.mSpecs->mTab->mName = new std::string(config["Tab"]["Name"].as<std::string>());
+				task.mSpecs->mTab->mName = MakeScope<std::string>(config["Tab"]["Name"].as<std::string>());
 			}
 		}
 
 		if (config["NodeCategory"])
 		{
-			task.mSpecs->mNodeCategories = new std::vector<DataSpecification*>();
+			task.mSpecs->mNodeCategories = MakeScope<std::vector<Ref<DataSpecification>>>();
 			for (const auto& category : config["NodeCategory"])
 			{
-				DataSpecification* dataspecs = new DataSpecification();
+				Ref<DataSpecification> dataspecs = MakeRef<DataSpecification>();
 				if (category.second["Type"])
 				{
-					dataspecs->mType = new DataType(magic_enum::enum_cast<DataType>(category.second["Type"].as<std::string>()).value());
+					dataspecs->mType = MakeScope<DataType>(magic_enum::enum_cast<DataType>(category.second["Type"].as<std::string>()).value());
 				}
-				dataspecs->mName = new std::string(category.first.as<std::string>());
+				dataspecs->mName = MakeScope<std::string>(category.first.as<std::string>());
 				task.mSpecs->mNodeCategories->push_back(dataspecs);
 			}
 		}
@@ -597,28 +499,28 @@ namespace FrameExtractor
 
 		if (config["Fields"])
 		{
-			task.mSpecs->mFieldSpecs = new std::vector<DataSpecification*>();
+			task.mSpecs->mFieldSpecs = MakeScope<std::vector<Ref<DataSpecification>>>();
 			for (const auto& field : config["Fields"])
 			{
-				DataSpecification* dataspecs = new DataSpecification();
-				dataspecs->mName = new std::string(field.first.as<std::string>());
+				Ref<DataSpecification> dataspecs = MakeRef<DataSpecification>();
+				dataspecs->mName = MakeScope<std::string>(field.first.as<std::string>());
 
 				if (field.second["Type"])
 				{
-					dataspecs->mType = new DataType(magic_enum::enum_cast<DataType>(field.second["Type"].as<std::string>()).value());
+					dataspecs->mType = MakeScope<DataType>(magic_enum::enum_cast<DataType>(field.second["Type"].as<std::string>()).value());
 				}
 
 				if (field.second["Default"])
 				{
 					switch (*dataspecs->mType)
 					{
-					case DataType::Bool: dataspecs->mDefault = new bool(field.second["Default"].as<bool>()); break;
-					case DataType::Int: dataspecs->mDefault = new int(field.second["Default"].as<int>()); break;
-					case DataType::Float: dataspecs->mDefault = new float(field.second["Default"].as<float>()); break;
-					case DataType::Double: dataspecs->mDefault = new double(field.second["Default"].as<double>()); break;
-					case DataType::String: dataspecs->mDefault = new std::string(field.second["Default"].as<std::string>()); break;
-					case DataType::Date: dataspecs->mDefault = new Date(field.second["Default"].as<Date>()); break;
-					case DataType::Time: dataspecs->mDefault = new Time(field.second["Default"].as<Time>()); break;
+					case DataType::Bool:	dataspecs->mDefault =	MakeScope<rttr::variant>(field.second["Default"].as<bool>()); break;
+					case DataType::Int:		dataspecs->mDefault =	MakeScope<rttr::variant>(field.second["Default"].as<int>()); break;
+					case DataType::Float:	dataspecs->mDefault =	MakeScope<rttr::variant>(field.second["Default"].as<float>()); break;
+					case DataType::Double:	dataspecs->mDefault =	MakeScope<rttr::variant>(field.second["Default"].as<double>()); break;
+					case DataType::String:	dataspecs->mDefault =	MakeScope<rttr::variant>(field.second["Default"].as<std::string>()); break;
+					case DataType::Date:	dataspecs->mDefault =	MakeScope<rttr::variant>(field.second["Default"].as<Date>()); break;
+					case DataType::Time:	dataspecs->mDefault =	MakeScope<rttr::variant>(field.second["Default"].as<Time>()); break;
 					default: break;
 					}
 				}
@@ -627,7 +529,53 @@ namespace FrameExtractor
 			}
 		}
 
-		task.GenerateFromSpecs();
+		if (config["Additional Fields"]) // Additional Fields
+		{
+			task.mSpecs->mAdditionalSpecs = MakeScope<std::vector<Ref<AdditionalSpecification>>>();
+			for (const auto& field : config["Additional Fields"]) // Frame Skip, Frame Blank, Corrupted Videos
+			{
+				Ref<AdditionalSpecification> additionalSpec = MakeRef<AdditionalSpecification>();
+				additionalSpec->mName = MakeScope<std::string>(field.first.as<std::string>());
+				additionalSpec->mType = MakeScope<DataType>(magic_enum::enum_cast<DataType>(field.second["Type"].as<std::string>()).value());
+
+				if (field.second["Data"])
+				{
+					additionalSpec->mData = MakeScope<std::vector<Ref<DataSpecification>>>();
+					for (const auto& data : field.second["Data"]) // StartEnd, TimeStamp, Video Name
+					{
+						// Create a new DataSpecification for each data entry
+						if (data.second["Type"])
+						{
+							additionalSpec->mData->push_back(MakeScope<DataSpecification>());
+							auto& dataSpec = additionalSpec->mData->back();
+							dataSpec->mName = MakeScope<std::string>(data.first.as<std::string>());
+							dataSpec->mType = MakeScope<DataType>(magic_enum::enum_cast<DataType>(data.second["Type"].as<std::string>()).value());
+							if (*dataSpec->mType == DataType::Bool)
+							{
+								if (data.second["TrueText"] && data.second["FalseText"])
+								{
+									dataSpec->mDefault = MakeScope<rttr::variant>(std::pair<std::string, std::string>(data.second["TrueText"].as<std::string>(), data.second["FalseText"].as<std::string>()));
+								}
+							}
+						}
+					}
+				}
+				switch (*additionalSpec->mType)
+				{
+				case DataType::TextBox:
+					task.mAdditionalPages[additionalSpec->mName] = std::string();
+					break;
+				case DataType::Vector:
+					task.mAdditionalPages[additionalSpec->mName] = std::vector<std::vector<rttr::variant>>();
+					break;
+				case DataType::Singular:
+					task.mAdditionalPages[additionalSpec->mName] = std::vector<rttr::variant>();
+					break;
+				}
+				task.mSpecs->mAdditionalSpecs->push_back(additionalSpec);
+			}
+		}
+
 		return task;
 	}
 	void DumpTask(DynamicTask tasks, int tab)
@@ -664,13 +612,13 @@ namespace FrameExtractor
 
 						switch (*categories->mType)
 						{
-						case DataType::Bool: std::cout << *reinterpret_cast<bool*>(categories->mDefault); break;
-						case DataType::Int: std::cout << *reinterpret_cast<int*>(categories->mDefault); break;
-						case DataType::Float: std::cout << *reinterpret_cast<float*>(categories->mDefault); break;
-						case DataType::Double: std::cout << *reinterpret_cast<double*>(categories->mDefault); break;
-						case DataType::String: std::cout << *reinterpret_cast<std::string*>(categories->mDefault); break;
-						case DataType::Date: std::cout << *reinterpret_cast<std::string*>(categories->mDefault); break;
-						case DataType::Time: std::cout << *reinterpret_cast<std::string*>(categories->mDefault); break;
+						case DataType::Bool: std::cout		<< categories->mDefault->get_value<bool>(); break;
+						case DataType::Int: std::cout		<< categories->mDefault->get_value<int>(); break;
+						case DataType::Float: std::cout		<< categories->mDefault->get_value<float>(); break;
+						case DataType::Double: std::cout	<< categories->mDefault->get_value<double>(); break;
+						case DataType::String: std::cout	<< categories->mDefault->get_value<std::string>(); break;
+						case DataType::Date: std::cout		<< categories->mDefault->get_value<Time>().to_string(); break;
+						case DataType::Time: std::cout		<< categories->mDefault->get_value<Date>().to_string(); break;
 						default: break;
 						}
 

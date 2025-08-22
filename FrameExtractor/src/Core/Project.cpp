@@ -329,6 +329,9 @@ namespace FrameExtractor
 	Project::Project()
 	{
 		mDynamicTask = GenerateTask("resources\\presets\\TaskType\\Counting\\DiorCounting.yaml");
+		mDynamicTask.AddPage({}, Date(4, 2, 2000));
+		mDynamicTask.AddPage({ Date(4, 2, 2000) }, "TestStore");
+		mDynamicTask.AddTab({ Date(4, 2, 2000), "TestStore" }, 3);
 		AssetManager::mAssetDirectory = &mAssetDir;
 	}
 

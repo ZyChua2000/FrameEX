@@ -14,7 +14,7 @@
 #define GUIUtils_HPP
  // Standard Library includes
 #include <chrono>
-
+#include <Template/TemplateDataType.hpp>
 // Third-party includes
 #include <rttr/variant.h>
 struct ImGuiInputTextCallbackData;
@@ -48,6 +48,20 @@ namespace FrameExtractor
 
 		/*!***********************************************************************
 			\brief
+				Widget that creates a text input field for time input.
+			\param[in] label
+				The label for the input field.
+			\param[in] inText
+				The Time to be modified by the input field.
+			\param[in] itemWidth
+				The width of the input field.
+			\return
+				Boolean indicating whether the input was successful.
+		*************************************************************************/
+		bool InputTime(const char* label, Time& inText, float itemWidth);
+
+		/*!***********************************************************************
+			\brief
 				Widget that creates a text input field for date input.
 			\param[in] label
 				The label for the input field.
@@ -57,6 +71,20 @@ namespace FrameExtractor
 				The width of the input field.
 		*************************************************************************/
 		void InputDate(const char* label, rttr::variant& inDate, float itemWidth);
+
+		/*!***********************************************************************
+			\brief
+				Widget that creates a text input field for date input.
+			\param[in] label
+				The label for the input field.
+			\param[in] inDate
+				The date to be modified by the input field.
+			\param[in] itemWidth
+				The width of the input field.
+			\return
+				Boolean indicating whether the input was successful.
+		*************************************************************************/
+		bool InputDate(const char* label, Date& inDate, float itemWidth);
 
 		/*!***********************************************************************
 			\brief

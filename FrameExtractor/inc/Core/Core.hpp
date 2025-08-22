@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file       LoggerManager.hpp
+\file       Core.hpp
 \author     Chua Zheng Yang
 \par		email: 2202829\@sit.singaporetech.edu.sg
 \par    	email: zhengyang.chua\@hendrickscorp.com
@@ -14,7 +14,7 @@
 #define CORE_HPP
  // Standard Library includes
 #include <memory>
-
+#include <vector>
 namespace FrameExtractor
 {
 	template <typename ClassObject>

@@ -166,9 +166,7 @@ namespace FrameExtractor
 
 	Ref<Texture> Texture::GetInvisibleTexture()
 	{
-		static unsigned char data[4]{ 0,0,0,0 };
-		static Ref<Texture> sInvisibleTexture = MakeRef<Texture>(GL_RGBA, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
+		static Ref<Texture> sInvisibleTexture = MakeRef<Texture>(GL_RGBA, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, "\0\0\0");
 		return sInvisibleTexture;
 	}
 }

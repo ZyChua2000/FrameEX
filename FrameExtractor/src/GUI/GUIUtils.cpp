@@ -232,6 +232,81 @@ namespace FrameExtractor
 			}
 		}
 	}
+	bool Widget::InputTime(const char* label, Time& inVar, float itemWidth)
+	{
+		char buffer[16] = {};
+		std::memcpy(buffer, inVar.to_string().c_str(), inVar.to_string().size());
+		ImGui::SetNextItemWidth(itemWidth);
+		if (ImGui::InputText(label, buffer, 16, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCharFilter, Format::FilterNumbersAndColon))
+		{
+			if (Format::isValidFormat(buffer))
+			{
+				Time t = from_string(buffer);
+				inVar = t;
+			}
+			else
+			{
+				std::string timeStampStr(buffer);
+				if (timeStampStr != "")
+				{
+					timeStampStr.erase(std::remove(timeStampStr.begin(), timeStampStr.end(), ':'), timeStampStr.end());
+					if (timeStampStr.size() > 6)
+					{
+						int last2Digits = std::stoi(timeStampStr.substr(timeStampStr.size() - 2));
+						int mid2 = std::stoi(timeStampStr.substr(timeStampStr.size() - 4, 2));
+						int firstDigits = std::stoi(timeStampStr.substr(0, timeStampStr.size() - 4));
+
+						if (last2Digits >= 60)
+						{
+							last2Digits -= 60;
+							mid2 += 1;
+						}
+						if (mid2 >= 60)
+						{
+							mid2 -= 60;
+							firstDigits += 1;
+						}
+						firstDigits = firstDigits % 24;
+
+						std::ostringstream ossTime;
+						ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
+							<< std::setfill('0') << std::setw(2) << mid2 << ":"
+							<< std::setfill('0') << std::setw(2) << last2Digits;
+
+						Time t = from_string(ossTime.str());
+						inVar = t;
+					}
+					else
+					{
+						int intTime = std::stoi(buffer);
+						int last2Digits = intTime % 100;
+						int mid2 = (intTime / 100) % 100;
+						int firstDigits = (intTime / 10000) % 100;
+						if (last2Digits >= 60)
+						{
+							last2Digits -= 60;
+							mid2 += 1;
+						}
+						if (mid2 >= 60)
+						{
+							mid2 -= 60;
+							firstDigits += 1;
+						}
+						firstDigits = firstDigits % 24;
+
+						std::ostringstream ossTime;
+						ossTime << std::setfill('0') << std::setw(2) << firstDigits << ":"
+							<< std::setfill('0') << std::setw(2) << mid2 << ":"
+							<< std::setfill('0') << std::setw(2) << last2Digits;
+						Time t = from_string(ossTime.str());
+						inVar = t;
+					}
+				}
+			}
+			return true;
+		}
+		return false;
+	}
 	void Widget::InputDate(const char* label, rttr::variant& inDate, float itemWidth)
 	{
 		char buffer[16] = {};
@@ -266,6 +341,49 @@ namespace FrameExtractor
 		inText.year = year;
 
 		inDate = inText;
+	}
+	bool Widget::InputDate(const char* label, Date& inDate, float itemWidth)
+	{
+		bool output = false;
+		char buffer[16] = {};
+		std::memcpy(buffer, inDate.to_string().c_str(), inDate.to_string().size());
+		itemWidth -= ImGui::GetStyle().ItemSpacing.x * 4; // Adjust for spacing between inputs
+		itemWidth -= ImGui::GetStyle().FramePadding.x * 2.f; // Adjust for padding on both sides
+		itemWidth -= ImGui::CalcTextSize("/").x * 2;
+		itemWidth /= 4;
+		ImGui::SetNextItemWidth(itemWidth);
+
+		int day = inDate.day;
+		if (ImGui::InputInt(("##" + std::string("day") + label).c_str(), &day, 0, 0, ImGuiInputTextFlags_CharsDecimal))
+		{
+			inDate.day = day;
+			output = true;
+		}
+		ImGui::SameLine();
+
+		ImGui::Text("/");
+		ImGui::SameLine();
+
+		ImGui::SetNextItemWidth(itemWidth);
+		int month = inDate.month;
+		if (ImGui::InputInt(("##" + std::string("month") + label).c_str(), &month, 0, 0, ImGuiInputTextFlags_CharsDecimal))
+		{
+			inDate.month = month;
+			output = true;
+		}
+		ImGui::SameLine();
+
+		ImGui::Text("/");
+		ImGui::SameLine();
+
+		ImGui::SetNextItemWidth(itemWidth * 2);
+		int year = inDate.year;
+		if (ImGui::InputInt(("##" + std::string("year") + label).c_str(), &year, 0, 0, ImGuiInputTextFlags_CharsDecimal))
+		{
+			inDate.year = year;
+			output = true;
+		}
+		return output;
 	}
 	void Widget::InputInt(const char* label, const char* display, int32_t& data)
 	{

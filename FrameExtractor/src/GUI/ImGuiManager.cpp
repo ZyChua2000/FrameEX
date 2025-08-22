@@ -215,49 +215,49 @@ namespace FrameExtractor
 	{
 		Init();
 		glfwSetKeyCallback((GLFWwindow*)ApplicationManager::GetInstance()->GetWindowManager()->GetNativeWindow(), key_callback);
-		{
-			std::string name = "Viewport";
-			ImVec2 size = ImVec2{ 1000,800 };
-			ImVec2 pos = ImVec2{ 0,0 };
-			mViewportPanel = new ViewportPanel(name, size, pos);
-			mViewportPanel->OnAttach();
-		}
+		
+		std::string name = "Viewport";
+		ImVec2 size = ImVec2{ 1000,800 };
+		ImVec2 pos = ImVec2{ 0,0 };
+		mViewportPanel = MakeScope<ViewportPanel>(name, size, pos);
+		mViewportPanel->OnAttach();
+		
 
-		{
-			mConsolePanel = new ConsolePanel();
-			mConsolePanel->OnAttach();
-			LoggerManager::SetConsole(mConsolePanel);
-		}
+		
+		mConsolePanel = MakeScope<ConsolePanel>();
+		mConsolePanel->OnAttach();
+		LoggerManager::SetConsole(mConsolePanel.get());
+		
 
-		{
-			mExplorerPanel = new ExplorerPanel(&mProject);
-			mExplorerPanel->OnAttach();
-		}
+		
+		mExplorerPanel = MakeScope<ExplorerPanel>(&mProject);
+		mExplorerPanel->OnAttach();
+		
 
-		{
-			mToolsPanel = new ToolsPanel(&mProject);
-			mToolsPanel->OnAttach();
-		}
+		
+		mToolsPanel = MakeScope<ToolsPanel>(&mProject);
+		mToolsPanel->OnAttach();
+		
 
-		{
-			mProjectPanel = new ProjectPanel(mExplorerPanel, mViewportPanel, &mProject);
-			mProjectPanel->OnAttach();
-		}
+		
+		mProjectPanel = MakeScope<ProjectPanel>(mExplorerPanel.get(), mViewportPanel.get(), &mProject);
+		mProjectPanel->OnAttach();
+		
 	}
 
 	ImGuiManager::~ImGuiManager()
 	{
+		if (mToolsPanel)
 		mToolsPanel->OnDetach();
+		if (mProjectPanel)
 		mProjectPanel->OnDetach();
+		if (mExplorerPanel)
 		mExplorerPanel->OnDetach();
+		if (mConsolePanel)
 		mConsolePanel->OnDetach();
+		if (mViewportPanel)
 		mViewportPanel->OnDetach();
 
-		delete mToolsPanel;
-		delete mProjectPanel;
-		delete mExplorerPanel;
-		delete mConsolePanel;
-		delete mViewportPanel;
 		Shutdown();
 
 		SavePreferences();

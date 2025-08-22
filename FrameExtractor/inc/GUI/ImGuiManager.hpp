@@ -14,6 +14,7 @@
 #define ImGuiManager_HPP
  // Project includes
 #include <Core/Project.hpp>
+#include <Core/Core.hpp>
 struct ImFont;
 
 namespace FrameExtractor
@@ -135,11 +136,11 @@ namespace FrameExtractor
 		*************************************************************************/
 		void LoadPreferences();
 		// panels
-		ViewportPanel* mViewportPanel;
-		ProjectPanel* mProjectPanel;
-		ConsolePanel* mConsolePanel;
-		ExplorerPanel* mExplorerPanel;
-		ToolsPanel* mToolsPanel;
+		Scope<ViewportPanel> mViewportPanel;
+		Scope<ProjectPanel> mProjectPanel;
+		Scope<ConsolePanel> mConsolePanel;
+		Scope<ExplorerPanel> mExplorerPanel;
+		Scope<ToolsPanel> mToolsPanel;
 
 		Project mProject;
 		EditorPreferences mPreferences;

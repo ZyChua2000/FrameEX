@@ -178,7 +178,7 @@ namespace FrameExtractor
 					if (importSettingbool)
 					{
 						ImGui::SetNextWindowSize({ lineHeight * 25, lineHeight * 20 }, ImGuiCond_Always);
-						ImGui::Begin("ImportSettingsPopup##Counting", &importSettingbool, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_Modal);
+						ImGui::Begin("Import Settings##PopupCounting", &importSettingbool, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_Modal);
 
 						if (ImGui::Button("Save##ImportSettings", { lineHeight * 2, lineHeight }))
 						{
@@ -196,7 +196,7 @@ namespace FrameExtractor
 						ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 						auto& columnHeaders = mExcelImportBuffer.mDataMapping;
 
-						ImGui::Begin("Headers##Counting", nullptr, ImGuiWindowFlags_NoMove);
+						ImGui::Begin("Headers##ImportCounting", nullptr, ImGuiWindowFlags_NoMove);
 						ImGui::Text("Column Headers");
 						ImGui::SameLine();
 						if (ImGui::Button("+##ColumnHeader", { lineHeight, lineHeight }))
@@ -365,7 +365,7 @@ namespace FrameExtractor
 					if (exportSettingbool)
 					{
 						ImGui::SetNextWindowSize({ lineHeight * 25, lineHeight * 20 }, ImGuiCond_Always);
-						ImGui::Begin("ExportSettingsPopup##Counting", &exportSettingbool, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_Modal);
+						ImGui::Begin("Export Settings##PopupCounting", &exportSettingbool, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_Modal);
 
 						if (ImGui::Button("Save##ExportSettings", { lineHeight * 2, lineHeight }))
 						{
@@ -385,7 +385,7 @@ namespace FrameExtractor
 						auto& columnProps = mExcelExportBuffer.mDataColumnMapping;
 						auto& columnHeaders = mExcelExportBuffer.mColumnHeaders;
 
-						ImGui::Begin("Headers##Counting", nullptr, ImGuiWindowFlags_NoMove);
+						ImGui::Begin("Headers##ExportCounting", nullptr, ImGuiWindowFlags_NoMove);
 						ImGui::Text("Column Headers");
 						ImGui::SameLine();
 						if (ImGui::Button("+##ColumnHeader", { lineHeight, lineHeight }))
@@ -1125,6 +1125,379 @@ namespace FrameExtractor
 							}
 						}
 						ImGui::Columns(1);
+
+						ImGui::Separator();
+						ImGui::BeginChild("##Additional Fields");
+
+						auto& AdditionalFields = Task.mSpecs->mAdditionalSpecs;
+						auto& AdditionalData = mTaskInterface.GetAdditionalData();
+						for (auto& field : *AdditionalFields)
+						{
+							if (field)
+							{
+								auto& fieldData = AdditionalData[field->mName];
+								if (field->mType)
+								{
+									if (*field->mType == DataType::Singular)
+									{
+										auto& container = fieldData.get_value<std::vector<rttr::variant>>();
+										if (!container.empty())
+										{
+											if (ImGui::Button(("-##" + *field->mName).c_str(), { lineHeight, 0 }))
+											{
+												container.clear();
+											}
+										}
+										else
+										{
+											if (ImGui::Button(("+##" + *field->mName).c_str(), { lineHeight, 0 }))
+											{
+												for (auto& spec : *field->mData)
+												{
+													if (spec->mType)
+													{
+														switch (*spec->mType)
+														{
+														case DataType::Int:
+															container.push_back(0);
+															break;
+														case DataType::Float:
+															container.push_back(0.0f);
+															break;
+														case DataType::Double:
+															container.push_back(0.0);
+															break;
+														case DataType::Bool:
+															container.push_back(false);
+															break;
+														case DataType::String:
+															container.push_back(std::string());
+															break;
+														case DataType::Date:
+															container.push_back(Date());
+															break;
+														case DataType::Time:
+															container.push_back(Time());
+															break;
+														default:
+															break;
+														}
+													}
+												}
+											}
+										}
+										ImGui::SameLine();
+									}
+									else if (*field->mType == DataType::Vector)
+									{
+										
+										if (ImGui::Button(("+##" + *field->mName).c_str(), { lineHeight, 0 }))
+										{
+											std::vector<rttr::variant> sample;
+											for (auto& spec : *field->mData)
+											{
+												if (spec->mType)
+												{
+													switch (*spec->mType)
+													{
+													case DataType::Int:
+														sample.push_back(0);
+														break;
+													case DataType::Float:
+														sample.push_back(0.0f);
+														break;
+													case DataType::Double:
+														sample.push_back(0.0);
+														break;
+													case DataType::Bool:
+														sample.push_back(false);
+														break;
+													case DataType::String:
+														sample.push_back(std::string());
+														break;
+													case DataType::Date:
+														sample.push_back(Date());
+														break;
+													case DataType::Time:
+														sample.push_back(Time());
+														break;
+													default:
+														break;
+													}
+												}
+											}
+											auto& container = fieldData.get_value<std::vector<std::vector<rttr::variant>>>();
+											container.push_back(sample);
+										}
+										ImGui::SameLine();
+									}
+								}
+								ImGui::PushFont(ImGuiManager::BoldFont);
+								ImGui::Text(field->mName->c_str());
+								ImGui::PopFont();
+								if (field->mType)
+								{
+									switch(*field->mType)
+									{
+									case DataType::TextBox:
+										{
+											char buffer[256] = {};
+											std::memcpy(buffer, fieldData.get_value<std::string>().c_str(), fieldData.get_value<std::string>().size());
+											if (ImGui::InputTextMultiline("##NotesCounting", buffer, IM_ARRAYSIZE(buffer), ImVec2(ImGui::GetContentRegionAvail().x, lineHeight * 5)))
+											{
+												CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<std::string>>(&fieldData, fieldData.get_value<std::string>(), buffer));
+											}
+											break;
+										}
+									case DataType::Vector:
+										if (field->mData)
+										{
+											auto& overArchContainer = fieldData.get_value<std::vector<std::vector<rttr::variant>>>();
+											int deleteIndex = -1;
+											if (overArchContainer.empty() == false)
+											{
+												for (int containerCount = 0; containerCount < overArchContainer.size(); containerCount++)
+												{
+													ImGui::PushID(containerCount);
+													ImGui::Indent(lineHeight);
+													auto& container = overArchContainer[containerCount];
+													for (int fieldDataCount = 0; fieldDataCount < field->mData->size(); fieldDataCount++)
+													{
+														ImGui::PushID(fieldDataCount);
+														if (!container.empty())
+														{
+															auto& printedData = container[fieldDataCount];
+															ImGui::SetNextItemWidth(lineHeight * 4);
+															switch (*field->mData->at(fieldDataCount)->mType)
+															{
+															case DataType::Int:
+															{
+																int buffer = printedData.to_int();
+																if (ImGui::InputInt(("##" + *field->mName).c_str(), &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<int>>(&printedData, printedData.get_value<int>(), buffer));
+																}
+																break;
+															}
+															case DataType::Float:
+															{
+																float buffer = printedData.to_float();
+																if (ImGui::InputFloat(("##" + *field->mName).c_str(), &buffer, 0.1f, 0.1f, "%.3f", ImGuiInputTextFlags_CharsDecimal))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<float>>(&printedData, printedData.get_value<float>(), buffer));
+																}
+																break;
+															}
+															case DataType::Double:
+															{
+																double buffer = printedData.to_double();
+																if (ImGui::InputDouble(("##" + *field->mName).c_str(), &buffer, 0.1, 0.1, "%.6f", ImGuiInputTextFlags_CharsDecimal))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<double>>(&printedData, printedData.get_value<double>(), buffer));
+																}
+																break;
+															}
+															case DataType::Bool:
+															{
+																bool buffer = printedData.to_bool();
+																if (field->mData->at(fieldDataCount)->mDefault)
+																{
+																	auto textPair = field->mData->at(fieldDataCount)->mDefault->get_value<std::pair<std::string, std::string>>();
+			
+																	auto actualWidth = std::max({ 
+																		lineHeight, 
+																		ImGui::CalcTextSize(textPair.first.c_str()).x + ImGui::GetStyle().FramePadding.x * 2, 
+																		ImGui::CalcTextSize(textPair.second.c_str()).x + ImGui::GetStyle().FramePadding.x * 2 });
+																	if (buffer)
+																	{
+																		if (ImGui::Button((textPair.first + "##" + *field->mName).c_str(), { actualWidth , 0}))
+																		{
+																			CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<bool>>(&printedData, printedData.get_value<bool>(), false));
+																		}
+																	}
+																	else
+																	{
+																		if (ImGui::Button((textPair.second + "##" + *field->mName).c_str(), { actualWidth , 0}))
+																		{
+																			CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<bool>>(&printedData, printedData.get_value<bool>(), true));
+																		}
+																	}
+																}
+																else if (ImGui::Checkbox(("##" + *field->mName).c_str(), &buffer))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<bool>>(&printedData, printedData.get_value<bool>(), buffer));
+																}
+																break;
+															}
+															case DataType::String:
+															{
+																std::string buffer = printedData.to_string();
+																char DescBuffer[256] = {};
+																std::memcpy(DescBuffer, buffer.c_str(), 256);
+																if (ImGui::InputText(("##" + *field->mName).c_str(), DescBuffer, 256))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<std::string>>(&printedData, printedData.get_value<std::string>(), std::string(DescBuffer)));
+																}
+																break;
+															}
+															case DataType::Date:
+															{
+																Date buffer = printedData.get_value<Date>();
+																if (Widget::InputDate(("##" + *field->mName).c_str(), buffer, lineHeight * 6))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<Date>>(&printedData, printedData.get_value<Date>(), buffer));
+																}
+																break;
+															}
+															case DataType::Time:
+															{
+																Time buffer = printedData.get_value<Time>();
+																if (Widget::InputTime(("##" + *field->mName).c_str(), buffer, lineHeight * 5))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<Time>>(&printedData, printedData.get_value<Time>(), buffer));
+																}
+																break;
+															}
+															}
+														}
+														ImGui::PopID();
+														ImGui::SameLine();
+
+													}
+													ImGui::SameLine();
+													if (ImGui::Button(("-##" + *field->mName + std::to_string(containerCount)).c_str(), { lineHeight, 0 }))
+													{
+														deleteIndex = containerCount;
+													}
+													ImGui::Unindent(lineHeight);
+													ImGui::PopID();
+												}
+												if (deleteIndex != -1)
+												{
+													overArchContainer.erase(overArchContainer.begin() + deleteIndex);
+												}
+											}
+										}
+										break;
+									case DataType::Singular:
+										{
+											if (field->mData)
+											{
+												ImGui::Indent(lineHeight);
+												for (int fieldDataCount = 0; fieldDataCount < field->mData->size() ; fieldDataCount++)
+												{
+													ImGui::PushID(fieldDataCount);
+													auto& container = fieldData.get_value<std::vector<rttr::variant>>();
+													if (!container.empty())
+													{
+														auto& printedData = container[fieldDataCount];
+														ImGui::SetNextItemWidth(lineHeight * 4);
+														switch (*field->mData->at(fieldDataCount)->mType)
+														{
+															case DataType::Int:
+															{
+																int buffer = printedData.to_int();
+																if (ImGui::InputInt(("##" + *field->mName).c_str(), &buffer, 1, 1, ImGuiInputTextFlags_CharsDecimal))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<int>>(&printedData, printedData.get_value<int>(), buffer));
+																}
+																break;
+															}
+															case DataType::Float:
+															{
+																float buffer = printedData.to_float();
+																if (ImGui::InputFloat(("##" + *field->mName).c_str(), &buffer, 0.1f, 0.1f, "%.3f", ImGuiInputTextFlags_CharsDecimal))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<float>>(&printedData, printedData.get_value<float>(), buffer));
+																}
+																break;
+															}
+															case DataType::Double:
+															{
+																double buffer = printedData.to_double();
+																if (ImGui::InputDouble(("##" + *field->mName).c_str(), &buffer, 0.1, 0.1, "%.6f", ImGuiInputTextFlags_CharsDecimal))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<double>>(&printedData, printedData.get_value<double>(), buffer));
+																}
+																break;
+															}
+															case DataType::Bool:
+															{
+																bool buffer = printedData.to_bool();
+																if (field->mData->at(fieldDataCount)->mDefault)
+																{
+																	auto textPair =	field->mData->at(fieldDataCount)->mDefault->get_value<std::pair<std::string, std::string>>();
+																	auto actualWidth = std::max({
+																							lineHeight,
+																							ImGui::CalcTextSize(textPair.first.c_str()).x + ImGui::GetStyle().FramePadding.x * 2,
+																							ImGui::CalcTextSize(textPair.second.c_str()).x + ImGui::GetStyle().FramePadding.x * 2 });																	if (buffer)
+																	{
+																		if (ImGui::Button((textPair.first + "##" + *field->mName).c_str(), { actualWidth , 0}))
+																		{
+																			CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<bool>>(&printedData, printedData.get_value<bool>(), false));
+																		}
+																	}
+																	else
+																	{
+																		if (ImGui::Button((textPair.second + "##" + *field->mName).c_str(), { actualWidth , 0}))
+																		{
+																			CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<bool>>(&printedData, printedData.get_value<bool>(), true));
+																		}
+																	}
+																}
+																else if (ImGui::Checkbox(("##" + *field->mName).c_str(), &buffer))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<bool>>(&printedData, printedData.get_value<bool>(), buffer));
+																}
+																break;
+															}
+															case DataType::String:
+															{
+																std::string buffer = printedData.to_string();
+																char DescBuffer[256] = {};
+																std::memcpy(DescBuffer, buffer.c_str(), 256);
+																if (ImGui::InputText(("##" + *field->mName).c_str(), DescBuffer, 256))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<std::string>>(&printedData, printedData.get_value<std::string>(), std::string(DescBuffer)));
+																}
+																break;
+															}
+															case DataType::Date:
+															{
+																Date buffer = printedData.get_value<Date>();
+																if (Widget::InputDate(("##" + *field->mName).c_str(), buffer, lineHeight * 6))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<Date>>(&printedData, printedData.get_value<Date>(), buffer));
+																}
+																break;
+															}
+															case DataType::Time:
+															{
+																Time buffer = printedData.get_value<Time>();
+																if (Widget::InputTime(("##" + *field->mName).c_str(), buffer, lineHeight * 5))
+																{
+																	CommandHistory::execute(std::make_unique<ModifyReflectedPropertyCommand<Time>>(&printedData, printedData.get_value<Time>(), buffer));
+																}
+																break;
+															}
+														}
+													}
+													ImGui::PopID();
+													ImGui::SameLine();
+
+												}
+												ImGui::Unindent(lineHeight);
+												ImGui::NewLine();
+											}
+											break;
+										}
+									}
+								}
+							}
+						}
+
+
+						ImGui::EndChild();
 					}
 #pragma endregion
 

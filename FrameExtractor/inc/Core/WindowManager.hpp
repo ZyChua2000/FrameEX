@@ -14,7 +14,7 @@
 #define WindowManager_HPP
  // Project includes
 #include <Graphics/GraphicsContext.hpp>
-
+#include <Core/Core.hpp>
 namespace FrameExtractor
 {
 	/*!***********************************************************************
@@ -119,7 +119,7 @@ namespace FrameExtractor
 		void Shutdown();
 
 	private:
-		GraphicsContext* mContext;	//<- Graphics context for rendering
+		Scope<GraphicsContext> mContext;	//<- Graphics context for rendering
 		void* mWindow;				//<- Pointer to the native window handle (GLFWwindow* for GLFW)
 
 		/*!***********************************************************************
